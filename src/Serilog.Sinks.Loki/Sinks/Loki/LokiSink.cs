@@ -1,13 +1,11 @@
-﻿using Serilog.Core;
-using Serilog.Events;
+﻿using Serilog.Sinks.PeriodicBatching;
 
 namespace Serilog.Sinks.Loki.Sinks.Loki
 {
-    public class LokiSink : ILogEventSink
+    public class LokiSink : PeriodicBatchingSink
     {
-        public void Emit(LogEvent logEvent)
+        public LokiSink(LokiSinkOptions options) : base(options.BatchPostingLimit, options.Period, options.QueueSizeLimit)
         {
-            throw new System.NotImplementedException();
         }
     }
 }
