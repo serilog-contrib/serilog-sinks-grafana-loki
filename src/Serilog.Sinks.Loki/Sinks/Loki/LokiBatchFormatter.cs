@@ -80,7 +80,7 @@ namespace Serilog.Sinks.Loki.Sinks.Loki
                 }
             }
 
-            stream.AddEntry(logEvent.Timestamp, sb.ToString());
+            stream.AddEntry(logEvent.Timestamp, sb.ToString().TrimEnd('\r', '\n'));
         }
 
         private void GenerateLabels(LogEvent logEvent, LokiStream stream)
