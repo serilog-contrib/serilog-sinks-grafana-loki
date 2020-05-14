@@ -50,7 +50,7 @@ namespace Serilog.Sinks.Loki
                 formatter,
                 batchFormatter,
                 restrictedToMinimumLevel,
-                httpClient);
+                client);
         }
     }
 }
