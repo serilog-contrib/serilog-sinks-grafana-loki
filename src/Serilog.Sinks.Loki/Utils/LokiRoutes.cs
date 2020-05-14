@@ -4,6 +4,6 @@
     {
         private const string LogEntriesEndpoint = "/loki/api/v1/push";
 
-        public static string BuildLogsEntriesRoute(string host) => string.Join(host.TrimEnd('/'), LogEntriesEndpoint);
+        public static string BuildLogsEntriesRoute(string host) => $"{host.TrimEnd('/')}{LogEntriesEndpoint}";
     }
 }
