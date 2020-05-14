@@ -2,6 +2,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Serilog.Sinks.Loki", "src\Serilog.Sinks.Loki\Serilog.Sinks.Loki.csproj", "{1CAF37E1-C6DC-4F85-BB18-45258C687399}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Serilog.Sinks.Loki.Sample", "sample\Serilog.Sinks.Loki.Sample\Serilog.Sinks.Loki.Sample.csproj", "{C68CA6F0-ED85-47B3-9104-081714636E99}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +14,9 @@ Global
 		{1CAF37E1-C6DC-4F85-BB18-45258C687399}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1CAF37E1-C6DC-4F85-BB18-45258C687399}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1CAF37E1-C6DC-4F85-BB18-45258C687399}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C68CA6F0-ED85-47B3-9104-081714636E99}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C68CA6F0-ED85-47B3-9104-081714636E99}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C68CA6F0-ED85-47B3-9104-081714636E99}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C68CA6F0-ED85-47B3-9104-081714636E99}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
