@@ -43,7 +43,7 @@ In the following example, the sink will send log events to Loki available on `ht
 ```csharp
 ILogger logger = new LoggerConfiguration()
     .WriteTo.GrafanaLoki(
-    "http://localhost:3100")
+        "http://localhost:3100")
     .CreateLogger();
 
 logger.Information("The god of the day is {@God}", odin)
@@ -102,7 +102,7 @@ public class CustomHttpClient : DefaultLokiHttpClient
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.GrafanaLoki(
-        url: "http://localhost:3100",
+        "http://localhost:3100",
         httpClient: new CustomHttpClient()
     )
     .CreateLogger();
