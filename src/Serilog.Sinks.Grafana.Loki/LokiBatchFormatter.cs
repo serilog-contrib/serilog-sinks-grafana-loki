@@ -5,11 +5,11 @@ using System.Linq;
 using System.Text;
 using Serilog.Events;
 using Serilog.Formatting;
+using Serilog.Sinks.Grafana.Loki.Models;
+using Serilog.Sinks.Grafana.Loki.Utils;
 using Serilog.Sinks.Http;
-using Serilog.Sinks.Loki.Sinks.Loki.Models;
-using Serilog.Sinks.Loki.Utils;
 
-namespace Serilog.Sinks.Loki.Sinks.Loki
+namespace Serilog.Sinks.Grafana.Loki
 {
     internal class LokiBatchFormatter : IBatchFormatter
     {

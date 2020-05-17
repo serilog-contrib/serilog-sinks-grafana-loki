@@ -2,7 +2,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace Serilog.Sinks.Loki.Sinks.Loki.Models
+namespace Serilog.Sinks.Grafana.Loki.Models
 {
     internal class LokiBatch
     {

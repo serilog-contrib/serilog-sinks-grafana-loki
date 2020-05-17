@@ -5,7 +5,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Serilog.Sinks.Loki.Sinks.Loki
+namespace Serilog.Sinks.Grafana.Loki
 {
     public class DefaultLokiHttpClient : ILokiHttpClient
     {

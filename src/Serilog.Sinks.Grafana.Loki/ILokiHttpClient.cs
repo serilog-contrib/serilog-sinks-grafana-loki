@@ -1,6 +1,6 @@
 ﻿using Serilog.Sinks.Http;
 
-namespace Serilog.Sinks.Loki.Sinks.Loki
+namespace Serilog.Sinks.Grafana.Loki
 {
     public interface ILokiHttpClient : IHttpClient
     {

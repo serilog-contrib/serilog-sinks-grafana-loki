@@ -4,11 +4,10 @@ using Serilog.Configuration;
 using Serilog.Events;
 using Serilog.Formatting;
 using Serilog.Formatting.Display;
+using Serilog.Sinks.Grafana.Loki.Utils;
 using Serilog.Sinks.Http;
-using Serilog.Sinks.Loki.Sinks.Loki;
-using Serilog.Sinks.Loki.Utils;
 
-namespace Serilog.Sinks.Loki
+namespace Serilog.Sinks.Grafana.Loki
 {
     public static class LoggerConfigurationLokiExtensions
     {

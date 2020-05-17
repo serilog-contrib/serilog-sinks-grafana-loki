@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
-using Serilog.Sinks.Loki.Utils;
+using Serilog.Sinks.Grafana.Loki.Utils;
 
-namespace Serilog.Sinks.Loki.Sinks.Loki.Models
+namespace Serilog.Sinks.Grafana.Loki.Models
 {
     internal class LokiStream
     {

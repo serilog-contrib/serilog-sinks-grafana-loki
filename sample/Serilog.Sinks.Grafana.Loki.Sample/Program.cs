@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using Serilog.Debugging;
-using Serilog.Sinks.Loki.Sinks.Loki;
 
-namespace Serilog.Sinks.Loki.Sample
+namespace Serilog.Sinks.Grafana.Loki.Sample
 {
     public static class Program
     {

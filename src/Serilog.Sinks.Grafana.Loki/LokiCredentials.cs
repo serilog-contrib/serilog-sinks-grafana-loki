@@ -1,4 +1,4 @@
-﻿namespace Serilog.Sinks.Loki.Sinks.Loki
+﻿namespace Serilog.Sinks.Grafana.Loki
 {
     public class LokiCredentials
     {

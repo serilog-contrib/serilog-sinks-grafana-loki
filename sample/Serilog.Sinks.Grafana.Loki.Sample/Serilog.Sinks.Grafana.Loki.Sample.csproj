@@ -15,7 +15,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\src\Serilog.Sinks.Loki\Serilog.Sinks.Loki.csproj" />
+      <ProjectReference Include="..\..\src\Serilog.Sinks.Grafana.Loki\Serilog.Sinks.Grafana.Loki.csproj" />
     </ItemGroup>
 
 </Project>

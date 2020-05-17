@@ -1,8 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Serilog.Sinks.Loki", "src\Serilog.Sinks.Loki\Serilog.Sinks.Loki.csproj", "{1CAF37E1-C6DC-4F85-BB18-45258C687399}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Serilog.Sinks.Grafana.Loki", "src\Serilog.Sinks.Grafana.Loki\Serilog.Sinks.Grafana.Loki.csproj", "{1CAF37E1-C6DC-4F85-BB18-45258C687399}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Serilog.Sinks.Loki.Sample", "sample\Serilog.Sinks.Loki.Sample\Serilog.Sinks.Loki.Sample.csproj", "{C68CA6F0-ED85-47B3-9104-081714636E99}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Serilog.Sinks.Grafana.Loki.Sample", "sample\Serilog.Sinks.Grafana.Loki.Sample\Serilog.Sinks.Grafana.Loki.Sample.csproj", "{C68CA6F0-ED85-47B3-9104-081714636E99}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

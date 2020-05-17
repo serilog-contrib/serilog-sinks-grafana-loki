@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Serilog.Sinks.Loki.Utils
+namespace Serilog.Sinks.Grafana.Loki.Utils
 {
     internal static class DateTimeOffsetExtensions
     {

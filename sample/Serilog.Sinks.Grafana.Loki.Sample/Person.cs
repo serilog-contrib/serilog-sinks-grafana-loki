@@ -1,4 +1,4 @@
-﻿namespace Serilog.Sinks.Loki.Sample
+﻿namespace Serilog.Sinks.Grafana.Loki.Sample
 {
     internal class Person
     {
