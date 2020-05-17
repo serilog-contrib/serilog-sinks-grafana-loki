@@ -1,5 +1,7 @@
 # Serilog.Sinks.Grafana.Loki
 
+![Build status](https://github.com/mishamyte/serilog-sinks-grafana-loki/workflows/Build/badge.svg)
+
 ## Table of contents
 - [What is this sink and Loki?](#what-is-this)
 - [Features](#features)
