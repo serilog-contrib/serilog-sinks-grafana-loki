@@ -33,7 +33,7 @@ namespace Serilog.Sinks.Grafana.Loki
         /// <param name="httpClient">
         /// <see cref="HttpClient"/> be used for HTTP requests
         /// </param>
-        public DefaultLokiHttpClient(HttpClient1 httpClient = null)
+        public DefaultLokiHttpClient(HttpClient httpClient = null)
         {
             HttpClient = httpClient ?? new HttpClient();
         }
