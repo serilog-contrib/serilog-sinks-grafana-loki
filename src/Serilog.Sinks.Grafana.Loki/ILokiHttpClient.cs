@@ -12,8 +12,19 @@ using Serilog.Sinks.Http;
 
 namespace Serilog.Sinks.Grafana.Loki
 {
+    /// <summary>
+    /// Interface responsible for posting HTTP events
+    /// and handling authorization for Grafana loki.
+    /// Extends <see cref="IHttpClient"/>
+    /// </summary>
     public interface ILokiHttpClient : IHttpClient
     {
+        /// <summary>
+        /// Adds authorization header to all requests.
+        /// </summary>
+        /// <param name="credentials">
+        /// <see cref="LokiCredentials"/> used for authorization.
+        /// </param>
         void SetCredentials(LokiCredentials credentials);
     }
 }

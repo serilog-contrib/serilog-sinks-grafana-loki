@@ -21,20 +21,62 @@ using Serilog.Sinks.Http;
 
 namespace Serilog.Sinks.Grafana.Loki
 {
+    /// <summary>
+    /// Formatter serializing batches of log events into a JSON object in the format, recognized by Grafana loki.
+    /// <para/>
+    /// Example:
+    /// <code>
+    /// {
+    ///     "streams": [
+    ///     {
+    ///         "stream": {
+    ///             "label": "value"
+    ///             },
+    ///         "values": [
+    ///             [ "unix epoch in nanoseconds", "log line" ],
+    ///             [ "unix epoch in nanoseconds", "log line" ]
+    ///         ]
+    ///     }
+    ///     ]
+    /// }
+    /// </code>
+    /// </summary>
     internal class LokiBatchFormatter : IBatchFormatter
     {
         private readonly IEnumerable<LokiLabel> _globalLabels;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="LokiBatchFormatter"/> class.
+        /// </summary>
         public LokiBatchFormatter()
         {
             _globalLabels = Enumerable.Empty<LokiLabel>();
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="LokiBatchFormatter"/> class.
+        /// </summary>
+        /// <param name="globalLabels">
+        /// The list of global <see cref="LokiLabel"/>.
+        /// </param>
         public LokiBatchFormatter(IEnumerable<LokiLabel> globalLabels)
         {
             _globalLabels = globalLabels;
         }
 
+        /// <summary>
+        /// Format the log events into a payload.
+        /// </summary>
+        /// <param name="logEvents">
+        /// The events to format.
+        /// </param>
+        /// <param name="formatter">
+        /// The formatter turning the log events into a textual representation.
+        /// </param>
+        /// <param name="output">
+        /// The payload to send over the network.
+        /// </param>
+        /// <exception cref="ArgumentNullException"></exception>
         public void Format(IEnumerable<LogEvent> logEvents, ITextFormatter formatter, TextWriter output)
         {
             if (logEvents == null)
@@ -69,8 +111,18 @@ namespace Serilog.Sinks.Grafana.Loki
             }
         }
 
+        /// <summary>
+        /// Format the log events into a payload.
+        /// </summary>
+        /// <param name="logEvents">
+        /// The events to format.
+        /// </param>
+        /// <param name="output">
+        /// The payload to send over the network.
+        /// </param>
         public void Format(IEnumerable<string> logEvents, TextWriter output)
         {
+            // TODO: Implement
             throw new NotImplementedException();
         }
 

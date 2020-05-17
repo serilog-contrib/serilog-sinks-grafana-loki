@@ -10,10 +10,19 @@
 
 namespace Serilog.Sinks.Grafana.Loki
 {
+    /// <summary>
+    /// Credentials used for Grafana loki authorization
+    /// </summary>
     public class LokiCredentials
     {
+        /// <summary>
+        /// Email or username
+        /// </summary>
         public string Login { get; set; }
 
+        /// <summary>
+        /// Password
+        /// </summary>
         public string Password { get; set; }
 
         internal bool IsEmpty => string.IsNullOrEmpty(Login) || string.IsNullOrEmpty(Password);

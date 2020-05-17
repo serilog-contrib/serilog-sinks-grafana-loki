@@ -17,21 +17,42 @@ using System.Threading.Tasks;
 
 namespace Serilog.Sinks.Grafana.Loki
 {
+    /// <summary>
+    /// Default http client used for sending log events to Grafana loki.
+    /// </summary>
     public class DefaultLokiHttpClient : ILokiHttpClient
     {
         protected readonly HttpClient HttpClient;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DefaultLokiHttpClient"/> class.
+        /// </summary>
+        /// <param name="httpClient">
+        /// <see cref="HttpClient"/> be used for HTTP requests
+        /// </param>
         public DefaultLokiHttpClient(HttpClient httpClient = null)
         {
             HttpClient = httpClient ?? new HttpClient();
         }
 
+        /// <summary>
+        /// Sends a POST request to the specified Uri as an asynchronous operation.
+        /// </summary>
+        /// <param name="requestUri">The Uri the request is sent to.</param>
+        /// <param name="content">The HTTP request content sent to the server.</param>
+        /// <returns>The task object representing the asynchronous operation.</returns>
         public virtual Task<HttpResponseMessage> PostAsync(string requestUri, HttpContent content)
         {
             content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
             return HttpClient.PostAsync(requestUri, content);
         }
 
+        /// <summary>
+        /// Adds authorization header to all requests.
+        /// </summary>
+        /// <param name="credentials">
+        /// <see cref="LokiCredentials"/> used for authorization.
+        /// </param>
         public virtual void SetCredentials(LokiCredentials credentials)
         {
             if (credentials == null || credentials.IsEmpty)

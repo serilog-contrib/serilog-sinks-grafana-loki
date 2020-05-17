@@ -10,10 +10,19 @@
 
 namespace Serilog.Sinks.Grafana.Loki
 {
+    /// <summary>
+    /// Label used for enriching log entries in Grafana loki
+    /// </summary>
     public class LokiLabel
     {
+        /// <summary>
+        /// Label's name
+        /// </summary>
         public string Key { get; set; }
 
+        /// <summary>
+        /// Label's value
+        /// </summary>
         public string Value { get; set; }
     }
 }
