@@ -29,7 +29,7 @@ jobs:
     - name: Publish on version change
       uses: rohith/publish-nuget@v2
       with:
-        PROJECT_FILE_PATH:src/Serilog.Sinks.Grafana.Loki/Serilog.Sinks.Grafana.Loki.csproj
+        PROJECT_FILE_PATH: src/Serilog.Sinks.Grafana.Loki/Serilog.Sinks.Grafana.Loki.csproj
         PACKAGE_NAME: Serilog.Sinks.Grafana.Loki
         VERSION_REGEX: <Version>(.*)<\/Version>
         INCLUDE_SYMBOLS: true
