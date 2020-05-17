@@ -1,6 +1,8 @@
 # Serilog.Sinks.Grafana.Loki
 
 ![Build status](https://github.com/mishamyte/serilog-sinks-grafana-loki/workflows/Build/badge.svg)
+![NuGet Version](https://img.shields.io/nuget/v/Serilog.Sinks.Grafana.Loki)(https://www.nuget.org/packages/Serilog.Sinks.Grafana.Loki/3.0.0)
+[![Documentation](https://img.shields.io/badge/docs-wiki-blueviolet.svg)](https://github.com/mishamyte/serilog-sinks-grafana-loki/wiki)
 
 ## Table of contents
 - [What is this sink and Loki?](#what-is-this)
@@ -30,7 +32,7 @@ Coming soon:
 Features comparison table could be found [here](https://github.com/mishamyte/serilog-sinks-grafana-loki/wiki/Comparison-with-another-Loki-sinks)
 
 ## Quickstart
-The Serilog.Sinks.Grafana.Loki NuGet [package can be found here](). Alternatively you can install it via one of the following commands below:
+The `Serilog.Sinks.Grafana.Loki` NuGet [package can be found here](https://www.nuget.org/packages/Serilog.Sinks.Grafana.Loki). Alternatively you can install it via one of the following commands below:
 
 NuGet command:
 ```bash
