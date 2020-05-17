@@ -2,6 +2,7 @@
 
     <PropertyGroup>
         <AssemblyName>Serilog.Sinks.Grafana.Loki</AssemblyName>
+        <Authors>Mykhailo Shevchuk, Contributors</Authors>
         <CodeAnalysisRuleSet>..\..\StyleCop.ruleset</CodeAnalysisRuleSet>
         <Description>A Serilog sink sending log events to Grafana Loki</Description>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
@@ -10,6 +11,13 @@
         <!--SourceLink -->
         <PublishRepositoryUrl>true</PublishRepositoryUrl>
         <RepositoryUrl>https://github.com/mishamyte/serilog-sinks-grafana-loki.git</RepositoryUrl>
+        <!--NuGet package-->
+        <PackageIcon>serilog-sink-nuget.png</PackageIcon>
+        <PackageId>Serilog.Sinks.Grafana.Loki</PackageId>
+        <PackageLicenseUrl>https://github.com/mishamyte/serilog-sinks-grafana-loki/blob/master/LICENSE</PackageLicenseUrl>
+        <PackageProjectUrl>https://github.com/mishamyte/serilog-sinks-grafana-loki</PackageProjectUrl>
+        <PackageReleaseNotes>For release notes, please see the change log on GitHub.</PackageReleaseNotes>
+        <PackageTags>serilog;loki;grafana</PackageTags>
     </PropertyGroup>
 
     <ItemGroup>
@@ -18,6 +26,10 @@
       <PackageReference Include="Serilog.Sinks.Http" Version="6.0.0" />
       <PackageReference Include="StyleCop.Analyzers" Version="1.1.118" />
       <PackageReference Include="System.Text.Json" Version="4.7.2" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="assets\serilog-sink-nuget.png" Pack="true" PackagePath="\"/>
     </ItemGroup>
 
 </Project>
