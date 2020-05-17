@@ -14,7 +14,7 @@ namespace Serilog.Sinks.Grafana.Loki
         private const string DefaultOutputTemplate =
             "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}";
 
-        public static LoggerConfiguration Loki(
+        public static LoggerConfiguration GrafanaLoki(
             this LoggerSinkConfiguration sinkConfiguration,
             string url,
             IEnumerable<LokiLabel> labels = null,
@@ -45,7 +45,7 @@ namespace Serilog.Sinks.Grafana.Loki
                 client);
         }
 
-        public static LoggerConfiguration DurableLokiUsingTimeRolledBuffers(
+        public static LoggerConfiguration DurableGrafanaLokiUsingTimeRolledBuffers(
             this LoggerSinkConfiguration sinkConfiguration,
             string url,
             string bufferPathFormat = "Buffer-{Date}.json",
@@ -83,7 +83,7 @@ namespace Serilog.Sinks.Grafana.Loki
                 client);
         }
 
-        public static LoggerConfiguration DurableLokiUsingFileSizeRolledBuffers(
+        public static LoggerConfiguration DurableGrafanaLokiUsingFileSizeRolledBuffers(
             this LoggerSinkConfiguration sinkConfiguration,
             string url,
             string bufferBaseFileName = "Buffer",

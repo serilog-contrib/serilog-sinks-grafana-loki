@@ -18,14 +18,14 @@ namespace Serilog.Sinks.Grafana.Loki.Sample
                 .Enrich.WithThreadId()
                 .Enrich.WithProperty("meaning_of_life", "42")
                 .WriteTo.Console(outputTemplate: OutputTemplate)
-                .WriteTo.Loki(
+                .WriteTo.GrafanaLoki(
                     "http://localhost:3100",
-                    labels: new List<LokiLabel>() {new LokiLabel {Key = "app", Value = "test"}},
+                    labels: new List<LokiLabel>() {new LokiLabel {Key = "app", Value = "console"}},
                     credentials: null,
                     outputTemplate: OutputTemplate)
                 .CreateLogger();
 
-            Log.Debug("This is sample debug message");
+            Log.Debug("This is a debug message");
 
             var person = new Person
             {
@@ -41,7 +41,7 @@ namespace Serilog.Sinks.Grafana.Loki.Sample
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "Shit happens");
+                Log.Error(ex, "An error occured");
             }
 
             Log.CloseAndFlush();
