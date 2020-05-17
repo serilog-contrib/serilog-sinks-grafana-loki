@@ -22,6 +22,9 @@ namespace Serilog.Sinks.Grafana.Loki
     /// </summary>
     public class DefaultLokiHttpClient : ILokiHttpClient
     {
+        /// <summary>
+        /// <see cref="HttpClient"/> used for requests
+        /// </summary>
         protected readonly HttpClient HttpClient;
 
         /// <summary>
@@ -71,6 +74,9 @@ namespace Serilog.Sinks.Grafana.Loki
             headers.Authorization = new AuthenticationHeaderValue("Basic", token);
         }
 
+        /// <summary>
+        /// Dispose method
+        /// </summary>
         public virtual void Dispose() => HttpClient.Dispose();
 
         private static string Base64Encode(string str) => Convert.ToBase64String(Encoding.UTF8.GetBytes(str));
