@@ -42,7 +42,7 @@ namespace Serilog.Sinks.Grafana.Loki
         /// </param>
         /// <param name="credentials">Auth <see cref="LokiCredentials"/></param>
         /// <param name="outputTemplate">A message template describing the format used to write to the sink.
-        /// The default is <code>"[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}"</code>.
+        /// Default value is <code>"[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}"</code>.
         /// </param>
         /// <param name="restrictedToMinimumLevel"> The minimum level for events passed through the sink.
         /// Default value is <see cref="LevelAlias.Minimum"/>.
@@ -134,7 +134,7 @@ namespace Serilog.Sinks.Grafana.Loki
         /// </param>
         /// <param name="credentials">Auth <see cref="LokiCredentials"/></param>
         /// <param name="outputTemplate">A message template describing the format used to write to the sink.
-        /// The default is <code>"[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}"</code>.
+        /// Default value is <code>"[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}"</code>.
         /// </param>
         /// <param name="restrictedToMinimumLevel"> The minimum level for events passed through the sink.
         /// Default value is <see cref="LevelAlias.Minimum"/>.
@@ -233,7 +233,7 @@ namespace Serilog.Sinks.Grafana.Loki
         /// </param>
         /// <param name="credentials">Auth <see cref="LokiCredentials"/></param>
         /// <param name="outputTemplate">A message template describing the format used to write to the sink.
-        /// The default is <code>"[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}"</code>.
+        /// Default value is <code>"[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}"</code>.
         /// </param>
         /// <param name="restrictedToMinimumLevel"> The minimum level for events passed through the sink.
         /// Default value is <see cref="LevelAlias.Minimum"/>.
