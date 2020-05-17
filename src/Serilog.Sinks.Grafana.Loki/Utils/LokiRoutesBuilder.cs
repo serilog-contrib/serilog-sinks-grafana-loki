@@ -10,7 +10,7 @@
 
 namespace Serilog.Sinks.Grafana.Loki.Utils
 {
-    internal static class LokiRoutes
+    internal static class LokiRoutesBuilder
     {
         private const string LogEntriesEndpoint = "/loki/api/v1/push";
 

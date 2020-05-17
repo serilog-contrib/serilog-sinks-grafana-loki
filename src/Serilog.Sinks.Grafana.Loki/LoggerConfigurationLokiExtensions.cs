@@ -10,12 +10,15 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using Serilog.Configuration;
 using Serilog.Events;
 using Serilog.Formatting;
 using Serilog.Formatting.Display;
 using Serilog.Sinks.Grafana.Loki.Utils;
 using Serilog.Sinks.Http;
+
+[assembly: InternalsVisibleTo("Serilog.Sinks.Grafana.Loki.Tests")]
 
 namespace Serilog.Sinks.Grafana.Loki
 {
@@ -33,7 +36,7 @@ namespace Serilog.Sinks.Grafana.Loki
         /// A non-durable sink will lose data after a system or process restart.
         /// </summary>
         /// <param name="sinkConfiguration">The logger configuration.</param>
-        /// <param name="url">The root URl of Loki.</param>
+        /// <param name="uri">The root URI of Loki.</param>
         /// <param name="labels">
         /// The globals log event labels, which will be user for enriching all requests.
         /// </param>
@@ -65,7 +68,7 @@ namespace Serilog.Sinks.Grafana.Loki
         /// <returns>Logger configuration, allowing configuration to continue.</returns>
         public static LoggerConfiguration GrafanaLoki(
             this LoggerSinkConfiguration sinkConfiguration,
-            string url,
+            string uri,
             IEnumerable<LokiLabel> labels = null,
             LokiCredentials credentials = null,
             string outputTemplate = DefaultOutputTemplate,
@@ -85,7 +88,7 @@ namespace Serilog.Sinks.Grafana.Loki
                 SetupClientAndFormatters(labels, textFormatter, outputTemplate, httpClient, credentials);
 
             return sinkConfiguration.Http(
-                LokiRoutes.BuildLogsEntriesRoute(url),
+                LokiRoutesBuilder.BuildLogsEntriesRoute(uri),
                 batchPostingLimit,
                 queueLimit,
                 period,
@@ -106,7 +109,7 @@ namespace Serilog.Sinks.Grafana.Loki
         /// incoming log events will be dropped until a new interval is started.
         /// </summary>
         /// <param name="sinkConfiguration">The logger configuration.</param>
-        /// <param name="url">The root URl of Loki.</param>
+        /// <param name="uri">The root URI of Loki.</param>
         /// <param name="bufferPathFormat">
         /// The relative or absolute path format for a set of files that will be used to buffer
         /// events until they can be successfully sent over the network. Default value is
@@ -157,7 +160,7 @@ namespace Serilog.Sinks.Grafana.Loki
         /// <returns>Logger configuration, allowing configuration to continue.</returns>
         public static LoggerConfiguration DurableGrafanaLokiUsingTimeRolledBuffers(
             this LoggerSinkConfiguration sinkConfiguration,
-            string url,
+            string uri,
             string bufferPathFormat = "Buffer-{Date}.json",
             long? bufferFileSizeLimitBytes = null,
             bool bufferFileShared = false,
@@ -181,7 +184,7 @@ namespace Serilog.Sinks.Grafana.Loki
                 SetupClientAndFormatters(labels, textFormatter, outputTemplate, httpClient, credentials);
 
             return sinkConfiguration.DurableHttpUsingTimeRolledBuffers(
-                LokiRoutes.BuildLogsEntriesRoute(url),
+                LokiRoutesBuilder.BuildLogsEntriesRoute(uri),
                 bufferPathFormat,
                 bufferFileSizeLimitBytes,
                 bufferFileShared,
@@ -205,7 +208,7 @@ namespace Serilog.Sinks.Grafana.Loki
         /// oldest file is dropped to make room for a new.
         /// </summary>
         /// <param name="sinkConfiguration">The logger configuration.</param>
-        /// <param name="url">The root URl of Loki.</param>
+        /// <param name="uri">The root URI of Loki.</param>
         /// <param name="bufferBaseFileName">
         /// The relative or absolute path for a set of files that will be used to buffer events
         /// until they can be successfully transmitted across the network. Individual files will be
@@ -256,7 +259,7 @@ namespace Serilog.Sinks.Grafana.Loki
         /// <returns>Logger configuration, allowing configuration to continue.</returns>
         public static LoggerConfiguration DurableGrafanaLokiUsingFileSizeRolledBuffers(
             this LoggerSinkConfiguration sinkConfiguration,
-            string url,
+            string uri,
             string bufferBaseFileName = "Buffer",
             long? bufferFileSizeLimitBytes = 1024 * 1024 * 1024,
             bool bufferFileShared = false,
@@ -280,7 +283,7 @@ namespace Serilog.Sinks.Grafana.Loki
                 SetupClientAndFormatters(labels, textFormatter, outputTemplate, httpClient, credentials);
 
             return sinkConfiguration.DurableHttpUsingFileSizeRolledBuffers(
-                LokiRoutes.BuildLogsEntriesRoute(url),
+                LokiRoutesBuilder.BuildLogsEntriesRoute(uri),
                 bufferBaseFileName,
                 bufferFileSizeLimitBytes,
                 bufferFileShared,

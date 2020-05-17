@@ -67,8 +67,8 @@ namespace Serilog.Sinks.Grafana.Loki
                 return;
             }
 
-            var token = Base64Encode($"{credentials.Login}:{credentials.Password}");
-            headers.Add("Authorization", token);
+            var token = Base64Encode($"{credentials.Login}:{credentials.Password ?? string.Empty}");
+            headers.Authorization = new AuthenticationHeaderValue("Basic", token);
         }
 
         public virtual void Dispose() => HttpClient.Dispose();

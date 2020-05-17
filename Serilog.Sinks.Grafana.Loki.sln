@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Serilog.Sinks.Grafana.Loki.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Serilog.Sinks.Grafana.Loki.SampleWebApp", "sample\Serilog.Sinks.Grafana.Loki.SampleWebApp\Serilog.Sinks.Grafana.Loki.SampleWebApp.csproj", "{B9595C59-5AC1-48EE-8CB8-0BF7BA48DC11}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Serilog.Sinks.Grafana.Loki.Tests", "test\Serilog.Sinks.Grafana.Loki.Tests\Serilog.Sinks.Grafana.Loki.Tests.csproj", "{A6934A4D-82E8-4FD7-A693-E306207A1595}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{B9595C59-5AC1-48EE-8CB8-0BF7BA48DC11}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B9595C59-5AC1-48EE-8CB8-0BF7BA48DC11}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B9595C59-5AC1-48EE-8CB8-0BF7BA48DC11}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A6934A4D-82E8-4FD7-A693-E306207A1595}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A6934A4D-82E8-4FD7-A693-E306207A1595}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A6934A4D-82E8-4FD7-A693-E306207A1595}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A6934A4D-82E8-4FD7-A693-E306207A1595}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
