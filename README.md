@@ -4,7 +4,7 @@
 - [What is this sink and Loki?](#what-is-this)
 - [Features](#features)
 - [Comparison with other Loki sinks](#comparison)
-- [Quickstart] (#quickstart)
+- [Quickstart](#quickstart)
 
 ## What is this sink and Loki?
 
