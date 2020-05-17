@@ -25,7 +25,7 @@ Coming soon:
 - Label exclusion
 
 ## Comparison
-Features comparison table could be found in the wiki
+Features comparison table could be found [here](https://github.com/mishamyte/serilog-sinks-grafana-loki/wiki/Comparison-with-another-Loki-sinks)
 
 ## Quickstart
 The Serilog.Sinks.Grafana.Loki NuGet [package can be found here](). Alternatively you can install it via one of the following commands below:
@@ -79,7 +79,7 @@ Used in conjunction with [Serilog.Settings.Configuration](https://github.com/ser
 }
 ```
 
-Description of parameters and configuration details could be found in wiki.
+Description of parameters and configuration details could be found [here](https://github.com/mishamyte/serilog-sinks-grafana-loki/wiki/Application-settings).
 
 
 ### Custom HTTP Client
