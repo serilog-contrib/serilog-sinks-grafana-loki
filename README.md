@@ -102,8 +102,8 @@ public class CustomHttpClient : DefaultLokiHttpClient
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.GrafanaLoki(
-        "http://localhost:3100",
-        httpClient: new CustomHttpClient()
+         "http://localhost:3100",
+         httpClient: new CustomHttpClient()
     )
     .CreateLogger();
 ```
