@@ -11,7 +11,7 @@
 namespace Serilog.Sinks.Grafana.Loki
 {
     /// <summary>
-    /// Credentials used for Grafana loki authorization
+    /// Credentials used for Grafana Loki authorization
     /// </summary>
     public class LokiCredentials
     {

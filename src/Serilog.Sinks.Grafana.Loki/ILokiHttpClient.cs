@@ -14,7 +14,7 @@ namespace Serilog.Sinks.Grafana.Loki
 {
     /// <summary>
     /// Interface responsible for posting HTTP events
-    /// and handling authorization for Grafana loki.
+    /// and handling authorization for Grafana Loki.
     /// Extends <see cref="IHttpClient"/>
     /// </summary>
     public interface ILokiHttpClient : IHttpClient

@@ -18,7 +18,7 @@ using System.Threading.Tasks;
 namespace Serilog.Sinks.Grafana.Loki
 {
     /// <summary>
-    /// Default http client used for sending log events to Grafana loki.
+    /// Default http client used for sending log events to Grafana Loki.
     /// </summary>
     public class DefaultLokiHttpClient : ILokiHttpClient
     {

@@ -11,7 +11,7 @@
 namespace Serilog.Sinks.Grafana.Loki
 {
     /// <summary>
-    /// Label used for enriching log entries in Grafana loki
+    /// Label used for enriching log entries in Grafana Loki
     /// </summary>
     public class LokiLabel
     {

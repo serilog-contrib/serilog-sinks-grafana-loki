@@ -22,7 +22,7 @@ using Serilog.Sinks.Http;
 namespace Serilog.Sinks.Grafana.Loki
 {
     /// <summary>
-    /// Formatter serializing batches of log events into a JSON object in the format, recognized by Grafana loki.
+    /// Formatter serializing batches of log events into a JSON object in the format, recognized by Grafana Loki.
     /// <para/>
     /// Example:
     /// <code>

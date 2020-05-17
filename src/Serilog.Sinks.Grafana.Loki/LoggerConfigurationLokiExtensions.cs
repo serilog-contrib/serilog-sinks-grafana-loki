@@ -32,7 +32,7 @@ namespace Serilog.Sinks.Grafana.Loki
             "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}";
 
         /// <summary>
-        /// Adds a non-durable sink that sends log events to Grafana loki.
+        /// Adds a non-durable sink that sends log events to Grafana Loki.
         /// A non-durable sink will lose data after a system or process restart.
         /// </summary>
         /// <param name="sinkConfiguration">The logger configuration.</param>
@@ -99,7 +99,7 @@ namespace Serilog.Sinks.Grafana.Loki
         }
 
         /// <summary>
-        /// Adds a durable sink that sends log events to Grafana loki. A durable sink
+        /// Adds a durable sink that sends log events to Grafana Loki. A durable sink
         /// will persist log events on disk in buffer files before sending them over the
         /// network, thus protecting against data loss after a system or process restart. The
         /// buffer files will use a rolling behavior defined by the time interval specified in
@@ -198,7 +198,7 @@ namespace Serilog.Sinks.Grafana.Loki
         }
 
         /// <summary>
-        /// Adds a durable sink that sends log events to Grafana loki. A durable sink
+        /// Adds a durable sink that sends log events to Grafana Loki. A durable sink
         /// will persist log events on disk in buffer files before sending them over the
         /// network, thus protecting against data loss after a system or process restart. The
         /// buffer files will use a rolling behavior defined by the file size specified in
