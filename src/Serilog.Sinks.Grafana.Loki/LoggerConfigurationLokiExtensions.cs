@@ -35,16 +35,27 @@ namespace Serilog.Sinks.Grafana.Loki
         /// Adds a non-durable sink that will send log events to Grafana Loki.
         /// A non-durable sink will lose data after a system or process restart.
         /// </summary>
-        /// <param name="sinkConfiguration">The logger configuration.</param>
-        /// <param name="uri">The root URI of Loki.</param>
+        /// <param name="sinkConfiguration">
+        /// The logger configuration.
+        /// </param>
+        /// <param name="uri">
+        /// The root URI of Loki.
+        /// </param>
         /// <param name="labels">
         /// The globals log event labels, which will be user for enriching all requests.
         /// </param>
-        /// <param name="credentials">Auth <see cref="LokiCredentials"/></param>
-        /// <param name="outputTemplate">A message template describing the format used to write to the sink.
+        /// <param name="excludedLabels">
+        /// Keys, which would be excluded from a the label list in a payload.
+        /// </param>
+        /// <param name="credentials">
+        /// Auth <see cref="LokiCredentials"/>.
+        /// </param>
+        /// <param name="outputTemplate">
+        /// A message template describing the format used to write to the sink.
         /// Default value is <code>"[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}"</code>.
         /// </param>
-        /// <param name="restrictedToMinimumLevel"> The minimum level for events passed through the sink.
+        /// <param name="restrictedToMinimumLevel">
+        /// The minimum level for events passed through the sink.
         /// Default value is <see cref="LevelAlias.Minimum"/>.
         /// </param>
         /// <param name="batchPostingLimit">
@@ -70,6 +81,7 @@ namespace Serilog.Sinks.Grafana.Loki
             this LoggerSinkConfiguration sinkConfiguration,
             string uri,
             IEnumerable<LokiLabel> labels = null,
+            IEnumerable<string> excludedLabels = null,
             LokiCredentials credentials = null,
             string outputTemplate = DefaultOutputTemplate,
             LogEventLevel restrictedToMinimumLevel = LevelAlias.Minimum,
@@ -85,7 +97,7 @@ namespace Serilog.Sinks.Grafana.Loki
             }
 
             var (batchFormatter, formatter, client) =
-                SetupClientAndFormatters(labels, textFormatter, outputTemplate, httpClient, credentials);
+                SetupClientAndFormatters(labels, excludedLabels, textFormatter, outputTemplate, httpClient, credentials);
 
             return sinkConfiguration.Http(
                 LokiRoutesBuilder.BuildLogsEntriesRoute(uri),
@@ -108,8 +120,12 @@ namespace Serilog.Sinks.Grafana.Loki
         /// <paramref name="bufferFileSizeLimitBytes"/>, and when that limit is reached all
         /// incoming log events will be dropped until a new interval is started.
         /// </summary>
-        /// <param name="sinkConfiguration">The logger configuration.</param>
-        /// <param name="uri">The root URI of Loki.</param>
+        /// <param name="sinkConfiguration">
+        /// The logger configuration.
+        /// </param>
+        /// <param name="uri">
+        /// The root URI of Loki.
+        /// </param>
         /// <param name="bufferPathFormat">
         /// The relative or absolute path format for a set of files that will be used to buffer
         /// events until they can be successfully sent over the network. Default value is
@@ -132,11 +148,18 @@ namespace Serilog.Sinks.Grafana.Loki
         /// <param name="labels">
         /// The globals log event labels, which will be user for enriching all requests.
         /// </param>
-        /// <param name="credentials">Auth <see cref="LokiCredentials"/></param>
-        /// <param name="outputTemplate">A message template describing the format used to write to the sink.
+        /// <param name="excludedLabels">
+        /// Keys, which would be excluded from a the label list in a payload.
+        /// </param>
+        /// <param name="credentials">
+        /// Auth <see cref="LokiCredentials"/>.
+        /// </param>
+        /// <param name="outputTemplate">
+        /// A message template describing the format used to write to the sink.
         /// Default value is <code>"[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}"</code>.
         /// </param>
-        /// <param name="restrictedToMinimumLevel"> The minimum level for events passed through the sink.
+        /// <param name="restrictedToMinimumLevel">
+        /// The minimum level for events passed through the sink.
         /// Default value is <see cref="LevelAlias.Minimum"/>.
         /// </param>
         /// <param name="batchPostingLimit">
@@ -166,6 +189,7 @@ namespace Serilog.Sinks.Grafana.Loki
             bool bufferFileShared = false,
             int? retainedBufferFileCountLimit = 31,
             IEnumerable<LokiLabel> labels = null,
+            IEnumerable<string> excludedLabels = null,
             LokiCredentials credentials = null,
             string outputTemplate = DefaultOutputTemplate,
             LogEventLevel restrictedToMinimumLevel = LevelAlias.Minimum,
@@ -181,7 +205,7 @@ namespace Serilog.Sinks.Grafana.Loki
             }
 
             var (batchFormatter, formatter, client) =
-                SetupClientAndFormatters(labels, textFormatter, outputTemplate, httpClient, credentials);
+                SetupClientAndFormatters(labels, excludedLabels, textFormatter, outputTemplate, httpClient, credentials);
 
             return sinkConfiguration.DurableHttpUsingTimeRolledBuffers(
                 LokiRoutesBuilder.BuildLogsEntriesRoute(uri),
@@ -207,8 +231,12 @@ namespace Serilog.Sinks.Grafana.Loki
         /// <paramref name="retainedBufferFileCountLimit"/>, and when that limit is reached the
         /// oldest file is dropped to make room for a new.
         /// </summary>
-        /// <param name="sinkConfiguration">The logger configuration.</param>
-        /// <param name="uri">The root URI of Loki.</param>
+        /// <param name="sinkConfiguration">
+        /// The logger configuration.
+        /// </param>
+        /// <param name="uri">
+        /// The root URI of Loki.
+        /// </param>
         /// <param name="bufferBaseFileName">
         /// The relative or absolute path for a set of files that will be used to buffer events
         /// until they can be successfully transmitted across the network. Individual files will be
@@ -231,11 +259,18 @@ namespace Serilog.Sinks.Grafana.Loki
         /// <param name="labels">
         /// The globals log event labels, which will be user for enriching all requests.
         /// </param>
-        /// <param name="credentials">Auth <see cref="LokiCredentials"/></param>
-        /// <param name="outputTemplate">A message template describing the format used to write to the sink.
+        /// <param name="excludedLabels">
+        /// Keys, which would be excluded from a the label list in a payload.
+        /// </param>
+        /// <param name="credentials">
+        /// Auth <see cref="LokiCredentials"/>.
+        /// </param>
+        /// <param name="outputTemplate">
+        /// A message template describing the format used to write to the sink.
         /// Default value is <code>"[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}"</code>.
         /// </param>
-        /// <param name="restrictedToMinimumLevel"> The minimum level for events passed through the sink.
+        /// <param name="restrictedToMinimumLevel">
+        /// The minimum level for events passed through the sink.
         /// Default value is <see cref="LevelAlias.Minimum"/>.
         /// </param>
         /// <param name="batchPostingLimit">
@@ -265,6 +300,7 @@ namespace Serilog.Sinks.Grafana.Loki
             bool bufferFileShared = false,
             int? retainedBufferFileCountLimit = 31,
             IEnumerable<LokiLabel> labels = null,
+            IEnumerable<string> excludedLabels = null,
             LokiCredentials credentials = null,
             string outputTemplate = DefaultOutputTemplate,
             LogEventLevel restrictedToMinimumLevel = LevelAlias.Minimum,
@@ -280,7 +316,7 @@ namespace Serilog.Sinks.Grafana.Loki
             }
 
             var (batchFormatter, formatter, client) =
-                SetupClientAndFormatters(labels, textFormatter, outputTemplate, httpClient, credentials);
+                SetupClientAndFormatters(labels, excludedLabels, textFormatter, outputTemplate, httpClient, credentials);
 
             return sinkConfiguration.DurableHttpUsingFileSizeRolledBuffers(
                 LokiRoutesBuilder.BuildLogsEntriesRoute(uri),
@@ -299,12 +335,13 @@ namespace Serilog.Sinks.Grafana.Loki
         private static (IBatchFormatter batchFormatter, ITextFormatter textFormatter, IHttpClient httpClient)
             SetupClientAndFormatters(
                 IEnumerable<LokiLabel> labels,
+                IEnumerable<string> excludedLabels,
                 ITextFormatter textFormatter,
                 string outputTemplate,
                 IHttpClient httpClient,
                 LokiCredentials credentials)
         {
-            var batchFormatter = labels != null ? new LokiBatchFormatter(labels) : new LokiBatchFormatter();
+            var batchFormatter = new LokiBatchFormatter(labels, excludedLabels);
             var formatter = textFormatter ?? new MessageTemplateTextFormatter(outputTemplate);
             var client = httpClient ?? new DefaultLokiHttpClient();
 
