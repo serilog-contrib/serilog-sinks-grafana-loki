@@ -1,0 +1,37 @@
+name: Publish
+
+on:
+  push:
+    branches: 
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.1.202
+    - name: Build
+      run: dotnet build --configuration Release --nologo
+    - name: Test
+      run: dotnet test --configuration Release --no-build --nologo
+      
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Publish on version change
+      uses: rohith/publish-nuget@v2
+      with:
+        PROJECT_FILE_PATH: src/Serilog.Sinks.Grafana.Loki/Serilog.Sinks.Grafana.Loki.csproj
+        PACKAGE_NAME: Serilog.Sinks.Grafana.Loki
+        VERSION_REGEX: <Version>(.*)<\/Version>
+        INCLUDE_SYMBOLS: true
+        NUGET_KEY: ${{secrets.NUGET_API_KEY}}
+      
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: 1
