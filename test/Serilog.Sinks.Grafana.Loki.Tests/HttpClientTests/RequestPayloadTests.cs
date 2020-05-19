@@ -28,5 +28,21 @@ namespace Serilog.Sinks.Grafana.Loki.Tests.HttpClientTests
             _client.Content.ShouldMatchApproved(c =>
                 c.WithScrubber(s => Regex.Replace(s, "\"[0-9]{19}\"", "\"<unixepochinnanoseconds>\"")));
         }
+
+        [Fact]
+        public void ExcludedLabelsShouldNotBePresentInRequest()
+        {
+            var logger = new LoggerConfiguration()
+                .Enrich.WithProperty("server_name", "loki_test")
+                .Enrich.WithProperty("server_ip", "127.0.0.1")
+                .WriteTo.GrafanaLoki("http://loki:3100", excludedLabels: new[] {"server_ip"}, httpClient: _client)
+                .CreateLogger();
+
+            logger.Error("An error occured");
+            logger.Dispose();
+
+            _client.Content.ShouldMatchApproved(c =>
+                c.WithScrubber(s => Regex.Replace(s, "\"[0-9]{19}\"", "\"<unixepochinnanoseconds>\"")));
+        }
     }
 }

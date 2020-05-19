@@ -19,6 +19,7 @@ You can find more information about what Loki is over on [Grafana's website here
 ## Features:
 - Formats and batches log entries to Loki via HTTP (using actual API)
 - Global and contextual labels support
+- Labels exclusion
 - Integration with Serilog.Settings.Configuration
 - Customizable HTTP client
 - Durable mode
@@ -26,7 +27,6 @@ You can find more information about what Loki is over on [Grafana's website here
 
 Coming soon:
 - Improve durable mode (keep labels & etc)
-- Label exclusion
 
 ## Comparison
 Features comparison table could be found [here](https://github.com/mishamyte/serilog-sinks-grafana-loki/wiki/Comparison-with-another-Loki-sinks)

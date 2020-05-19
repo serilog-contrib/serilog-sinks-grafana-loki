@@ -44,14 +44,7 @@ namespace Serilog.Sinks.Grafana.Loki
     internal class LokiBatchFormatter : IBatchFormatter
     {
         private readonly IEnumerable<LokiLabel> _globalLabels;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="LokiBatchFormatter"/> class.
-        /// </summary>
-        public LokiBatchFormatter()
-        {
-            _globalLabels = Enumerable.Empty<LokiLabel>();
-        }
+        private readonly IEnumerable<string> _excludedLabels;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="LokiBatchFormatter"/> class.
@@ -59,9 +52,13 @@ namespace Serilog.Sinks.Grafana.Loki
         /// <param name="globalLabels">
         /// The list of global <see cref="LokiLabel"/>.
         /// </param>
-        public LokiBatchFormatter(IEnumerable<LokiLabel> globalLabels)
+        /// <param name="excludedLabels">
+        /// The list of label keys, which must be excluded from a payload
+        /// </param>
+        public LokiBatchFormatter(IEnumerable<LokiLabel> globalLabels = null, IEnumerable<string> excludedLabels = null)
         {
-            _globalLabels = globalLabels;
+            _globalLabels = globalLabels ?? Enumerable.Empty<LokiLabel>();
+            _excludedLabels = excludedLabels;
         }
 
         /// <summary>
@@ -148,7 +145,10 @@ namespace Serilog.Sinks.Grafana.Loki
 
                 foreach (var label in _globalLabels)
                 {
-                    stream.AddLabel(label.Key, label.Value);
+                    if (!IsExcluded(label.Key))
+                    {
+                        stream.AddLabel(label.Key, label.Value);
+                    }
                 }
 
                 stream.AddEntry(DateTimeOffset.UtcNow, logEvent.TrimEnd('\r', '\n'));
@@ -185,14 +185,22 @@ namespace Serilog.Sinks.Grafana.Loki
 
             foreach (var label in _globalLabels)
             {
-                stream.AddLabel(label.Key, label.Value);
+                if (!IsExcluded(label.Key))
+                {
+                    stream.AddLabel(label.Key, label.Value);
+                }
             }
 
             foreach (var property in logEvent.Properties)
             {
-                // Some enrichers generates extra quotes and it breaks the payload
-                stream.AddLabel(property.Key, property.Value.ToString().Replace("\"", string.Empty));
+                if (!IsExcluded(property.Key))
+                {
+                    // Some enrichers generates extra quotes and it breaks the payload
+                    stream.AddLabel(property.Key, property.Value.ToString().Replace("\"", string.Empty));
+                }
             }
         }
+
+        private bool IsExcluded(string label) => _excludedLabels != null && _excludedLabels.Contains(label);
     }
 }

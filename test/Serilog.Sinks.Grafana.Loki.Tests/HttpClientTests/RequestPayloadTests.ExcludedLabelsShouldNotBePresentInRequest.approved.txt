@@ -1,0 +1,1 @@
+{"streams":[{"stream":{"level":"error","server_name":"loki_test"},"values":[["<unixepochinnanoseconds>","An error occured"]]}]}
