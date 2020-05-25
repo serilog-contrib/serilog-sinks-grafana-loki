@@ -68,7 +68,7 @@ Used in conjunction with [Serilog.Settings.Configuration](https://github.com/ser
       {
         "Name": "GrafanaLoki",
         "Args": {
-          "url": "http://localhost:3100",
+          "uri": "http://localhost:3100",
           "labels": [
             {
               "key": "app",
