@@ -44,7 +44,7 @@ namespace Serilog.Sinks.Grafana.Loki
     internal class LokiBatchFormatter : IBatchFormatter
     {
         private readonly IEnumerable<LokiLabel> _globalLabels;
-        private readonly IEnumerable<string> _excludedLabels;
+        private readonly IEnumerable<string> _includeOnlyLabels;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="LokiBatchFormatter"/> class.
@@ -52,13 +52,13 @@ namespace Serilog.Sinks.Grafana.Loki
         /// <param name="globalLabels">
         /// The list of global <see cref="LokiLabel"/>.
         /// </param>
-        /// <param name="excludedLabels">
+        /// <param name="includeOnlyLabels">
         /// The list of label keys, which must be excluded from a payload
         /// </param>
-        public LokiBatchFormatter(IEnumerable<LokiLabel> globalLabels = null, IEnumerable<string> excludedLabels = null)
+        public LokiBatchFormatter(IEnumerable<LokiLabel> globalLabels = null, IEnumerable<string> includeOnlyLabels = null)
         {
             _globalLabels = globalLabels ?? Enumerable.Empty<LokiLabel>();
-            _excludedLabels = excludedLabels;
+            _includeOnlyLabels = includeOnlyLabels;
         }
 
         /// <summary>
@@ -145,7 +145,7 @@ namespace Serilog.Sinks.Grafana.Loki
 
                 foreach (var label in _globalLabels)
                 {
-                    if (!IsExcluded(label.Key))
+                    if (!IsIncluded(label.Key))
                     {
                         stream.AddLabel(label.Key, label.Value);
                     }
@@ -185,7 +185,7 @@ namespace Serilog.Sinks.Grafana.Loki
 
             foreach (var label in _globalLabels)
             {
-                if (!IsExcluded(label.Key))
+                if (!IsIncluded(label.Key))
                 {
                     stream.AddLabel(label.Key, label.Value);
                 }
@@ -193,7 +193,7 @@ namespace Serilog.Sinks.Grafana.Loki
 
             foreach (var property in logEvent.Properties)
             {
-                if (!IsExcluded(property.Key))
+                if (IsIncluded(property.Key))
                 {
                     // Some enrichers generates extra quotes and it breaks the payload
                     stream.AddLabel(property.Key, property.Value.ToString().Replace("\"", string.Empty));
@@ -201,6 +201,6 @@ namespace Serilog.Sinks.Grafana.Loki
             }
         }
 
-        private bool IsExcluded(string label) => _excludedLabels != null && _excludedLabels.Contains(label);
+        private bool IsIncluded(string label) => _includeOnlyLabels != null && _includeOnlyLabels.Contains(label);
     }
 }
