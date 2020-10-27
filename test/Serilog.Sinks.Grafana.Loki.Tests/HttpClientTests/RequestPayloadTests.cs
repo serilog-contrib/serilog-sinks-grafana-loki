@@ -31,7 +31,7 @@ namespace Serilog.Sinks.Grafana.Loki.Tests.HttpClientTests
         }
 
         [Fact]
-        public void IncludedOnlyLabelsShouldNotBePresentInRequest()
+        public void IncludedOnlyLabelsShouldBePresentInRequest()
         {
             var logger = new LoggerConfiguration()
                 .Enrich.WithProperty("server_name", "loki_test")
