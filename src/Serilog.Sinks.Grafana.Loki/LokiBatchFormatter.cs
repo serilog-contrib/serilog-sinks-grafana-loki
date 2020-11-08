@@ -44,7 +44,8 @@ namespace Serilog.Sinks.Grafana.Loki
     internal class LokiBatchFormatter : IBatchFormatter
     {
         private readonly IEnumerable<LokiLabel> _globalLabels;
-        private readonly IEnumerable<string> _excludedLabels;
+        private readonly LokiLabelFiltrationMode? _filtrationMode;
+        private readonly IEnumerable<string> _filtrationLabels;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="LokiBatchFormatter"/> class.
@@ -52,13 +53,20 @@ namespace Serilog.Sinks.Grafana.Loki
         /// <param name="globalLabels">
         /// The list of global <see cref="LokiLabel"/>.
         /// </param>
-        /// <param name="excludedLabels">
-        /// The list of label keys, which must be excluded from a payload
+        /// <param name="filtrationMode">
+        /// The mode for labels filtration
         /// </param>
-        public LokiBatchFormatter(IEnumerable<LokiLabel> globalLabels = null, IEnumerable<string> excludedLabels = null)
+        /// <param name="filtrationLabels">
+        /// The list of label keys used for filtration
+        /// </param>
+        public LokiBatchFormatter(
+            IEnumerable<LokiLabel> globalLabels = null,
+            LokiLabelFiltrationMode? filtrationMode = null,
+            IEnumerable<string> filtrationLabels = null)
         {
             _globalLabels = globalLabels ?? Enumerable.Empty<LokiLabel>();
-            _excludedLabels = excludedLabels;
+            _filtrationMode = filtrationMode;
+            _filtrationLabels = filtrationLabels;
         }
 
         /// <summary>
@@ -145,7 +153,7 @@ namespace Serilog.Sinks.Grafana.Loki
 
                 foreach (var label in _globalLabels)
                 {
-                    if (!IsExcluded(label.Key))
+                    if (IsAllowedByFilter(label.Key))
                     {
                         stream.AddLabel(label.Key, label.Value);
                     }
@@ -185,7 +193,7 @@ namespace Serilog.Sinks.Grafana.Loki
 
             foreach (var label in _globalLabels)
             {
-                if (!IsExcluded(label.Key))
+                if (IsAllowedByFilter(label.Key))
                 {
                     stream.AddLabel(label.Key, label.Value);
                 }
@@ -193,7 +201,7 @@ namespace Serilog.Sinks.Grafana.Loki
 
             foreach (var property in logEvent.Properties)
             {
-                if (!IsExcluded(property.Key))
+                if (IsAllowedByFilter(property.Key))
                 {
                     // Some enrichers generates extra quotes and it breaks the payload
                     stream.AddLabel(property.Key, property.Value.ToString().Replace("\"", string.Empty));
@@ -201,6 +209,15 @@ namespace Serilog.Sinks.Grafana.Loki
             }
         }
 
-        private bool IsExcluded(string label) => _excludedLabels != null && _excludedLabels.Contains(label);
+        private bool IsAllowedByFilter(string label) =>
+            _filtrationMode switch
+            {
+                LokiLabelFiltrationMode.Include => IsInFilterList(label),
+                LokiLabelFiltrationMode.Exclude => !IsInFilterList(label),
+                null => true,
+                _ => true
+            };
+
+        private bool IsInFilterList(string label) => _filtrationLabels != null && _filtrationLabels.Contains(label);
     }
 }
