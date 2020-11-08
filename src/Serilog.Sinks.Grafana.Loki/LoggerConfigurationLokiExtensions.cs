@@ -44,8 +44,11 @@ namespace Serilog.Sinks.Grafana.Loki
         /// <param name="labels">
         /// The globals log event labels, which will be user for enriching all requests.
         /// </param>
-        /// <param name="excludedLabels">
-        /// Keys, which would be excluded from a the label list in a payload.
+        /// <param name="filtrationMode">
+        /// The mode for labels filtration
+        /// </param>
+        /// <param name="filtrationLabels">
+        /// The list of label keys used for filtration
         /// </param>
         /// <param name="credentials">
         /// Auth <see cref="LokiCredentials"/>.
@@ -81,7 +84,8 @@ namespace Serilog.Sinks.Grafana.Loki
             this LoggerSinkConfiguration sinkConfiguration,
             string uri,
             IEnumerable<LokiLabel> labels = null,
-            IEnumerable<string> excludedLabels = null,
+            LokiLabelFiltrationMode? filtrationMode = null,
+            IEnumerable<string> filtrationLabels = null,
             LokiCredentials credentials = null,
             string outputTemplate = DefaultOutputTemplate,
             LogEventLevel restrictedToMinimumLevel = LevelAlias.Minimum,
@@ -97,7 +101,7 @@ namespace Serilog.Sinks.Grafana.Loki
             }
 
             var (batchFormatter, formatter, client) =
-                SetupClientAndFormatters(labels, excludedLabels, textFormatter, outputTemplate, httpClient, credentials);
+                SetupClientAndFormatters(labels, filtrationMode, filtrationLabels, textFormatter, outputTemplate, httpClient, credentials);
 
             return sinkConfiguration.Http(
                 LokiRoutesBuilder.BuildLogsEntriesRoute(uri),
@@ -148,8 +152,11 @@ namespace Serilog.Sinks.Grafana.Loki
         /// <param name="labels">
         /// The globals log event labels, which will be user for enriching all requests.
         /// </param>
-        /// <param name="excludedLabels">
-        /// Keys, which would be excluded from a the label list in a payload.
+        /// <param name="filtrationMode">
+        /// The mode for labels filtration
+        /// </param>
+        /// <param name="filtrationLabels">
+        /// The list of label keys used for filtration
         /// </param>
         /// <param name="credentials">
         /// Auth <see cref="LokiCredentials"/>.
@@ -189,7 +196,8 @@ namespace Serilog.Sinks.Grafana.Loki
             bool bufferFileShared = false,
             int? retainedBufferFileCountLimit = 31,
             IEnumerable<LokiLabel> labels = null,
-            IEnumerable<string> excludedLabels = null,
+            LokiLabelFiltrationMode? filtrationMode = null,
+            IEnumerable<string> filtrationLabels = null,
             LokiCredentials credentials = null,
             string outputTemplate = DefaultOutputTemplate,
             LogEventLevel restrictedToMinimumLevel = LevelAlias.Minimum,
@@ -205,7 +213,7 @@ namespace Serilog.Sinks.Grafana.Loki
             }
 
             var (batchFormatter, formatter, client) =
-                SetupClientAndFormatters(labels, excludedLabels, textFormatter, outputTemplate, httpClient, credentials);
+                SetupClientAndFormatters(labels, filtrationMode, filtrationLabels, textFormatter, outputTemplate, httpClient, credentials);
 
             return sinkConfiguration.DurableHttpUsingTimeRolledBuffers(
                 LokiRoutesBuilder.BuildLogsEntriesRoute(uri),
@@ -259,8 +267,11 @@ namespace Serilog.Sinks.Grafana.Loki
         /// <param name="labels">
         /// The globals log event labels, which will be user for enriching all requests.
         /// </param>
-        /// <param name="excludedLabels">
-        /// Keys, which would be excluded from a the label list in a payload.
+        /// <param name="filtrationMode">
+        /// The mode for labels filtration
+        /// </param>
+        /// <param name="filtrationLabels">
+        /// The list of label keys used for filtration
         /// </param>
         /// <param name="credentials">
         /// Auth <see cref="LokiCredentials"/>.
@@ -300,7 +311,8 @@ namespace Serilog.Sinks.Grafana.Loki
             bool bufferFileShared = false,
             int? retainedBufferFileCountLimit = 31,
             IEnumerable<LokiLabel> labels = null,
-            IEnumerable<string> excludedLabels = null,
+            LokiLabelFiltrationMode? filtrationMode = null,
+            IEnumerable<string> filtrationLabels = null,
             LokiCredentials credentials = null,
             string outputTemplate = DefaultOutputTemplate,
             LogEventLevel restrictedToMinimumLevel = LevelAlias.Minimum,
@@ -316,7 +328,7 @@ namespace Serilog.Sinks.Grafana.Loki
             }
 
             var (batchFormatter, formatter, client) =
-                SetupClientAndFormatters(labels, excludedLabels, textFormatter, outputTemplate, httpClient, credentials);
+                SetupClientAndFormatters(labels, filtrationMode, filtrationLabels, textFormatter, outputTemplate, httpClient, credentials);
 
             return sinkConfiguration.DurableHttpUsingFileSizeRolledBuffers(
                 LokiRoutesBuilder.BuildLogsEntriesRoute(uri),
@@ -335,13 +347,14 @@ namespace Serilog.Sinks.Grafana.Loki
         private static (IBatchFormatter batchFormatter, ITextFormatter textFormatter, IHttpClient httpClient)
             SetupClientAndFormatters(
                 IEnumerable<LokiLabel> labels,
-                IEnumerable<string> excludedLabels,
+                LokiLabelFiltrationMode? filtrationMode,
+                IEnumerable<string> filtrationLabels,
                 ITextFormatter textFormatter,
                 string outputTemplate,
                 IHttpClient httpClient,
                 LokiCredentials credentials)
         {
-            var batchFormatter = new LokiBatchFormatter(labels, excludedLabels);
+            var batchFormatter = new LokiBatchFormatter(labels, filtrationMode, filtrationLabels);
             var formatter = textFormatter ?? new MessageTemplateTextFormatter(outputTemplate);
             var client = httpClient ?? new DefaultLokiHttpClient();
 
