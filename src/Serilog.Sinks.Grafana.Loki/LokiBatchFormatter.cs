@@ -43,6 +43,8 @@ namespace Serilog.Sinks.Grafana.Loki
     /// </summary>
     internal class LokiBatchFormatter : IBatchFormatter
     {
+        private const int DefaultWriteBufferCapacity = 256;
+
         private readonly IEnumerable<LokiLabel> _globalLabels;
         private readonly LokiLabelFiltrationMode? _filtrationMode;
         private readonly IEnumerable<string> _filtrationLabels;
@@ -107,7 +109,7 @@ namespace Serilog.Sinks.Grafana.Loki
             {
                 var stream = batch.CreateStream();
                 GenerateLabels(logEvent, stream);
-                GenerateEntry(logEvent, stream);
+                GenerateEntry(logEvent, formatter, stream);
             }
 
             if (batch.IsNotEmpty)
@@ -168,23 +170,11 @@ namespace Serilog.Sinks.Grafana.Loki
             }
         }
 
-        private static void GenerateEntry(LogEvent logEvent, LokiStream stream)
+        private static void GenerateEntry(LogEvent logEvent, ITextFormatter formatter, LokiStream stream)
         {
-            var sb = new StringBuilder();
-            sb.AppendLine(logEvent.RenderMessage());
-
-            if (logEvent.Exception != null)
-            {
-                var ex = logEvent.Exception;
-                while (ex != null)
-                {
-                    sb.AppendLine(ex.Message);
-                    sb.AppendLine(ex.StackTrace);
-                    ex = ex.InnerException;
-                }
-            }
-
-            stream.AddEntry(logEvent.Timestamp, sb.ToString().TrimEnd('\r', '\n'));
+            var buffer = new StringWriter(new StringBuilder(DefaultWriteBufferCapacity));
+            formatter.Format(logEvent, buffer);
+            stream.AddEntry(logEvent.Timestamp, buffer.ToString().TrimEnd('\r', '\n'));
         }
 
         private void GenerateLabels(LogEvent logEvent, LokiStream stream)
