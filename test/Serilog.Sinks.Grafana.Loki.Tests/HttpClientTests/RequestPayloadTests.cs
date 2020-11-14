@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Diagnostics;
+using System.Text.RegularExpressions;
 using Serilog.Sinks.Grafana.Loki.Tests.Fixtures;
 using Serilog.Sinks.Grafana.Loki.Tests.Infrastructure;
 using Shouldly;
@@ -8,6 +9,8 @@ namespace Serilog.Sinks.Grafana.Loki.Tests.HttpClientTests
 {
     public class RequestPayloadTests : IClassFixture<HttpClientTextFixture>
     {
+        private const string OutputTemplate = "{Message}";
+
         private readonly TestLokiHttpClient _client;
 
         public RequestPayloadTests()
@@ -19,7 +22,10 @@ namespace Serilog.Sinks.Grafana.Loki.Tests.HttpClientTests
         public void RequestContentShouldMatchApproved()
         {
             var logger = new LoggerConfiguration()
-                .WriteTo.GrafanaLoki("http://loki:3100", httpClient: _client)
+                .WriteTo.GrafanaLoki(
+                    "http://loki:3100",
+                    outputTemplate: OutputTemplate,
+                    httpClient: _client)
                 .CreateLogger();
 
             logger.Error("An error occured");
@@ -35,7 +41,12 @@ namespace Serilog.Sinks.Grafana.Loki.Tests.HttpClientTests
             var logger = new LoggerConfiguration()
                 .Enrich.WithProperty("server_name", "loki_test")
                 .Enrich.WithProperty("server_ip", "127.0.0.1")
-                .WriteTo.GrafanaLoki("http://loki:3100", filtrationMode: LokiLabelFiltrationMode.Include, filtrationLabels: new[] {"server_ip"}, httpClient: _client)
+                .WriteTo.GrafanaLoki(
+                    "http://loki:3100",
+                    outputTemplate: OutputTemplate,
+                    filtrationMode: LokiLabelFiltrationMode.Include,
+                    filtrationLabels: new[] {"server_ip"},
+                    httpClient: _client)
                 .CreateLogger();
 
             logger.Error("An error occured");
@@ -51,7 +62,29 @@ namespace Serilog.Sinks.Grafana.Loki.Tests.HttpClientTests
             var logger = new LoggerConfiguration()
                 .Enrich.WithProperty("server_name", "loki_test")
                 .Enrich.WithProperty("server_ip", "127.0.0.1")
-                .WriteTo.GrafanaLoki("http://loki:3100", filtrationMode: LokiLabelFiltrationMode.Exclude, filtrationLabels: new[] {"server_ip"}, httpClient: _client)
+                .WriteTo.GrafanaLoki(
+                    "http://loki:3100",
+                    outputTemplate: OutputTemplate,
+                    filtrationMode: LokiLabelFiltrationMode.Exclude,
+                    filtrationLabels: new[] {"server_ip"},
+                    httpClient: _client)
+                .CreateLogger();
+
+            logger.Error("An error occured");
+            logger.Dispose();
+
+            _client.Content.ShouldMatchApproved(c =>
+                c.WithScrubber(s => Regex.Replace(s, "\"[0-9]{19}\"", "\"<unixepochinnanoseconds>\"")));
+        }
+
+        [Fact]
+        public void EntryShouldBeRenderedAccordingToOutputTemplate()
+        {
+            var logger = new LoggerConfiguration()
+                .WriteTo.GrafanaLoki(
+                    "http://loki:3100",
+                    outputTemplate: "[{Level:u3}] {Message}",
+                    httpClient: _client)
                 .CreateLogger();
 
             logger.Error("An error occured");

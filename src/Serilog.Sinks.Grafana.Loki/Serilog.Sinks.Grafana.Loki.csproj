@@ -8,7 +8,7 @@
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <LangVersion>8</LangVersion>
         <TargetFramework>netstandard2.0</TargetFramework>
-        <Version>4.0.0</Version>
+        <Version>4.0.1</Version>
         <!--SourceLink -->
         <PublishRepositoryUrl>true</PublishRepositoryUrl>
         <RepositoryUrl>https://github.com/mishamyte/serilog-sinks-grafana-loki.git</RepositoryUrl>
@@ -26,13 +26,13 @@
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
-      <PackageReference Include="Serilog" Version="2.9.0" />
-      <PackageReference Include="Serilog.Sinks.Http" Version="6.0.0" />
+      <PackageReference Include="Serilog" Version="2.10.0" />
+      <PackageReference Include="Serilog.Sinks.Http" Version="7.2.0" />
       <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
-      <PackageReference Include="System.Text.Json" Version="4.7.2" />
+      <PackageReference Include="System.Text.Json" Version="5.0.0" />
     </ItemGroup>
 
     <ItemGroup>

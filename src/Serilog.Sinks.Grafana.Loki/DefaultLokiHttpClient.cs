@@ -14,6 +14,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 
 namespace Serilog.Sinks.Grafana.Loki
 {
@@ -36,6 +37,17 @@ namespace Serilog.Sinks.Grafana.Loki
         public DefaultLokiHttpClient(HttpClient httpClient = null)
         {
             HttpClient = httpClient ?? new HttpClient();
+        }
+
+        /// <summary>
+        /// This method is not used by default
+        /// Please, use Serilog configuration section for configuring credentials
+        /// </summary>
+        /// <param name="configuration">
+        /// The application configuration properties.
+        /// </param>
+        public virtual void Configure(IConfiguration configuration)
+        {
         }
 
         /// <summary>
