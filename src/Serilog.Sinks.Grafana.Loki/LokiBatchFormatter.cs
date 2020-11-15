@@ -155,10 +155,7 @@ namespace Serilog.Sinks.Grafana.Loki
 
                 foreach (var label in _globalLabels)
                 {
-                    if (IsAllowedByFilter(label.Key))
-                    {
-                        stream.AddLabel(label.Key, label.Value);
-                    }
+                    stream.AddLabel(label.Key, label.Value);
                 }
 
                 stream.AddEntry(DateTimeOffset.UtcNow, logEvent.TrimEnd('\r', '\n'));
@@ -183,10 +180,7 @@ namespace Serilog.Sinks.Grafana.Loki
 
             foreach (var label in _globalLabels)
             {
-                if (IsAllowedByFilter(label.Key))
-                {
-                    stream.AddLabel(label.Key, label.Value);
-                }
+                stream.AddLabel(label.Key, label.Value);
             }
 
             foreach (var property in logEvent.Properties)
