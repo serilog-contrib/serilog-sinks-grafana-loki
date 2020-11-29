@@ -127,44 +127,12 @@ namespace Serilog.Sinks.Grafana.Loki
         /// <param name="output">
         /// The payload to send over the network.
         /// </param>
-        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="NotSupportedException">
+        /// This method in unsupported and should not be invoked
+        /// </exception>
         public void Format(IEnumerable<string> logEvents, TextWriter output)
         {
-            if (logEvents == null)
-            {
-                throw new ArgumentNullException(nameof(logEvents));
-            }
-
-            if (output == null)
-            {
-                throw new ArgumentNullException(nameof(output));
-            }
-
-            var events = logEvents as string[] ?? logEvents.ToArray();
-
-            if (events.Length == 0)
-            {
-                return;
-            }
-
-            var batch = new LokiBatch();
-
-            foreach (var logEvent in events)
-            {
-                var stream = batch.CreateStream();
-
-                foreach (var label in _globalLabels)
-                {
-                    stream.AddLabel(label.Key, label.Value);
-                }
-
-                stream.AddEntry(DateTimeOffset.UtcNow, logEvent.TrimEnd('\r', '\n'));
-            }
-
-            if (batch.IsNotEmpty)
-            {
-                output.Write(batch.Serialize());
-            }
+            throw new NotSupportedException("This method is unsupported");
         }
 
         private static void GenerateEntry(LogEvent logEvent, ITextFormatter formatter, LokiStream stream)
