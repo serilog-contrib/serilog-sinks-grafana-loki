@@ -8,6 +8,7 @@
 - [What is this sink and Loki?](#what-is-this)
 - [Features](#features)
 - [Comparison with other Loki sinks](#comparison)
+- [Breaking changes](#breaking-changes)
 - [Quickstart](#quickstart)
 
 ## What is this sink and Loki?
@@ -19,10 +20,9 @@ You can find more information about what Loki is over on [Grafana's website here
 ## Features:
 - Formats and batches log entries to Loki via HTTP (using actual API)
 - Global and contextual labels support
-- Labels exclusion
+- Labels filtration modes
 - Integration with Serilog.Settings.Configuration
 - Customizable HTTP client
-- Durable mode
 - Using fast System.Text.Json library for serialization
 
 Coming soon:
@@ -31,8 +31,11 @@ Coming soon:
 ## Comparison
 Features comparison table could be found [here](https://github.com/mishamyte/serilog-sinks-grafana-loki/wiki/Comparison-with-another-Loki-sinks)
 
+## Breaking changes
+The list of breaking changes could be found [here](https://github.com/mishamyte/serilog-sinks-grafana-loki/wiki/Breaking-changes)
+
 ## Quickstart
-The `Serilog.Sinks.Grafana.Loki` NuGet [package can be found here](https://www.nuget.org/packages/Serilog.Sinks.Grafana.Loki). Alternatively you can install it via one of the following commands below:
+The `Serilog.Sinks.Grafana.Loki` NuGet [package could be found here](https://www.nuget.org/packages/Serilog.Sinks.Grafana.Loki). Alternatively you can install it via one of the following commands below:
 
 NuGet command:
 ```bash
