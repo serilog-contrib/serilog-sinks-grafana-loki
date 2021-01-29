@@ -48,6 +48,7 @@ namespace Serilog.Sinks.Grafana.Loki
         private readonly IEnumerable<LokiLabel> _globalLabels;
         private readonly LokiLabelFiltrationMode? _filtrationMode;
         private readonly IEnumerable<string> _filtrationLabels;
+        private readonly bool _forceLevelAsLabel;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="LokiBatchFormatter"/> class.
@@ -61,14 +62,19 @@ namespace Serilog.Sinks.Grafana.Loki
         /// <param name="filtrationLabels">
         /// The list of label keys used for filtration
         /// </param>
+        /// <param name="forceLevelAsLabel">
+        /// Used to force the level to be created as a label
+        /// </param>
         public LokiBatchFormatter(
             IEnumerable<LokiLabel> globalLabels = null,
             LokiLabelFiltrationMode? filtrationMode = null,
-            IEnumerable<string> filtrationLabels = null)
+            IEnumerable<string> filtrationLabels = null,
+            bool forceLevelAsLabel = true)
         {
             _globalLabels = globalLabels ?? Enumerable.Empty<LokiLabel>();
             _filtrationMode = filtrationMode;
             _filtrationLabels = filtrationLabels;
+            _forceLevelAsLabel = forceLevelAsLabel;
         }
 
         /// <summary>
@@ -105,11 +111,23 @@ namespace Serilog.Sinks.Grafana.Loki
 
             var batch = new LokiBatch();
 
-            foreach (var logEvent in events)
+            // Group logEvent by labels
+            var groups = events.Select(le => new { Labels = GenerateLabels(le), LogEvent = le })
+                               .GroupBy(le => le.Labels, le => le.LogEvent, DictionaryComparer<string, string>.Instance);
+
+            foreach (var group in groups)
             {
+                var labels = group.Key;
                 var stream = batch.CreateStream();
-                GenerateLabels(logEvent, stream);
-                GenerateEntry(logEvent, formatter, stream);
+                foreach (var label in labels)
+                {
+                    stream.AddLabel(label.Key, label.Value);
+                }
+
+                foreach (var logEvent in group)
+                {
+                    GenerateEntry(logEvent, formatter, stream, labels.Keys);
+                }
             }
 
             if (batch.IsNotEmpty)
@@ -135,30 +153,47 @@ namespace Serilog.Sinks.Grafana.Loki
             throw new NotSupportedException("This method is unsupported");
         }
 
-        private static void GenerateEntry(LogEvent logEvent, ITextFormatter formatter, LokiStream stream)
+        private static void GenerateEntry(LogEvent logEvent, ITextFormatter formatter, LokiStream stream, IEnumerable<string> labels)
         {
             var buffer = new StringWriter(new StringBuilder(DefaultWriteBufferCapacity));
-            formatter.Format(logEvent, buffer);
+            if (formatter is ILabelAwareTextFormatter labelAwareTextFormatter)
+            {
+                labelAwareTextFormatter.Format(logEvent, buffer, labels);
+            }
+            else
+            {
+                formatter.Format(logEvent, buffer);
+            }
+
             stream.AddEntry(logEvent.Timestamp, buffer.ToString().TrimEnd('\r', '\n'));
         }
 
-        private void GenerateLabels(LogEvent logEvent, LokiStream stream)
+        private Dictionary<string, string> GenerateLabels(LogEvent logEvent)
         {
-            stream.AddLabel("level", logEvent.Level.ToGrafanaLogLevel());
+            var labels = new Dictionary<string, string>();
+            if (_forceLevelAsLabel)
+            {
+                labels.Add("level", logEvent.Level.ToGrafanaLogLevel());
+            }
 
             foreach (var label in _globalLabels)
             {
-                stream.AddLabel(label.Key, label.Value);
+                labels.Add(label.Key, label.Value);
             }
 
             foreach (var property in logEvent.Properties)
             {
-                if (IsAllowedByFilter(property.Key))
+                var key = property.Key;
+
+                // Some enrichers generates extra quotes and it breaks the payload
+                var value = property.Value.ToString().Replace("\"", string.Empty);
+                if (IsAllowedByFilter(key))
                 {
-                    // Some enrichers generates extra quotes and it breaks the payload
-                    stream.AddLabel(property.Key, property.Value.ToString().Replace("\"", string.Empty));
+                    labels.Add(property.Key, value);
                 }
             }
+
+            return labels;
         }
 
         private bool IsAllowedByFilter(string label) =>

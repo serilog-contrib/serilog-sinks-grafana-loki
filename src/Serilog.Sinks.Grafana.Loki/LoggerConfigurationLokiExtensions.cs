@@ -79,6 +79,9 @@ namespace Serilog.Sinks.Grafana.Loki
         /// A custom <see cref="IHttpClient"/> implementation. Default value is
         /// <see cref="DefaultLokiHttpClient"/>.
         /// </param>
+        /// <param name="forceLevelAsLabel">
+        /// Used to force the level to be created as a label
+        /// </param>
         /// <returns>Logger configuration, allowing configuration to continue.</returns>
         public static LoggerConfiguration GrafanaLoki(
             this LoggerSinkConfiguration sinkConfiguration,
@@ -93,7 +96,8 @@ namespace Serilog.Sinks.Grafana.Loki
             int? queueLimit = null,
             TimeSpan? period = null,
             ITextFormatter textFormatter = null,
-            IHttpClient httpClient = null)
+            IHttpClient httpClient = null,
+            bool forceLevelAsLabel = true)
         {
             if (sinkConfiguration == null)
             {
@@ -101,7 +105,7 @@ namespace Serilog.Sinks.Grafana.Loki
             }
 
             var (batchFormatter, formatter, client) =
-                SetupClientAndFormatters(labels, filtrationMode, filtrationLabels, textFormatter, outputTemplate, httpClient, credentials);
+                SetupClientAndFormatters(labels, filtrationMode, filtrationLabels, textFormatter, outputTemplate, httpClient, credentials, forceLevelAsLabel);
 
             return sinkConfiguration.Http(
                 LokiRoutesBuilder.BuildLogsEntriesRoute(uri),
@@ -122,9 +126,10 @@ namespace Serilog.Sinks.Grafana.Loki
                 ITextFormatter textFormatter,
                 string outputTemplate,
                 IHttpClient httpClient,
-                LokiCredentials credentials)
+                LokiCredentials credentials,
+                bool forceLevelAsLabel)
         {
-            var batchFormatter = new LokiBatchFormatter(labels, filtrationMode, filtrationLabels);
+            var batchFormatter = new LokiBatchFormatter(labels, filtrationMode, filtrationLabels, forceLevelAsLabel);
             var formatter = textFormatter ?? new MessageTemplateTextFormatter(outputTemplate);
             var client = httpClient ?? new DefaultLokiHttpClient();
 
