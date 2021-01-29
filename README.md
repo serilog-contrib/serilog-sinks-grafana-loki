@@ -115,7 +115,7 @@ Log.Logger = new LoggerConfiguration()
 ```
 
 ### Sending json content to Loki
-Serilog.Sinks.Grafana.Loki can be configured to send json content to Loki, this enables easier filtering in Loki v2, more information about how to filter can be found [here](https://grafana.com/blog/2020/10/28/loki-2.0-released-transform-logs-as-youre-querying-them-and-set-up-alerts-within-loki/)
+Serilog.Sinks.Grafana.Loki can be configured to send json content to Loki, this enables easier filtering in Loki v2, more information about how to filter can be found [here](https://grafana.com/blog/2020/10/28/loki-2.0-released-transform-logs-as-youre-querying-them-and-set-up-alerts-within-loki/)  
 Example configuration:
 ```json
 {
