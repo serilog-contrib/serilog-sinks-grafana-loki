@@ -124,7 +124,7 @@ namespace Serilog.Sinks.Grafana.Loki
                     stream.AddLabel(label.Key, label.Value);
                 }
 
-                foreach (var logEvent in group)
+                foreach (var logEvent in group.OrderBy(x => x.Timestamp))
                 {
                     GenerateEntry(logEvent, formatter, stream, labels.Keys);
                 }
