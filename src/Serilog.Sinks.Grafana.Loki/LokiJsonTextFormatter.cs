@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -14,6 +15,7 @@ namespace Serilog.Sinks.Grafana.Loki
     /// <summary>
     /// Used to serialize a log event to a json format that loki 2.0 can parse using the json parser ( | json ), more information can be found here https://grafana.com/blog/2020/10/28/loki-2.0-released-transform-logs-as-youre-querying-them-and-set-up-alerts-within-loki/
     /// </summary>
+    [SuppressMessage("ReSharper", "PossibleMultipleEnumeration", Justification = "Reviewed")]
     public class LokiJsonTextFormatter : ITextFormatter, ILabelAwareTextFormatter
     {
         private readonly JsonValueFormatter _valueFormatter;
@@ -55,7 +57,6 @@ namespace Serilog.Sinks.Grafana.Loki
                 .Where(pt => pt.Format != null);
 
             // Better not to allocate an array in the 99.9% of cases where this is false
-            // ReSharper disable once PossibleMultipleEnumeration
             if (tokensWithFormat.Any())
             {
                 output.Write(",\"renderings\":[");
