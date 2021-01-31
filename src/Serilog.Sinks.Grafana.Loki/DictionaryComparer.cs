@@ -14,6 +14,16 @@ namespace Serilog.Sinks.Grafana.Loki
 
         public bool Equals(IDictionary<TKey, TValue> x, IDictionary<TKey, TValue> y)
         {
+            if (ReferenceEquals(x, y))
+            {
+                return true;
+            }
+
+            if (x is null || y is null || x.GetType() != y.GetType())
+            {
+                return false;
+            }
+
             return x.Count == y.Count && !x.Except(y).Any();
         }
 
