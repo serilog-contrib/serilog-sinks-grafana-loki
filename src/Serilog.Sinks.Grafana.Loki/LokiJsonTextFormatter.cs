@@ -83,6 +83,7 @@ namespace Serilog.Sinks.Grafana.Loki
             if (logEvent.Exception != null)
             {
                 output.Write(",\"Exception\":");
+                SerializeException(output, logEvent.Exception, 1);
                 JsonValueFormatter.WriteQuotedJsonString(logEvent.Exception.ToString(), output);
             }
 
@@ -106,5 +107,53 @@ namespace Serilog.Sinks.Grafana.Loki
         /// <inheritdoc/>
         [Obsolete("Use \"Format(LogEvent logEvent, TextWriter output, IEnumerable<string> labels)\" instead!")]
         public void Format(LogEvent logEvent, TextWriter output) => Format(logEvent, output, Enumerable.Empty<string>());
+
+        /// <summary>
+        /// Used to serialize exceptions, can be overridden when inheriting to change the format.
+        /// </summary>
+        /// <param name="output"></param>
+        /// <param name="exception"></param>
+        /// <param name="level"></param>
+        protected virtual void SerializeException(TextWriter output, Exception exception, int level)
+        {
+            if (level == 4)
+            {
+                JsonValueFormatter.WriteQuotedJsonString(exception.ToString(), output);
+                return;
+            }
+
+            output.Write('{');
+            output.Write("Type\":");
+            var typeName = exception.GetType().Namespace.StartsWith("System.") ? exception.GetType().Name : exception.GetType().ToString();
+            JsonValueFormatter.WriteQuotedJsonString(typeName, output);
+            output.Write(",Message\":");
+            JsonValueFormatter.WriteQuotedJsonString(exception.Message, output);
+            output.Write(",StackTrace\":");
+            JsonValueFormatter.WriteQuotedJsonString(exception.StackTrace, output);
+
+            if (exception is AggregateException aggregateException)
+            {
+                output.Write(",InnerExceptions\":[");
+                var count = aggregateException.InnerExceptions.Count;
+                for (var i = 0; i < count; i++)
+                {
+                    var isLast = i == count;
+                    SerializeException(output, aggregateException.InnerExceptions[i], level + 1);
+                    if (!isLast)
+                    {
+                        output.Write(',');
+                    }
+                }
+
+                output.Write("]");
+            }
+            else if (exception.InnerException != null)
+            {
+                output.Write(",InnerException\":");
+                SerializeException(output, exception.InnerException, level + 1);
+            }
+
+            output.Write('}');
+        }
     }
 }
