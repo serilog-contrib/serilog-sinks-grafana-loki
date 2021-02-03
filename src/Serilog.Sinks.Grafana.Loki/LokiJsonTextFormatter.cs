@@ -46,10 +46,10 @@ namespace Serilog.Sinks.Grafana.Loki
                 throw new ArgumentNullException(nameof(output));
             }
 
-            output.Write("{\"message\":");
+            output.Write("{\"Message\":");
             JsonValueFormatter.WriteQuotedJsonString(logEvent.MessageTemplate.Render(logEvent.Properties), output);
 
-            output.Write(",\"messageTemplate\":");
+            output.Write(",\"MessageTemplate\":");
             JsonValueFormatter.WriteQuotedJsonString(logEvent.MessageTemplate.Text, output);
 
             var tokensWithFormat = logEvent.MessageTemplate.Tokens
@@ -59,7 +59,7 @@ namespace Serilog.Sinks.Grafana.Loki
             // Better not to allocate an array in the 99.9% of cases where this is false
             if (tokensWithFormat.Any())
             {
-                output.Write(",\"renderings\":[");
+                output.Write(",\"Renderings\":[");
                 var delim = string.Empty;
                 foreach (var r in tokensWithFormat)
                 {
@@ -79,7 +79,7 @@ namespace Serilog.Sinks.Grafana.Loki
 
             if (logEvent.Exception != null)
             {
-                output.Write(",\"exception\":");
+                output.Write(",\"Exception\":");
                 JsonValueFormatter.WriteQuotedJsonString(logEvent.Exception.ToString(), output);
             }
 
