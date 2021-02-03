@@ -10,7 +10,7 @@ namespace Serilog.Sinks.Grafana.Loki
     public interface ILabelAwareTextFormatter
     {
         /// <summary>
-        /// USed to exclude the Level label.
+        /// Used to exclude the Level label.
         /// </summary>
         public bool ExcludeLevelLabel { get; }
         /// <summary>
