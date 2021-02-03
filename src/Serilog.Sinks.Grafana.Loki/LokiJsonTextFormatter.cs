@@ -123,17 +123,17 @@ namespace Serilog.Sinks.Grafana.Loki
             }
 
             output.Write('{');
-            output.Write("Type\":");
+            output.Write("\"Type\":");
             var typeName = exception.GetType().Namespace.StartsWith("System.") ? exception.GetType().Name : exception.GetType().ToString();
             JsonValueFormatter.WriteQuotedJsonString(typeName, output);
-            output.Write(",Message\":");
+            output.Write(",\"Message\":");
             JsonValueFormatter.WriteQuotedJsonString(exception.Message, output);
-            output.Write(",StackTrace\":");
+            output.Write(",\"StackTrace\":");
             JsonValueFormatter.WriteQuotedJsonString(exception.StackTrace, output);
 
             if (exception is AggregateException aggregateException)
             {
-                output.Write(",InnerExceptions\":[");
+                output.Write(",\"InnerExceptions\":[");
                 var count = aggregateException.InnerExceptions.Count;
                 for (var i = 0; i < count; i++)
                 {
@@ -149,7 +149,7 @@ namespace Serilog.Sinks.Grafana.Loki
             }
             else if (exception.InnerException != null)
             {
-                output.Write(",InnerException\":");
+                output.Write(",\"InnerException\":");
                 SerializeException(output, exception.InnerException, level + 1);
             }
 
