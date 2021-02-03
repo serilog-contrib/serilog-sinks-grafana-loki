@@ -10,6 +10,10 @@ namespace Serilog.Sinks.Grafana.Loki
     public interface ILabelAwareTextFormatter
     {
         /// <summary>
+        /// USed to exclude the Level label.
+        /// </summary>
+        public bool ExcludeLevelLabel { get; }
+        /// <summary>
         /// Format the log event into the output.
         /// </summary>
         /// <param name="logEvent">The event to format.</param>

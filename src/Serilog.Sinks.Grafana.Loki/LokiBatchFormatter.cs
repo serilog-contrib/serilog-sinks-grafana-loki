@@ -48,7 +48,7 @@ namespace Serilog.Sinks.Grafana.Loki
         private readonly IEnumerable<LokiLabel> _globalLabels;
         private readonly LokiLabelFiltrationMode? _filtrationMode;
         private readonly IEnumerable<string> _filtrationLabels;
-        private readonly bool _forceLevelAsLabel;
+        private readonly bool _createLevelLabel;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="LokiBatchFormatter"/> class.
@@ -62,19 +62,19 @@ namespace Serilog.Sinks.Grafana.Loki
         /// <param name="filtrationLabels">
         /// The list of label keys used for filtration
         /// </param>
-        /// <param name="forceLevelAsLabel">
+        /// <param name="createLevelLabel">
         /// Used to force the level to be created as a label
         /// </param>
         public LokiBatchFormatter(
             IEnumerable<LokiLabel> globalLabels = null,
             LokiLabelFiltrationMode? filtrationMode = null,
             IEnumerable<string> filtrationLabels = null,
-            bool forceLevelAsLabel = true)
+            bool createLevelLabel = true)
         {
             _globalLabels = globalLabels ?? Enumerable.Empty<LokiLabel>();
             _filtrationMode = filtrationMode;
             _filtrationLabels = filtrationLabels;
-            _forceLevelAsLabel = forceLevelAsLabel;
+            _createLevelLabel = createLevelLabel;
         }
 
         /// <summary>
@@ -171,7 +171,7 @@ namespace Serilog.Sinks.Grafana.Loki
         private Dictionary<string, string> GenerateLabels(LogEvent logEvent)
         {
             var labels = new Dictionary<string, string>();
-            if (_forceLevelAsLabel)
+            if (_createLevelLabel)
             {
                 labels.Add("level", logEvent.Level.ToGrafanaLogLevel());
             }

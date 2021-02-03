@@ -131,8 +131,7 @@ Example configuration:
         "Name": "GrafanaLoki",
         "Args": {
           "uri": "http://localhost:3100",
-          "textFormatter": "Serilog.Sinks.Grafana.Loki.LokiJsonTextFormatter, Serilog.Sinks.Grafana.Loki",
-          "forceLevelAsLabel": false
+          "textFormatter": "Serilog.Sinks.Grafana.Loki.LokiJsonTextFormatter, Serilog.Sinks.Grafana.Loki"
         }
       }
     ]

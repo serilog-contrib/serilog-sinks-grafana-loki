@@ -79,9 +79,6 @@ namespace Serilog.Sinks.Grafana.Loki
         /// A custom <see cref="IHttpClient"/> implementation. Default value is
         /// <see cref="DefaultLokiHttpClient"/>.
         /// </param>
-        /// <param name="forceLevelAsLabel">
-        /// Used to force the level to be created as a label
-        /// </param>
         /// <returns>Logger configuration, allowing configuration to continue.</returns>
         public static LoggerConfiguration GrafanaLoki(
             this LoggerSinkConfiguration sinkConfiguration,
@@ -96,8 +93,7 @@ namespace Serilog.Sinks.Grafana.Loki
             int? queueLimit = null,
             TimeSpan? period = null,
             ITextFormatter textFormatter = null,
-            IHttpClient httpClient = null,
-            bool forceLevelAsLabel = true)
+            IHttpClient httpClient = null)
         {
             if (sinkConfiguration == null)
             {
@@ -105,7 +101,7 @@ namespace Serilog.Sinks.Grafana.Loki
             }
 
             var (batchFormatter, formatter, client) =
-                SetupClientAndFormatters(labels, filtrationMode, filtrationLabels, textFormatter, outputTemplate, httpClient, credentials, forceLevelAsLabel);
+                SetupClientAndFormatters(labels, filtrationMode, filtrationLabels, textFormatter, outputTemplate, httpClient, credentials);
 
             return sinkConfiguration.Http(
                 LokiRoutesBuilder.BuildLogsEntriesRoute(uri),
@@ -126,11 +122,11 @@ namespace Serilog.Sinks.Grafana.Loki
                 ITextFormatter textFormatter,
                 string outputTemplate,
                 IHttpClient httpClient,
-                LokiCredentials credentials,
-                bool forceLevelAsLabel)
+                LokiCredentials credentials)
         {
-            var batchFormatter = new LokiBatchFormatter(labels, filtrationMode, filtrationLabels, forceLevelAsLabel);
             var formatter = textFormatter ?? new MessageTemplateTextFormatter(outputTemplate);
+            var createLevelLabel = !(formatter is ILabelAwareTextFormatter labelAwareTextFormatter && labelAwareTextFormatter.ExcludeLevelLabel);
+            var batchFormatter = new LokiBatchFormatter(labels, filtrationMode, filtrationLabels, createLevelLabel);
             var client = httpClient ?? new DefaultLokiHttpClient();
 
             if (client is ILokiHttpClient lokiHttpClient)

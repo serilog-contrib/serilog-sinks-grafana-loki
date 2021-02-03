@@ -28,6 +28,9 @@ namespace Serilog.Sinks.Grafana.Loki
             _valueFormatter = new JsonValueFormatter(typeTagName: "$type");
         }
 
+        /// <inheritdoc/>
+        public bool ExcludeLevelLabel => true;
+
         /// <summary>
         /// Format the log event into the output.
         /// </summary>
