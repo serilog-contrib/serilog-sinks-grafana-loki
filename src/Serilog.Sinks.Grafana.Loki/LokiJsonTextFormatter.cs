@@ -84,7 +84,6 @@ namespace Serilog.Sinks.Grafana.Loki
             {
                 output.Write(",\"Exception\":");
                 SerializeException(output, logEvent.Exception, 1);
-                JsonValueFormatter.WriteQuotedJsonString(logEvent.Exception.ToString(), output);
             }
 
             foreach (var property in logEvent.Properties)
