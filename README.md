@@ -88,7 +88,6 @@ Used in conjunction with [Serilog.Settings.Configuration](https://github.com/ser
 
 Description of parameters and configuration details could be found [here](https://github.com/mishamyte/serilog-sinks-grafana-loki/wiki/Application-settings).
 
-
 ### Custom HTTP Client
 Serilog.Loki.Grafana.Loki is built on top of the popular [Serilog.Sinks.Http](https://github.com/FantasticFiasco/serilog-sinks-http) library.
 In order to use a custom HttpClient you can extend the default HttpClient (`Serilog.Sinks.Grafana.Loki.DefaultLokiHttpClient`), or create one implementing `Serilog.Sinks.Grafana.Loki.ILokiHttpClient` (which extends `Serilog.Sinks.Http.IHttpClient`).
@@ -114,6 +113,32 @@ Log.Logger = new LoggerConfiguration()
     )
     .CreateLogger();
 ```
+
+### Sending json content to Loki
+Serilog.Sinks.Grafana.Loki can be configured to send json content to Loki, this enables easier filtering in Loki v2, more information about how to filter can be found [here](https://grafana.com/blog/2020/10/28/loki-2.0-released-transform-logs-as-youre-querying-them-and-set-up-alerts-within-loki/)  
+Example configuration:
+```json
+{
+  "Serilog": {
+    "Using": [
+      "Serilog.Sinks.Grafana.Loki"
+    ],
+    "MinimumLevel": {
+      "Default": "Debug"
+    },
+    "WriteTo": [
+      {
+        "Name": "GrafanaLoki",
+        "Args": {
+          "uri": "http://localhost:3100",
+          "textFormatter": "Serilog.Sinks.Grafana.Loki.LokiJsonTextFormatter, Serilog.Sinks.Grafana.Loki"
+        }
+      }
+    ]
+  }
+}
+```
+
 
 ### Inspiration and Credits
 - [Serilog.Sinks.Loki](https://github.com/JosephWoodward/Serilog-Sinks-Loki)

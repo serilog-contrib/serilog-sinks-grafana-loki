@@ -124,8 +124,9 @@ namespace Serilog.Sinks.Grafana.Loki
                 IHttpClient httpClient,
                 LokiCredentials credentials)
         {
-            var batchFormatter = new LokiBatchFormatter(labels, filtrationMode, filtrationLabels);
             var formatter = textFormatter ?? new MessageTemplateTextFormatter(outputTemplate);
+            var createLevelLabel = !(formatter is ILabelAwareTextFormatter labelAwareTextFormatter && labelAwareTextFormatter.ExcludeLevelLabel);
+            var batchFormatter = new LokiBatchFormatter(labels, filtrationMode, filtrationLabels, createLevelLabel);
             var client = httpClient ?? new DefaultLokiHttpClient();
 
             if (client is ILokiHttpClient lokiHttpClient)

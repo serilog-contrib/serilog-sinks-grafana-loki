@@ -1,12 +1,22 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Serilog.Sinks.Grafana.Loki", "src\Serilog.Sinks.Grafana.Loki\Serilog.Sinks.Grafana.Loki.csproj", "{1CAF37E1-C6DC-4F85-BB18-45258C687399}"
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30709.132
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Serilog.Sinks.Grafana.Loki", "src\Serilog.Sinks.Grafana.Loki\Serilog.Sinks.Grafana.Loki.csproj", "{1CAF37E1-C6DC-4F85-BB18-45258C687399}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Serilog.Sinks.Grafana.Loki.Sample", "sample\Serilog.Sinks.Grafana.Loki.Sample\Serilog.Sinks.Grafana.Loki.Sample.csproj", "{C68CA6F0-ED85-47B3-9104-081714636E99}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Serilog.Sinks.Grafana.Loki.Sample", "sample\Serilog.Sinks.Grafana.Loki.Sample\Serilog.Sinks.Grafana.Loki.Sample.csproj", "{C68CA6F0-ED85-47B3-9104-081714636E99}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Serilog.Sinks.Grafana.Loki.SampleWebApp", "sample\Serilog.Sinks.Grafana.Loki.SampleWebApp\Serilog.Sinks.Grafana.Loki.SampleWebApp.csproj", "{B9595C59-5AC1-48EE-8CB8-0BF7BA48DC11}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Serilog.Sinks.Grafana.Loki.SampleWebApp", "sample\Serilog.Sinks.Grafana.Loki.SampleWebApp\Serilog.Sinks.Grafana.Loki.SampleWebApp.csproj", "{B9595C59-5AC1-48EE-8CB8-0BF7BA48DC11}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Serilog.Sinks.Grafana.Loki.Tests", "test\Serilog.Sinks.Grafana.Loki.Tests\Serilog.Sinks.Grafana.Loki.Tests.csproj", "{A6934A4D-82E8-4FD7-A693-E306207A1595}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Serilog.Sinks.Grafana.Loki.Tests", "test\Serilog.Sinks.Grafana.Loki.Tests\Serilog.Sinks.Grafana.Loki.Tests.csproj", "{A6934A4D-82E8-4FD7-A693-E306207A1595}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{40F47419-29CC-4689-BA1C-746C72BBA6BA}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+		LICENSE = LICENSE
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -30,5 +40,11 @@ Global
 		{A6934A4D-82E8-4FD7-A693-E306207A1595}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A6934A4D-82E8-4FD7-A693-E306207A1595}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A6934A4D-82E8-4FD7-A693-E306207A1595}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {606358DA-C9A6-4C0F-9CF1-0B1AB9028F06}
 	EndGlobalSection
 EndGlobal
