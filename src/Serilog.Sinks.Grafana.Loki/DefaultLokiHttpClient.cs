@@ -1,4 +1,4 @@
-﻿// Copyright 2020 Mykhailo Shevchuk & Contributors
+﻿// Copyright 2020-2021 Mykhailo Shevchuk & Contributors
 //
 // Licensed under the MIT license;
 // you may not use this file except in compliance with the License.
