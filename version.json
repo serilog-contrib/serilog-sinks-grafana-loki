@@ -1,0 +1,12 @@
+{
+  "$schema": "https://raw.githubusercontent.com/dotnet/Nerdbank.GitVersioning/master/src/NerdBank.GitVersioning/version.schema.json",
+  "version": "5.1-beta",
+  "versionHeightOffset": -1,
+  "pathFilters": [
+    "src"
+  ],
+  "publicReleaseRefSpec": [
+    "^refs/heads/master$",
+    "^refs/heads/v\\d+(?:\\.\\d+)?$"
+  ]
+}
