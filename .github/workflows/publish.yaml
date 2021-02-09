@@ -4,16 +4,19 @@ on:
   push:
     branches: 
       - master
+      - release/v**
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 3.1.202
+        dotnet-version: 5.0.x
     - name: Build
       run: dotnet build --configuration Release --nologo
     - name: Test
@@ -24,12 +27,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
     - name: Publish on version change
       uses: rohith/publish-nuget@v2
       with:
         PROJECT_FILE_PATH: src/Serilog.Sinks.Grafana.Loki/Serilog.Sinks.Grafana.Loki.csproj
         PACKAGE_NAME: Serilog.Sinks.Grafana.Loki
-        VERSION_REGEX: <Version>(.*)<\/Version>
+        VERSION_STATIC: 5.1.0-beta
         INCLUDE_SYMBOLS: true
         NUGET_KEY: ${{secrets.NUGET_API_KEY}}
       
