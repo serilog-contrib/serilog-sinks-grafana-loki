@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System;
+using System.Text.RegularExpressions;
 using Serilog.Sinks.Grafana.Loki.Tests.Fixtures;
 using Serilog.Sinks.Grafana.Loki.Tests.Infrastructure;
 using Shouldly;
@@ -136,6 +137,7 @@ namespace Serilog.Sinks.Grafana.Loki.Tests.HttpClientTests
                 .WriteTo.GrafanaLoki(
                     "http://loki:3100",
                     outputTemplate: OutputTemplate,
+                    period: TimeSpan.MaxValue,
                     httpClient: _client)
                 .CreateLogger();
 
@@ -157,6 +159,7 @@ namespace Serilog.Sinks.Grafana.Loki.Tests.HttpClientTests
                 .WriteTo.GrafanaLoki(
                     "http://loki:3100",
                     outputTemplate: OutputTemplate,
+                    period: TimeSpan.MaxValue,
                     httpClient: _client)
                 .CreateLogger();
 
@@ -178,6 +181,7 @@ namespace Serilog.Sinks.Grafana.Loki.Tests.HttpClientTests
                 .WriteTo.GrafanaLoki(
                     "http://loki:3100",
                     outputTemplate: OutputTemplate,
+                    period: TimeSpan.MaxValue,
                     httpClient: _client)
                 .CreateLogger();
 
