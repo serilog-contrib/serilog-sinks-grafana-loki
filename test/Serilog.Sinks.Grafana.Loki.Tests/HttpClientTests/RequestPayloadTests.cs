@@ -12,6 +12,8 @@ namespace Serilog.Sinks.Grafana.Loki.Tests.HttpClientTests
         private const string ApprovalsFolderName = "Approvals";
         private const string OutputTemplate = "{Message}";
 
+        private static readonly TimeSpan BatchPeriod = TimeSpan.FromHours(1);
+
         private readonly TestLokiHttpClient _client;
 
         public RequestPayloadTests()
@@ -137,7 +139,7 @@ namespace Serilog.Sinks.Grafana.Loki.Tests.HttpClientTests
                 .WriteTo.GrafanaLoki(
                     "http://loki:3100",
                     outputTemplate: OutputTemplate,
-                    period: TimeSpan.MaxValue,
+                    period: BatchPeriod,
                     httpClient: _client)
                 .CreateLogger();
 
@@ -159,7 +161,7 @@ namespace Serilog.Sinks.Grafana.Loki.Tests.HttpClientTests
                 .WriteTo.GrafanaLoki(
                     "http://loki:3100",
                     outputTemplate: OutputTemplate,
-                    period: TimeSpan.MaxValue,
+                    period: BatchPeriod,
                     httpClient: _client)
                 .CreateLogger();
 
@@ -181,7 +183,7 @@ namespace Serilog.Sinks.Grafana.Loki.Tests.HttpClientTests
                 .WriteTo.GrafanaLoki(
                     "http://loki:3100",
                     outputTemplate: OutputTemplate,
-                    period: TimeSpan.MaxValue,
+                    period: BatchPeriod,
                     httpClient: _client)
                 .CreateLogger();
 
