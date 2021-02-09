@@ -11,16 +11,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 5.0.x
-    - name: Nerdbank.GitVersioning
-      uses: dotnet/nbgv@v0.4.0
-      with:
-        setAllVars: true
     - name: Build
       run: dotnet build --configuration Release --nologo
     - name: Test
@@ -33,6 +27,10 @@ jobs:
     - uses: actions/checkout@v2
       with:
         fetch-depth: 0
+    - name: Nerdbank.GitVersioning
+      uses: dotnet/nbgv@v0.4.0
+      with:
+        setAllVars: true
     - name: Publish on version change
       uses: rohith/publish-nuget@v2
       with:
