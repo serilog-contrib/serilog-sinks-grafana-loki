@@ -8,6 +8,7 @@ namespace Serilog.Sinks.Grafana.Loki.Tests.HttpClientTests
 {
     public class RequestPayloadTests : IClassFixture<HttpClientTextFixture>
     {
+        private const string ApprovalsFolderName = "Approvals";
         private const string OutputTemplate = "{Message}";
 
         private readonly TestLokiHttpClient _client;
@@ -31,7 +32,10 @@ namespace Serilog.Sinks.Grafana.Loki.Tests.HttpClientTests
             logger.Dispose();
 
             _client.Content.ShouldMatchApproved(c =>
-                c.WithScrubber(s => Regex.Replace(s, "\"[0-9]{19}\"", "\"<unixepochinnanoseconds>\"")));
+            {
+                c.SubFolder(ApprovalsFolderName);
+                c.WithScrubber(s => Regex.Replace(s, "\"[0-9]{19}\"", "\"<unixepochinnanoseconds>\""));
+            });
         }
 
         [Fact]
@@ -52,7 +56,10 @@ namespace Serilog.Sinks.Grafana.Loki.Tests.HttpClientTests
             logger.Dispose();
 
             _client.Content.ShouldMatchApproved(c =>
-                c.WithScrubber(s => Regex.Replace(s, "\"[0-9]{19}\"", "\"<unixepochinnanoseconds>\"")));
+            {
+                c.SubFolder(ApprovalsFolderName);
+                c.WithScrubber(s => Regex.Replace(s, "\"[0-9]{19}\"", "\"<unixepochinnanoseconds>\""));
+            });
         }
 
         [Fact]
@@ -73,7 +80,10 @@ namespace Serilog.Sinks.Grafana.Loki.Tests.HttpClientTests
             logger.Dispose();
 
             _client.Content.ShouldMatchApproved(c =>
-                c.WithScrubber(s => Regex.Replace(s, "\"[0-9]{19}\"", "\"<unixepochinnanoseconds>\"")));
+            {
+                c.SubFolder(ApprovalsFolderName);
+                c.WithScrubber(s => Regex.Replace(s, "\"[0-9]{19}\"", "\"<unixepochinnanoseconds>\""));
+            });
         }
 
         [Fact]
@@ -90,7 +100,10 @@ namespace Serilog.Sinks.Grafana.Loki.Tests.HttpClientTests
             logger.Dispose();
 
             _client.Content.ShouldMatchApproved(c =>
-                c.WithScrubber(s => Regex.Replace(s, "\"[0-9]{19}\"", "\"<unixepochinnanoseconds>\"")));
+            {
+                c.SubFolder(ApprovalsFolderName);
+                c.WithScrubber(s => Regex.Replace(s, "\"[0-9]{19}\"", "\"<unixepochinnanoseconds>\""));
+            });
         }
 
         [Fact]
@@ -110,7 +123,10 @@ namespace Serilog.Sinks.Grafana.Loki.Tests.HttpClientTests
             logger.Dispose();
 
             _client.Content.ShouldMatchApproved(c =>
-                c.WithScrubber(s => Regex.Replace(s, "\"[0-9]{19}\"", "\"<unixepochinnanoseconds>\"")));
+            {
+                c.SubFolder(ApprovalsFolderName);
+                c.WithScrubber(s => Regex.Replace(s, "\"[0-9]{19}\"", "\"<unixepochinnanoseconds>\""));
+            });
         }
     }
 }
