@@ -1,0 +1,1 @@
+{"streams":[{"stream":{"level":"info","MeaningOfLife":"42"},"values":[["<unixepochinnanoseconds>","The meaning of life is 42"]]}]}

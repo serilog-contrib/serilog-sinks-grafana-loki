@@ -128,5 +128,68 @@ namespace Serilog.Sinks.Grafana.Loki.Tests.HttpClientTests
                 c.WithScrubber(s => Regex.Replace(s, "\"[0-9]{19}\"", "\"<unixepochinnanoseconds>\""));
             });
         }
+
+        [Fact]
+        public void SameGroupLabelsShouldBeInTheSameStreams()
+        {
+            var logger = new LoggerConfiguration()
+                .WriteTo.GrafanaLoki(
+                    "http://loki:3100",
+                    outputTemplate: OutputTemplate,
+                    httpClient: _client)
+                .CreateLogger();
+
+            logger.Information("This is an information without params");
+            logger.Information("This is also an information without params");
+            logger.Dispose();
+
+            _client.Content.ShouldMatchApproved(c =>
+            {
+                c.SubFolder(ApprovalsFolderName);
+                c.WithScrubber(s => Regex.Replace(s, "\"[0-9]{19}\"", "\"<unixepochinnanoseconds>\""));
+            });
+        }
+
+        [Fact]
+        public void DifferentGroupLabelsShouldBeInDifferentStreams()
+        {
+            var logger = new LoggerConfiguration()
+                .WriteTo.GrafanaLoki(
+                    "http://loki:3100",
+                    outputTemplate: OutputTemplate,
+                    httpClient: _client)
+                .CreateLogger();
+
+            logger.Information("This is an information without params");
+            logger.Error("This is an error without params");
+            logger.Dispose();
+
+            _client.Content.ShouldMatchApproved(c =>
+            {
+                c.SubFolder(ApprovalsFolderName);
+                c.WithScrubber(s => Regex.Replace(s, "\"[0-9]{19}\"", "\"<unixepochinnanoseconds>\""));
+            });
+        }
+
+        [Fact]
+        public void ParameterShouldGenerateNewGroupAndStream()
+        {
+            var logger = new LoggerConfiguration()
+                .WriteTo.GrafanaLoki(
+                    "http://loki:3100",
+                    outputTemplate: OutputTemplate,
+                    httpClient: _client)
+                .CreateLogger();
+
+            logger.Information("What is the meaning of life?");
+            logger.Information("The meaning of life is {@MeaningOfLife}", 42);
+            logger.Dispose();
+
+            _client.Content.ShouldMatchApproved(c =>
+            {
+                c.SubFolder(ApprovalsFolderName);
+                c.WithScrubber(s => Regex.Replace(s, "\"[0-9]{19}\"", "\"<unixepochinnanoseconds>\""));
+            });
+        }
     }
 }
