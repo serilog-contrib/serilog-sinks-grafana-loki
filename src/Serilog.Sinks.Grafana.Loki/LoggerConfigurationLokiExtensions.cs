@@ -114,7 +114,7 @@ namespace Serilog.Sinks.Grafana.Loki
                 client);
         }
 
-        private static (IBatchFormatter batchFormatter, ITextFormatter textFormatter, IHttpClient httpClient)
+        private static (IBatchFormatter BatchFormatter, ITextFormatter TextFormatter, IHttpClient HttpClient)
             SetupClientAndFormatters(
                 IEnumerable<LokiLabel> labels,
                 LokiLabelFiltrationMode? filtrationMode,
