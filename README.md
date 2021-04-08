@@ -10,6 +10,9 @@
 - [Comparison with other Loki sinks](#comparison)
 - [Breaking changes](#breaking-changes)
 - [Quickstart](#quickstart)
+- [Custom HTTP Client](#custom-http-client)
+- [Sending json content to Loki](#sending-json-content-to-loki)
+- [Inspiration and Credits](#inspiration-and-credits)
 
 ## What is this sink and Loki?
 
@@ -138,7 +141,6 @@ Example configuration:
   }
 }
 ```
-
 
 ### Inspiration and Credits
 - [Serilog.Sinks.Loki](https://github.com/JosephWoodward/Serilog-Sinks-Loki)

@@ -20,7 +20,7 @@ namespace Serilog.Sinks.Grafana.Loki.Sample
                 .WriteTo.Console(outputTemplate: OutputTemplate)
                 .WriteTo.GrafanaLoki(
                     "http://localhost:3100",
-                    labels: new List<LokiLabel>() {new LokiLabel {Key = "app", Value = "console"}},
+                    new List<LokiLabel> {new() {Key = "app", Value = "console"}},
                     credentials: null,
                     outputTemplate: OutputTemplate)
                 .CreateLogger();
