@@ -94,8 +94,8 @@ namespace Serilog.Sinks.Grafana.Loki.Tests.FormatterTests
                         .Replace(s, "\"[0-9]{19}\"", "\"<unixepochinnanoseconds>\"");
                     return Regex.Replace(
                         s,
-                        @"(?<=SimpleExceptionShouldBeSerializedCorrectly\(\) in )(.*?)(?=Serilog.Sinks.Grafana.Loki)",
-                        @"<path>\\\\");
+                        @"(?<=\\u0022StackTrace)(.*?)(?=}})",
+                        @"<stack-trace>");
                 });
             });
         }
@@ -131,8 +131,8 @@ namespace Serilog.Sinks.Grafana.Loki.Tests.FormatterTests
                         .Replace(s, "\"[0-9]{19}\"", "\"<unixepochinnanoseconds>\"");
                     return Regex.Replace(
                         s,
-                        @"(?<=MessagePropertyForExceptionsWithoutMessageShouldNotBeCreated\(\) in )(.*?)(?=Serilog.Sinks.Grafana.Loki)",
-                        @"<path>\\\\");
+                        @"(?<=\\u0022StackTrace)(.*?)(?=}})",
+                        @"<stack-trace>");
                 });
             });
         }
@@ -182,8 +182,8 @@ namespace Serilog.Sinks.Grafana.Loki.Tests.FormatterTests
                         .Replace(s, "\"[0-9]{19}\"", "\"<unixepochinnanoseconds>\"");
                     return Regex.Replace(
                         s,
-                        @"(?<=AggregateExceptionShouldBeSerializedCorrectly\(\) in )(.*?)(?=Serilog.Sinks.Grafana.Loki)",
-                        @"<path>\\\\");
+                        @"(?<=\\u0022StackTrace)(.*?)(?=}})",
+                        @"<stack-trace>");
                 });
             });
         }
