@@ -136,8 +136,12 @@ namespace Serilog.Sinks.Grafana.Loki
             JsonValueFormatter.WriteQuotedJsonString(typeName, output);
             output.Write(",\"Message\":");
             JsonValueFormatter.WriteQuotedJsonString(exception.Message, output);
-            output.Write(",\"StackTrace\":");
-            JsonValueFormatter.WriteQuotedJsonString(exception.StackTrace, output);
+
+            if (!string.IsNullOrWhiteSpace(exception.StackTrace))
+            {
+                output.Write(",\"StackTrace\":");
+                JsonValueFormatter.WriteQuotedJsonString(exception.StackTrace, output);
+            }
 
             if (exception is AggregateException aggregateException)
             {
