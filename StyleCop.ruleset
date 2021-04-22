@@ -47,18 +47,18 @@
         <Rule Id="SA1113" Action="Error"/>
         <Rule Id="SA1114" Action="Error"/>
         <Rule Id="SA1115" Action="Error"/>
-        <Rule Id="SA1116" Action="None"/>
-        <Rule Id="SA1117" Action="None"/>
-        <Rule Id="SA1118" Action="None"/>
+        <Rule Id="SA1116" Action="Error"/>
+        <Rule Id="SA1117" Action="Error"/>
+        <Rule Id="SA1118" Action="Error"/>
         <Rule Id="SA1119" Action="Error"/>
         <Rule Id="SA1120" Action="Error"/>
         <Rule Id="SA1121" Action="Error"/>
         <Rule Id="SA1122" Action="Error"/>
-        <Rule Id="SA1123" Action="None"/>
+        <Rule Id="SA1123" Action="Error"/>
         <Rule Id="SA1124" Action="Error"/>
         <Rule Id="SA1125" Action="Error"/>
         <Rule Id="SA1127" Action="Error"/>
-        <Rule Id="SA1128" Action="None"/>
+        <Rule Id="SA1128" Action="Error"/>
         <Rule Id="SA1130" Action="Error"/>
         <Rule Id="SA1131" Action="Error"/>
         <Rule Id="SA1132" Action="Error"/>
@@ -66,7 +66,7 @@
         <Rule Id="SA1134" Action="Error"/>
         <Rule Id="SA1135" Action="Error"/>
         <Rule Id="SA1136" Action="Error"/>
-        <Rule Id="SA1137" Action="None"/>
+        <Rule Id="SA1137" Action="Error"/>
         <Rule Id="SA1139" Action="Error"/>
         <Rule Id="SA1200" Action="None"/>
         <Rule Id="SA1201" Action="Error"/>
@@ -99,6 +99,7 @@
         <Rule Id="SA1312" Action="Error"/>
         <Rule Id="SA1313" Action="Error"/>
         <Rule Id="SA1314" Action="Error"/>
+        <Rule Id="SA1316" Action="Error"/>
         <Rule Id="SA1400" Action="Error"/>
         <Rule Id="SA1401" Action="None"/>
         <Rule Id="SA1402" Action="Error"/>

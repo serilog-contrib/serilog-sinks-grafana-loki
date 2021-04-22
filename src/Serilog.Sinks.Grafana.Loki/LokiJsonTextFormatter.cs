@@ -130,12 +130,15 @@ namespace Serilog.Sinks.Grafana.Loki
                 return;
             }
 
-            output.Write('{');
-            output.Write("\"Type\":");
+            output.Write("{\"Type\":");
             var typeName = exception.GetType().Namespace.StartsWith("System.") ? exception.GetType().Name : exception.GetType().ToString();
             JsonValueFormatter.WriteQuotedJsonString(typeName, output);
-            output.Write(",\"Message\":");
-            JsonValueFormatter.WriteQuotedJsonString(exception.Message, output);
+
+            if (!string.IsNullOrWhiteSpace(exception.Message))
+            {
+                output.Write(",\"Message\":");
+                JsonValueFormatter.WriteQuotedJsonString(exception.Message, output);
+            }
 
             if (!string.IsNullOrWhiteSpace(exception.StackTrace))
             {
