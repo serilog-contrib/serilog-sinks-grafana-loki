@@ -14,7 +14,7 @@
         <!--NuGet package-->
         <PackageIcon>serilog-sink-nuget.png</PackageIcon>
         <PackageId>Serilog.Sinks.Grafana.Loki</PackageId>
-        <PackageLicenseUrl>https://github.com/mishamyte/serilog-sinks-grafana-loki/blob/master/LICENSE</PackageLicenseUrl>
+        <PackageLicenseFile>LICENSE</PackageLicenseFile>
         <PackageProjectUrl>https://github.com/mishamyte/serilog-sinks-grafana-loki</PackageProjectUrl>
         <PackageReleaseNotes>For release notes, please see the change log on GitHub.</PackageReleaseNotes>
         <PackageTags>serilog;loki;grafana</PackageTags>
@@ -27,6 +27,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <None Include="..\..\LICENSE" Pack="true" Visible="false" PackagePath="" />
         <None Include="..\..\assets\serilog-sink-nuget.png" Pack="true" Visible="false" PackagePath="" />
     </ItemGroup>
 
