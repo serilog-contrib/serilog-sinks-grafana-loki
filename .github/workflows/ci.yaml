@@ -1,42 +1,42 @@
-name: CI
+name: "CI"
 
 on:
   push:
-    branches: 
+    branches:
       - master
     tags:
       - 'v*.*.*'
-    pull_request:
-    
-  env:
-    DOTNET_CLI_TELEMETRY_OPTOUT: true
-    DOTNET_NOLOGO: true
+  pull_request:
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_NOLOGO: true
 
 jobs:
   build:
     strategy:
       fail-fast: false
       matrix:
-        runs-on: [macOS-latest, ubuntu-latest, windows-latest]
+        runs-on: [ macOS-latest, ubuntu-latest, windows-latest ]
     name: ${{ matrix.runs-on }}
     runs-on: ${{ matrix.runs-on }}
     steps:
-    - uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
-        
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: 5.0.x
-        
-    - run: dotnet --info
-    
-    - if: contains(matrix.runs-on, 'macOS') || contains(matrix.runs-on, 'ubuntu')
-      run: ./build.sh
-    - if: matrix.runs-on == 'windows-latest' && github.ref != 'refs/heads/master' && !contains(github.ref, 'refs/tags/')
-      run: ./build.ps1
-    - if: (matrix.runs-on == 'windows-latest') && (github.ref == 'refs/heads/master' || contains(github.ref, 'refs/tags/'))
-      run: |
-        ./build.ps1
-        dotnet nuget push .\artifacts\*.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_API_KEY }}
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 5.0.x
+
+      - run: dotnet --info
+
+      - if: contains(matrix.runs-on, 'macOS') || contains(matrix.runs-on, 'ubuntu')
+        run: ./build.sh
+      - if: matrix.runs-on == 'windows-latest' && github.ref != 'refs/heads/master' && !contains(github.ref, 'refs/tags/')
+        run: ./build.ps1
+      - if: (matrix.runs-on == 'windows-latest') && (github.ref == 'refs/heads/master' || contains(github.ref, 'refs/tags/'))
+        run: |
+          ./build.ps1
+          dotnet nuget push .\artifacts\*.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_API_KEY }}

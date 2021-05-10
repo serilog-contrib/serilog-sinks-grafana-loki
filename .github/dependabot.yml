@@ -5,12 +5,12 @@
 
 version: 2
 updates:
-  - package-ecosystem: "nuget" 
+  - package-ecosystem: "nuget"
     directory: "/" # Location of package manifests
     schedule:
       interval: "daily"
 
-  - package-ecosystem: "github-actions" 
+  - package-ecosystem: "github-actions"
     directory: "/" # Location of package manifests
     schedule:
       interval: "daily"
