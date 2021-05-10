@@ -2,13 +2,13 @@
 
     <PropertyGroup>
         <AssemblyName>Serilog.Sinks.Grafana.Loki</AssemblyName>
-        <Authors>Mykhailo Shevchuk, Contributors</Authors>
-        <CodeAnalysisRuleSet>..\..\StyleCop.ruleset</CodeAnalysisRuleSet>
         <Description>A Serilog sink sending log events to Grafana Loki</Description>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
-        <LangVersion>8</LangVersion>
         <TargetFramework>netstandard2.0</TargetFramework>
         <!--SourceLink -->
+        <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
+        <DebugType>embedded</DebugType>
+        <EmbedUntrackedSources>true</EmbedUntrackedSources>
         <PublishRepositoryUrl>true</PublishRepositoryUrl>
         <RepositoryUrl>https://github.com/mishamyte/serilog-sinks-grafana-loki.git</RepositoryUrl>
         <!--NuGet package-->
@@ -21,21 +21,13 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0">
-          <PrivateAssets>all</PrivateAssets>
-          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      </PackageReference>
-      <PackageReference Include="Serilog" Version="2.10.0" />
-      <PackageReference Include="Serilog.Sinks.Http" Version="7.2.0" />
-      <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.333">
-          <PrivateAssets>all</PrivateAssets>
-          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      </PackageReference>
-      <PackageReference Include="System.Text.Json" Version="5.0.2" />
+        <PackageReference Include="Serilog" Version="2.10.0" />
+        <PackageReference Include="Serilog.Sinks.Http" Version="7.2.0" />
+        <PackageReference Include="System.Text.Json" Version="5.0.2" />
     </ItemGroup>
 
     <ItemGroup>
-        <None Include="..\..\assets\serilog-sink-nuget.png" Pack="true" PackagePath="\" />
+        <None Include="..\..\assets\serilog-sink-nuget.png" Pack="true" Visible="false" PackagePath="" />
     </ItemGroup>
 
 </Project>
