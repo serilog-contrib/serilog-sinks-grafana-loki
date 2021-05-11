@@ -38,7 +38,7 @@ namespace Build
 
             Target("default", DependsOn(Targets.Test, Targets.Pack));
 
-            RunTargetsAndExit(args);
+            RunTargetsAndExit(args, ex => ex is SimpleExec.NonZeroExitCodeException);
         }
     }
 }
