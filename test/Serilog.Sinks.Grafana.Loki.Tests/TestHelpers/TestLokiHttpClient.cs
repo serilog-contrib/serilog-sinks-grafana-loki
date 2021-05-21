@@ -1,7 +1,7 @@
 ﻿using System.Net.Http;
 using System.Threading.Tasks;
 
-namespace Serilog.Sinks.Grafana.Loki.Tests.Infrastructure
+namespace Serilog.Sinks.Grafana.Loki.Tests.TestHelpers
 {
     internal class TestLokiHttpClient : DefaultLokiHttpClient
     {

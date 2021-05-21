@@ -15,6 +15,7 @@ using Serilog.Sinks.Http;
 
 namespace Serilog.Sinks.Grafana.Loki
 {
+    // TODO: Delete IHttpClient from base
     /// <summary>
     /// Interface responsible for posting HTTP events
     /// and handling authorization for Grafana Loki.

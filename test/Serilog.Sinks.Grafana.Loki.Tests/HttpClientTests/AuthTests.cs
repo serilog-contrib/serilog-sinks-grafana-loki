@@ -1,5 +1,5 @@
 ﻿using Serilog.Sinks.Grafana.Loki.Tests.Fixtures;
-using Serilog.Sinks.Grafana.Loki.Tests.Infrastructure;
+using Serilog.Sinks.Grafana.Loki.Tests.TestHelpers;
 using Shouldly;
 using Xunit;
 
