@@ -9,6 +9,7 @@
 // See LICENSE file in the project root for full license information.
 
 using System;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -60,6 +61,11 @@ namespace Serilog.Sinks.Grafana.Loki
         {
             content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
             return HttpClient.PostAsync(requestUri, content);
+        }
+
+        public async Task<HttpResponseMessage> PostAsync(string requestUri, Stream contentStream)
+        {
+            throw new NotImplementedException();
         }
 
         /// <summary>
