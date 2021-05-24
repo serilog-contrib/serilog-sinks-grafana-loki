@@ -12,13 +12,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 using Serilog.Core;
 using Serilog.Debugging;
 using Serilog.Events;
 using Serilog.Formatting;
 using Serilog.Sinks.Grafana.Loki.Infrastructure;
+using Serilog.Sinks.Grafana.Loki.Utils;
 
 namespace Serilog.Sinks.Grafana.Loki
 {
@@ -110,10 +110,10 @@ namespace Serilog.Sinks.Grafana.Loki
 
                         using (var contentStream = new MemoryStream())
                         {
-                            using (var contentWriter = new StreamWriter(contentStream, Encoding.UTF8))
+                            using (var contentWriter = new StreamWriter(contentStream, Encoding.UTF8WithoutBom))
                             {
                                 _batchFormatter.Format(_waitingBatch, _textFormatter, contentWriter);
-                                await contentStream.FlushAsync();
+                                await contentWriter.FlushAsync();
                                 contentStream.Position = 0;
 
                                 if (contentStream.Length == 0)
@@ -137,7 +137,7 @@ namespace Serilog.Sinks.Grafana.Loki
                             _connectionSchedule.MarkFailure();
 
                             SelfLog.WriteLine(
-                                "Received failure on HTTP shipping {StatusCode}: {Response}",
+                                "Received failure on HTTP shipping {0}: {1}",
                                 response.StatusCode,
                                 await response.Content.ReadAsStringAsync().ConfigureAwait(false));
 
@@ -153,14 +153,14 @@ namespace Serilog.Sinks.Grafana.Loki
             }
             catch (Exception ex)
             {
-                SelfLog.WriteLine("Exception while emitting periodic batch from {Sink}: {Exception}", this, ex);
+                SelfLog.WriteLine("Exception while emitting periodic batch from {0}: {1}", this, ex);
                 _connectionSchedule.MarkFailure();
             }
             finally
             {
                 lock (_syncRoot)
                 {
-                    if (_isDisposed)
+                    if (!_isDisposed)
                     {
                         SetTimer();
                     }
