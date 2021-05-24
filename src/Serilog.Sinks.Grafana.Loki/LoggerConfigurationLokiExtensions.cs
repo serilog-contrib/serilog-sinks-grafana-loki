@@ -16,7 +16,6 @@ using Serilog.Events;
 using Serilog.Formatting;
 using Serilog.Formatting.Display;
 using Serilog.Sinks.Grafana.Loki.HttpClients;
-using Serilog.Sinks.Http;
 
 [assembly: InternalsVisibleTo("Serilog.Sinks.Grafana.Loki.Tests")]
 

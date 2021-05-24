@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Serilog.Sinks.Http.Private.Time;
+using Serilog.Sinks.Grafana.Loki.Infrastructure;
 using Shouldly;
 using Xunit;
 

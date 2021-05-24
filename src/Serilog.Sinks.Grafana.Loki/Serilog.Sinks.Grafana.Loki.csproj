@@ -22,7 +22,6 @@
 
     <ItemGroup>
         <PackageReference Include="Serilog" Version="2.10.0" />
-        <PackageReference Include="Serilog.Sinks.Http" Version="7.2.0" />
         <PackageReference Include="System.Text.Json" Version="5.0.2" />
     </ItemGroup>
 

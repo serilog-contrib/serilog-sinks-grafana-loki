@@ -1,4 +1,6 @@
-﻿using System.Net.Http;
+﻿using System.IO;
+using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 using Serilog.Sinks.Grafana.Loki.HttpClients;
 
@@ -12,9 +14,10 @@ namespace Serilog.Sinks.Grafana.Loki.Tests.TestHelpers
 
         public string RequestUri { get; private set; }
 
-        public override async Task<HttpResponseMessage> PostAsync(string requestUri, HttpContent content)
+        public override async Task<HttpResponseMessage> PostAsync(string requestUri, Stream contentStream)
         {
-            Content = await content.ReadAsStringAsync();
+            using var sr = new StreamReader(contentStream, Encoding.UTF8);
+            Content = await sr.ReadToEndAsync();
             RequestUri = requestUri;
 
             return new HttpResponseMessage();
