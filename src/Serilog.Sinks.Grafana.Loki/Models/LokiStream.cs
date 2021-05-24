@@ -18,7 +18,7 @@ namespace Serilog.Sinks.Grafana.Loki.Models
     internal class LokiStream
     {
         [JsonPropertyName("stream")]
-        public Dictionary<string, string> Labels { get; } = new Dictionary<string, string>();
+        public Dictionary<string, string> Labels { get; } = new();
 
         [JsonPropertyName("values")]
         public IList<IList<string>> Entries { get; set; } = new List<IList<string>>();
