@@ -3,7 +3,7 @@ using Serilog.Sinks.Grafana.Loki.Tests.TestHelpers;
 using Shouldly;
 using Xunit;
 
-namespace Serilog.Sinks.Grafana.Loki.Tests.HttpClientTests
+namespace Serilog.Sinks.Grafana.Loki.Tests.IntegrationTests
 {
     public class AuthTests : IClassFixture<HttpClientTextFixture>
     {
@@ -19,7 +19,7 @@ namespace Serilog.Sinks.Grafana.Loki.Tests.HttpClientTests
         {
             var credentials = new LokiCredentials {Login = "Billy", Password = "Herrington"};
             var logger = new LoggerConfiguration()
-                .WriteTo.GrafanaLoki("http://loki:3100", credentials: credentials, httpClient: _client)
+                .WriteTo.GrafanaLoki("https://loki:3100", credentials: credentials, httpClient: _client)
                 .CreateLogger();
 
             logger.Error("An error occured");
@@ -27,15 +27,15 @@ namespace Serilog.Sinks.Grafana.Loki.Tests.HttpClientTests
 
             var authorization = _client.Client.DefaultRequestHeaders.Authorization;
             authorization.ShouldSatisfyAllConditions(
-                () => authorization.Scheme.ShouldBe("Basic"),
-                () => authorization.Parameter.ShouldBe("QmlsbHk6SGVycmluZ3Rvbg=="));
+                () => authorization!.Scheme.ShouldBe("Basic"),
+                () => authorization!.Parameter.ShouldBe("QmlsbHk6SGVycmluZ3Rvbg=="));
         }
 
         [Fact]
         public void NoAuthHeaderShouldBeCorrect()
         {
             var logger = new LoggerConfiguration()
-                .WriteTo.GrafanaLoki("http://loki:3100", httpClient: _client)
+                .WriteTo.GrafanaLoki("https://loki:3100", httpClient: _client)
                 .CreateLogger();
 
             logger.Error("An error occured");

@@ -5,18 +5,16 @@ using Serilog.Sinks.Grafana.Loki.Tests.TestHelpers;
 using Shouldly;
 using Xunit;
 
-namespace Serilog.Sinks.Grafana.Loki.Tests.FormatterTests
+namespace Serilog.Sinks.Grafana.Loki.Tests.IntegrationTests
 {
-    // TODO: Exception without message
-    // TODO: Nested exceptions
-    public class LokiJsonTextFormatterTests
+    public class LokiJsonTextFormatterRequestPayloadTests
     {
         private const string ApprovalsFolderName = "Approvals";
         private const string OutputTemplate = "{Message}";
 
         private readonly TestLokiHttpClient _client;
 
-        public LokiJsonTextFormatterTests()
+        public LokiJsonTextFormatterRequestPayloadTests()
         {
             _client = new TestLokiHttpClient();
         }
@@ -26,7 +24,7 @@ namespace Serilog.Sinks.Grafana.Loki.Tests.FormatterTests
         {
             var logger = new LoggerConfiguration()
                 .WriteTo.GrafanaLoki(
-                    "http://loki:3100",
+                    "https://loki:3100",
                     outputTemplate: OutputTemplate,
                     textFormatter: new LokiJsonTextFormatter(),
                     httpClient: _client)
@@ -47,7 +45,7 @@ namespace Serilog.Sinks.Grafana.Loki.Tests.FormatterTests
         {
             var logger = new LoggerConfiguration()
                 .WriteTo.GrafanaLoki(
-                    "http://loki:3100",
+                    "https://loki:3100",
                     outputTemplate: OutputTemplate,
                     textFormatter: new LokiJsonTextFormatter(),
                     httpClient: _client)
@@ -68,7 +66,7 @@ namespace Serilog.Sinks.Grafana.Loki.Tests.FormatterTests
         {
             var logger = new LoggerConfiguration()
                 .WriteTo.GrafanaLoki(
-                    "http://loki:3100",
+                    "https://loki:3100",
                     outputTemplate: OutputTemplate,
                     textFormatter: new LokiJsonTextFormatter(),
                     httpClient: _client)
@@ -105,7 +103,7 @@ namespace Serilog.Sinks.Grafana.Loki.Tests.FormatterTests
         {
             var logger = new LoggerConfiguration()
                 .WriteTo.GrafanaLoki(
-                    "http://loki:3100",
+                    "https://loki:3100",
                     outputTemplate: OutputTemplate,
                     textFormatter: new LokiJsonTextFormatter(),
                     httpClient: _client)
@@ -142,7 +140,7 @@ namespace Serilog.Sinks.Grafana.Loki.Tests.FormatterTests
         {
             var logger = new LoggerConfiguration()
                 .WriteTo.GrafanaLoki(
-                    "http://loki:3100",
+                    "https://loki:3100",
                     outputTemplate: OutputTemplate,
                     textFormatter: new LokiJsonTextFormatter(),
                     httpClient: _client)

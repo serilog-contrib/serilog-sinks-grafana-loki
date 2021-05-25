@@ -4,7 +4,7 @@ using Serilog.Sinks.Grafana.Loki.Utils;
 using Shouldly;
 using Xunit;
 
-namespace Serilog.Sinks.Grafana.Loki.Tests.HttpClientTests
+namespace Serilog.Sinks.Grafana.Loki.Tests.IntegrationTests
 {
     public class RequestsUriTests : IClassFixture<HttpClientTextFixture>
     {
@@ -16,12 +16,12 @@ namespace Serilog.Sinks.Grafana.Loki.Tests.HttpClientTests
         }
 
         [Theory]
-        [InlineData("http://loki:3100")]
-        [InlineData("http://loki:3100/")]
+        [InlineData("https://loki:3100")]
+        [InlineData("https://loki:3100/")]
         public void RequestUriShouldBeCorrect(string uri)
         {
             var logger = new LoggerConfiguration()
-                .WriteTo.GrafanaLoki("http://loki:3100", httpClient: _client)
+                .WriteTo.GrafanaLoki("https://loki:3100", httpClient: _client)
                 .CreateLogger();
 
             logger.Error("An error occured");

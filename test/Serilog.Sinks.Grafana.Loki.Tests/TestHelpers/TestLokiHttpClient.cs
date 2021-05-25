@@ -8,6 +8,15 @@ namespace Serilog.Sinks.Grafana.Loki.Tests.TestHelpers
 {
     internal class TestLokiHttpClient : LokiHttpClient
     {
+        internal TestLokiHttpClient()
+        {
+        }
+
+        internal TestLokiHttpClient(HttpClient httpClient)
+            : base(httpClient)
+        {
+        }
+
         public HttpClient Client => HttpClient;
 
         public string Content { get; private set; }

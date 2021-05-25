@@ -5,7 +5,7 @@ using Serilog.Sinks.Grafana.Loki.Tests.TestHelpers;
 using Shouldly;
 using Xunit;
 
-namespace Serilog.Sinks.Grafana.Loki.Tests.HttpClientTests
+namespace Serilog.Sinks.Grafana.Loki.Tests.IntegrationTests
 {
     public class RequestPayloadTests : IClassFixture<HttpClientTextFixture>
     {
@@ -26,7 +26,7 @@ namespace Serilog.Sinks.Grafana.Loki.Tests.HttpClientTests
         {
             var logger = new LoggerConfiguration()
                 .WriteTo.GrafanaLoki(
-                    "http://loki:3100",
+                    "https://loki:3100",
                     outputTemplate: OutputTemplate,
                     httpClient: _client)
                 .CreateLogger();
@@ -48,7 +48,7 @@ namespace Serilog.Sinks.Grafana.Loki.Tests.HttpClientTests
                 .Enrich.WithProperty("server_name", "loki_test")
                 .Enrich.WithProperty("server_ip", "127.0.0.1")
                 .WriteTo.GrafanaLoki(
-                    "http://loki:3100",
+                    "https://loki:3100",
                     outputTemplate: OutputTemplate,
                     filtrationMode: LokiLabelFiltrationMode.Include,
                     filtrationLabels: new[] {"server_ip"},
@@ -72,7 +72,7 @@ namespace Serilog.Sinks.Grafana.Loki.Tests.HttpClientTests
                 .Enrich.WithProperty("server_name", "loki_test")
                 .Enrich.WithProperty("server_ip", "127.0.0.1")
                 .WriteTo.GrafanaLoki(
-                    "http://loki:3100",
+                    "https://loki:3100",
                     outputTemplate: OutputTemplate,
                     filtrationMode: LokiLabelFiltrationMode.Exclude,
                     filtrationLabels: new[] {"server_ip"},
@@ -94,7 +94,7 @@ namespace Serilog.Sinks.Grafana.Loki.Tests.HttpClientTests
         {
             var logger = new LoggerConfiguration()
                 .WriteTo.GrafanaLoki(
-                    "http://loki:3100",
+                    "https://loki:3100",
                     outputTemplate: "[{Level:u3}] {Message}",
                     httpClient: _client)
                 .CreateLogger();
@@ -114,7 +114,7 @@ namespace Serilog.Sinks.Grafana.Loki.Tests.HttpClientTests
         {
             var logger = new LoggerConfiguration()
                 .WriteTo.GrafanaLoki(
-                    "http://loki:3100",
+                    "https://loki:3100",
                     outputTemplate: OutputTemplate,
                     filtrationMode: LokiLabelFiltrationMode.Exclude,
                     filtrationLabels: new[] {"server_ip"},
@@ -137,7 +137,7 @@ namespace Serilog.Sinks.Grafana.Loki.Tests.HttpClientTests
         {
             var logger = new LoggerConfiguration()
                 .WriteTo.GrafanaLoki(
-                    "http://loki:3100",
+                    "https://loki:3100",
                     outputTemplate: OutputTemplate,
                     period: BatchPeriod,
                     httpClient: _client)
@@ -159,7 +159,7 @@ namespace Serilog.Sinks.Grafana.Loki.Tests.HttpClientTests
         {
             var logger = new LoggerConfiguration()
                 .WriteTo.GrafanaLoki(
-                    "http://loki:3100",
+                    "https://loki:3100",
                     outputTemplate: OutputTemplate,
                     period: BatchPeriod,
                     httpClient: _client)
@@ -181,7 +181,7 @@ namespace Serilog.Sinks.Grafana.Loki.Tests.HttpClientTests
         {
             var logger = new LoggerConfiguration()
                 .WriteTo.GrafanaLoki(
-                    "http://loki:3100",
+                    "https://loki:3100",
                     outputTemplate: OutputTemplate,
                     period: BatchPeriod,
                     httpClient: _client)
