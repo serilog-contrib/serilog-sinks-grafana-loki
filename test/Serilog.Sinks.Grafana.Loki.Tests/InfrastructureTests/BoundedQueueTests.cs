@@ -1,5 +1,4 @@
 ﻿using System;
-using Serilog.Events;
 using Serilog.Sinks.Grafana.Loki.Infrastructure;
 using Shouldly;
 using Xunit;

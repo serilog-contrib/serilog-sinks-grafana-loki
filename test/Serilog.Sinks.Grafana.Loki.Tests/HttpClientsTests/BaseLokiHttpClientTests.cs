@@ -5,7 +5,7 @@ using Xunit;
 
 namespace Serilog.Sinks.Grafana.Loki.Tests.HttpClientsTests
 {
-    public class LokiHttpClientTests
+    public class BaseLokiHttpClientTests
     {
         [Fact]
         public void ProvidedHttpClientShouldBeUsed()
