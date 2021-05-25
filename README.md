@@ -1,7 +1,8 @@
 # Serilog.Sinks.Grafana.Loki
 
 [![Build status](https://github.com/mishamyte/serilog-sinks-grafana-loki/workflows/CI/badge.svg)](https://github.com/mishamyte/serilog-sinks-grafana-loki/actions?query=workflow%3ACI)
-[![NuGet Version](https://img.shields.io/nuget/v/Serilog.Sinks.Grafana.Loki)](https://www.nuget.org/packages/Serilog.Sinks.Grafana.Loki)
+[![NuGet version](https://img.shields.io/nuget/v/Serilog.Sinks.Grafana.Loki)](https://www.nuget.org/packages/Serilog.Sinks.Grafana.Loki)
+[![Latest release](https://img.shields.io/github/v/release/mishamyte/serilog-sinks-grafana-loki?include_prereleases)](https://github.com/mishamyte/serilog-sinks-grafana-loki/releases)
 [![Documentation](https://img.shields.io/badge/docs-wiki-blueviolet.svg)](https://github.com/mishamyte/serilog-sinks-grafana-loki/wiki)
 
 ## Table of contents
