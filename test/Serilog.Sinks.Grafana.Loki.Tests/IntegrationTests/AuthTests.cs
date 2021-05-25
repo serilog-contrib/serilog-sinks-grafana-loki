@@ -1,11 +1,10 @@
-﻿using Serilog.Sinks.Grafana.Loki.Tests.Fixtures;
-using Serilog.Sinks.Grafana.Loki.Tests.TestHelpers;
+﻿using Serilog.Sinks.Grafana.Loki.Tests.TestHelpers;
 using Shouldly;
 using Xunit;
 
 namespace Serilog.Sinks.Grafana.Loki.Tests.IntegrationTests
 {
-    public class AuthTests : IClassFixture<HttpClientTextFixture>
+    public class AuthTests
     {
         private readonly TestLokiHttpClient _client;
 

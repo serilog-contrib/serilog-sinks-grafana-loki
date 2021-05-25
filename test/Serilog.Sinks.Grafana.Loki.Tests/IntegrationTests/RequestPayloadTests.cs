@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Text.RegularExpressions;
-using Serilog.Sinks.Grafana.Loki.Tests.Fixtures;
 using Serilog.Sinks.Grafana.Loki.Tests.TestHelpers;
 using Shouldly;
 using Xunit;
 
 namespace Serilog.Sinks.Grafana.Loki.Tests.IntegrationTests
 {
-    public class RequestPayloadTests : IClassFixture<HttpClientTextFixture>
+    public class RequestPayloadTests
     {
         private const string ApprovalsFolderName = "Approvals";
         private const string OutputTemplate = "{Message}";
