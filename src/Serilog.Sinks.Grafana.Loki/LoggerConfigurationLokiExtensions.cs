@@ -76,7 +76,7 @@ namespace Serilog.Sinks.Grafana.Loki
         /// value is <see cref="MessageTemplateTextFormatter"/>.
         /// </param>
         /// <param name="httpClient">
-        /// A custom <see cref="IHttpClient"/> implementation. Default value is
+        /// A custom <see cref="ILokiHttpClient"/> implementation. Default value is
         /// <see cref="LokiHttpClient"/>.
         /// </param>
         /// <returns>Logger configuration, allowing configuration to continue.</returns>
