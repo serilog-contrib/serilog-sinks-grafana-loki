@@ -1,14 +1,4 @@
-﻿// Copyright 2020-2021 Mykhailo Shevchuk & Contributors
-//
-// Licensed under the MIT license;
-// you may not use this file except in compliance with the License.
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See LICENSE file in the project root for full license information.
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -17,7 +7,6 @@ using Serilog.Events;
 using Serilog.Formatting;
 using Serilog.Sinks.Grafana.Loki.Models;
 using Serilog.Sinks.Grafana.Loki.Utils;
-using Serilog.Sinks.Http;
 
 namespace Serilog.Sinks.Grafana.Loki
 {
@@ -41,7 +30,7 @@ namespace Serilog.Sinks.Grafana.Loki
     /// }
     /// </code>
     /// </summary>
-    internal class LokiBatchFormatter : IBatchFormatter
+    internal class LokiBatchFormatter : ILokiBatchFormatter
     {
         private const int DefaultWriteBufferCapacity = 256;
 
@@ -90,7 +79,7 @@ namespace Serilog.Sinks.Grafana.Loki
         /// The payload to send over the network.
         /// </param>
         /// <exception cref="ArgumentNullException"></exception>
-        public void Format(IEnumerable<LogEvent> logEvents, ITextFormatter formatter, TextWriter output)
+        public void Format(IReadOnlyCollection<LogEvent> logEvents, ITextFormatter formatter, TextWriter output)
         {
             if (logEvents == null)
             {
@@ -102,9 +91,7 @@ namespace Serilog.Sinks.Grafana.Loki
                 throw new ArgumentNullException(nameof(output));
             }
 
-            var events = logEvents as LogEvent[] ?? logEvents.ToArray();
-
-            if (events.Length == 0)
+            if (logEvents.Count == 0)
             {
                 return;
             }
@@ -112,13 +99,15 @@ namespace Serilog.Sinks.Grafana.Loki
             var batch = new LokiBatch();
 
             // Group logEvent by labels
-            var groups = events.Select(le => new { Labels = GenerateLabels(le), LogEvent = le })
-                               .GroupBy(le => le.Labels, le => le.LogEvent, DictionaryComparer<string, string>.Instance);
+            var groups = logEvents
+                .Select(le => new { Labels = GenerateLabels(le), LogEvent = le })
+                .GroupBy(le => le.Labels, le => le.LogEvent, DictionaryComparer<string, string>.Instance);
 
             foreach (var group in groups)
             {
                 var labels = group.Key;
                 var stream = batch.CreateStream();
+
                 foreach (var label in labels)
                 {
                     stream.AddLabel(label.Key, label.Value);
@@ -136,26 +125,10 @@ namespace Serilog.Sinks.Grafana.Loki
             }
         }
 
-        /// <summary>
-        /// Format the log events into a payload.
-        /// </summary>
-        /// <param name="logEvents">
-        /// The events to format.
-        /// </param>
-        /// <param name="output">
-        /// The payload to send over the network.
-        /// </param>
-        /// <exception cref="NotSupportedException">
-        /// This method in unsupported and should not be invoked
-        /// </exception>
-        public void Format(IEnumerable<string> logEvents, TextWriter output)
-        {
-            throw new NotSupportedException("This method is unsupported");
-        }
-
         private static void GenerateEntry(LogEvent logEvent, ITextFormatter formatter, LokiStream stream, IEnumerable<string> labels)
         {
             var buffer = new StringWriter(new StringBuilder(DefaultWriteBufferCapacity));
+
             if (formatter is ILabelAwareTextFormatter labelAwareTextFormatter)
             {
                 labelAwareTextFormatter.Format(logEvent, buffer, labels);
@@ -170,15 +143,11 @@ namespace Serilog.Sinks.Grafana.Loki
 
         private Dictionary<string, string> GenerateLabels(LogEvent logEvent)
         {
-            var labels = new Dictionary<string, string>();
+            var labels = _globalLabels.ToDictionary(label => label.Key, label => label.Value);
+
             if (_createLevelLabel)
             {
                 labels.Add("level", logEvent.Level.ToGrafanaLogLevel());
-            }
-
-            foreach (var label in _globalLabels)
-            {
-                labels.Add(label.Key, label.Value);
             }
 
             foreach (var property in logEvent.Properties)
@@ -187,6 +156,7 @@ namespace Serilog.Sinks.Grafana.Loki
 
                 // Some enrichers generates extra quotes and it breaks the payload
                 var value = property.Value.ToString().Replace("\"", string.Empty);
+
                 if (IsAllowedByFilter(key))
                 {
                     labels.Add(property.Key, value);

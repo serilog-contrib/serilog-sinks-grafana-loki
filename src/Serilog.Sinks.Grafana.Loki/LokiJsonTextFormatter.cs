@@ -25,7 +25,7 @@ namespace Serilog.Sinks.Grafana.Loki
     /// Used to serialize a log event to a json format that loki 2.0 can parse using the json parser ( | json ), more information can be found here https://grafana.com/blog/2020/10/28/loki-2.0-released-transform-logs-as-youre-querying-them-and-set-up-alerts-within-loki/
     /// </summary>
     [SuppressMessage("ReSharper", "PossibleMultipleEnumeration", Justification = "Reviewed")]
-    public class LokiJsonTextFormatter : ITextFormatter, ILabelAwareTextFormatter
+    internal class LokiJsonTextFormatter : ITextFormatter, ILabelAwareTextFormatter
     {
         private readonly JsonValueFormatter _valueFormatter;
 
@@ -34,7 +34,7 @@ namespace Serilog.Sinks.Grafana.Loki
         /// </summary>
         public LokiJsonTextFormatter()
         {
-            _valueFormatter = new JsonValueFormatter(typeTagName: "$type");
+            _valueFormatter = new JsonValueFormatter("$type");
         }
 
         /// <inheritdoc/>
@@ -43,9 +43,15 @@ namespace Serilog.Sinks.Grafana.Loki
         /// <summary>
         /// Format the log event into the output.
         /// </summary>
-        /// <param name="logEvent">The event to format.</param>
-        /// <param name="output">The output.</param>
-        /// <param name="labels">List of labels that should not be written as json fields</param>
+        /// <param name="logEvent">
+        /// The event to format.
+        /// </param>
+        /// <param name="output">
+        /// The output.
+        /// </param>
+        /// <param name="labels">
+        /// List of labels that should not be written as json fields.
+        /// </param>
         public void Format(LogEvent logEvent, TextWriter output, IEnumerable<string> labels)
         {
             if (logEvent == null)
@@ -72,11 +78,11 @@ namespace Serilog.Sinks.Grafana.Loki
             if (tokensWithFormat.Any())
             {
                 output.Write(",\"Renderings\":[");
-                var delim = string.Empty;
+                var delimiter = string.Empty;
                 foreach (var r in tokensWithFormat)
                 {
-                    output.Write(delim);
-                    delim = ",";
+                    output.Write(delimiter);
+                    delimiter = ",";
                     var space = new StringWriter();
                     r.Render(logEvent.Properties, space);
                     JsonValueFormatter.WriteQuotedJsonString(space.ToString(), output);
@@ -119,9 +125,15 @@ namespace Serilog.Sinks.Grafana.Loki
         /// <summary>
         /// Used to serialize exceptions, can be overridden when inheriting to change the format.
         /// </summary>
-        /// <param name="output"></param>
-        /// <param name="exception"></param>
-        /// <param name="level"></param>
+        /// <param name="output">
+        /// The output.
+        /// </param>
+        /// <param name="exception">
+        /// The exception to format.
+        /// </param>
+        /// <param name="level">
+        /// The current nesting level of the exception.
+        /// </param>
         protected virtual void SerializeException(TextWriter output, Exception exception, int level)
         {
             if (level == 4)
@@ -131,7 +143,8 @@ namespace Serilog.Sinks.Grafana.Loki
             }
 
             output.Write("{\"Type\":");
-            var typeName = exception.GetType().Namespace.StartsWith("System.") ? exception.GetType().Name : exception.GetType().ToString();
+            var typeNamespace = exception.GetType().Namespace;
+            var typeName = typeNamespace != null && typeNamespace.StartsWith("System.") ? exception.GetType().Name : exception.GetType().ToString();
             JsonValueFormatter.WriteQuotedJsonString(typeName, output);
 
             if (!string.IsNullOrWhiteSpace(exception.Message))

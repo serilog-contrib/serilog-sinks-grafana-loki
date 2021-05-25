@@ -15,8 +15,8 @@ using Serilog.Configuration;
 using Serilog.Events;
 using Serilog.Formatting;
 using Serilog.Formatting.Display;
+using Serilog.Sinks.Grafana.Loki.HttpClients;
 using Serilog.Sinks.Grafana.Loki.Utils;
-using Serilog.Sinks.Http;
 
 [assembly: InternalsVisibleTo("Serilog.Sinks.Grafana.Loki.Tests")]
 
@@ -76,8 +76,8 @@ namespace Serilog.Sinks.Grafana.Loki
         /// value is <see cref="MessageTemplateTextFormatter"/>.
         /// </param>
         /// <param name="httpClient">
-        /// A custom <see cref="IHttpClient"/> implementation. Default value is
-        /// <see cref="DefaultLokiHttpClient"/>.
+        /// A custom <see cref="ILokiHttpClient"/> implementation. Default value is
+        /// <see cref="LokiHttpClient"/>.
         /// </param>
         /// <returns>Logger configuration, allowing configuration to continue.</returns>
         public static LoggerConfiguration GrafanaLoki(
@@ -93,48 +93,32 @@ namespace Serilog.Sinks.Grafana.Loki
             int? queueLimit = null,
             TimeSpan? period = null,
             ITextFormatter textFormatter = null,
-            IHttpClient httpClient = null)
+            ILokiHttpClient httpClient = null)
         {
             if (sinkConfiguration == null)
             {
                 throw new ArgumentNullException(nameof(sinkConfiguration));
             }
 
-            var (batchFormatter, formatter, client) =
-                SetupClientAndFormatters(labels, filtrationMode, filtrationLabels, textFormatter, outputTemplate, httpClient, credentials);
+            var createLevelLabel = textFormatter is not ILabelAwareTextFormatter {ExcludeLevelLabel: true};
+            var batchFormatter = new LokiBatchFormatter(labels, filtrationMode, filtrationLabels, createLevelLabel);
 
-            return sinkConfiguration.Http(
+            period ??= TimeSpan.FromSeconds(1);
+            textFormatter ??= new MessageTemplateTextFormatter(outputTemplate);
+            httpClient ??= new LokiHttpClient();
+
+            httpClient.SetCredentials(credentials);
+
+            var sink = new LokiSink(
                 LokiRoutesBuilder.BuildLogsEntriesRoute(uri),
                 batchPostingLimit,
                 queueLimit,
-                period,
-                formatter,
+                period.Value,
+                textFormatter,
                 batchFormatter,
-                restrictedToMinimumLevel,
-                client);
-        }
+                httpClient);
 
-        private static (IBatchFormatter BatchFormatter, ITextFormatter TextFormatter, IHttpClient HttpClient)
-            SetupClientAndFormatters(
-                IEnumerable<LokiLabel> labels,
-                LokiLabelFiltrationMode? filtrationMode,
-                IEnumerable<string> filtrationLabels,
-                ITextFormatter textFormatter,
-                string outputTemplate,
-                IHttpClient httpClient,
-                LokiCredentials credentials)
-        {
-            var formatter = textFormatter ?? new MessageTemplateTextFormatter(outputTemplate);
-            var createLevelLabel = !(formatter is ILabelAwareTextFormatter labelAwareTextFormatter && labelAwareTextFormatter.ExcludeLevelLabel);
-            var batchFormatter = new LokiBatchFormatter(labels, filtrationMode, filtrationLabels, createLevelLabel);
-            var client = httpClient ?? new DefaultLokiHttpClient();
-
-            if (client is ILokiHttpClient lokiHttpClient)
-            {
-                lokiHttpClient.SetCredentials(credentials);
-            }
-
-            return ((IBatchFormatter) batchFormatter, formatter, client);
+            return sinkConfiguration.Sink(sink, restrictedToMinimumLevel);
         }
     }
 }

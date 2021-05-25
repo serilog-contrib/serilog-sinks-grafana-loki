@@ -11,25 +11,27 @@
 using System.Collections.Generic;
 using System.IO;
 using Serilog.Events;
+using Serilog.Formatting;
 
 namespace Serilog.Sinks.Grafana.Loki
 {
     /// <summary>
-    /// Interface that has a Format method that accepts labels as input
+    /// Formats batches of log events into payloads that can be sent over the network.
     /// </summary>
-    public interface ILabelAwareTextFormatter
+    public interface ILokiBatchFormatter
     {
         /// <summary>
-        /// Used to exclude the Level label.
+        /// Format the log events into a payload.
         /// </summary>
-        public bool ExcludeLevelLabel { get; }
-
-        /// <summary>
-        /// Format the log event into the output.
-        /// </summary>
-        /// <param name="logEvent">The event to format.</param>
-        /// <param name="output">The output.</param>
-        /// <param name="labels">List of labels that are attached to this stream</param>
-        public void Format(LogEvent logEvent, TextWriter output, IEnumerable<string> labels);
+        /// <param name="logEvents">
+        /// The events to format.
+        /// </param>
+        /// <param name="formatter">
+        /// The formatter turning the log events into a textual representation.
+        /// </param>
+        /// <param name="output">
+        /// The payload to send over the network.
+        /// </param>
+        void Format(IReadOnlyCollection<LogEvent> logEvents, ITextFormatter formatter, TextWriter output);
     }
 }
