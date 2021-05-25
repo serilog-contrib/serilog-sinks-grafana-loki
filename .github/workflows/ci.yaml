@@ -31,6 +31,7 @@ jobs:
           dotnet-version: 5.0.x
 
       - run: dotnet --info
+      - run: echo "$GITHUB_CONTEXT"
 
       - if: contains(matrix.runs-on, 'macOS') || contains(matrix.runs-on, 'ubuntu')
         run: ./build.sh
