@@ -28,7 +28,7 @@ You can find more information about what Loki is over on [Grafana's website here
 - Customizable HTTP clients
 - HTTP client with gzip compression
 - Using fast System.Text.Json library for serialization
-- Possibility of sending [json content](https://grafana.com/blog/2020/10/28/loki-2.0-released-transform-logs-as-youre-querying-them-and-set-up-alerts-within-loki/) to Loki
+- Possibility of sending [json logs](https://grafana.com/blog/2020/10/28/loki-2.0-released-transform-logs-as-youre-querying-them-and-set-up-alerts-within-loki/) to Loki
 - No dependencies on another sinks
 
 ## Comparison
