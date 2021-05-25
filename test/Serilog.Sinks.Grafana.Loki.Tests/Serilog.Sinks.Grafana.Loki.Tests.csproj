@@ -19,8 +19,4 @@
         <ProjectReference Include="..\..\src\Serilog.Sinks.Grafana.Loki\Serilog.Sinks.Grafana.Loki.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="FormatterTests\Approvals" />
-    </ItemGroup>
-
 </Project>
