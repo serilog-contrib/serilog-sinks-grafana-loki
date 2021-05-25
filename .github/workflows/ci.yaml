@@ -31,13 +31,12 @@ jobs:
           dotnet-version: 5.0.x
 
       - run: dotnet --info
-      - run: echo "$GITHUB_CONTEXT"
 
       - if: contains(matrix.runs-on, 'macOS') || contains(matrix.runs-on, 'ubuntu')
         run: ./build.sh
       - if: matrix.runs-on == 'windows-latest' && !contains(github.ref, 'refs/tags/')
         run: ./build.ps1
-      - if: matrix.runs-on == 'windows-latest' && github.ref == 'refs/heads/master' && contains(github.ref, 'refs/tags/')
+      - if: matrix.runs-on == 'windows-latest' && github.event_name == 'release' && github.event.action == 'created'
         run: |
           ./build.ps1
           dotnet nuget push .\artifacts\*.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_API_KEY }}
