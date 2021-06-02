@@ -6,6 +6,8 @@ on:
       - master
     tags:
       - 'v*.*.*'
+  release:
+    types: [published]
   pull_request:
 
 env:
@@ -36,7 +38,7 @@ jobs:
         run: ./build.sh
       - if: matrix.runs-on == 'windows-latest' && !contains(github.ref, 'refs/tags/')
         run: ./build.ps1
-      - if: matrix.runs-on == 'windows-latest' && github.event_name == 'release' && github.event.action == 'created'
+      - if: matrix.runs-on == 'windows-latest' && github.event_name == 'release' && github.event.action == 'published'
         run: |
           ./build.ps1
           dotnet nuget push .\artifacts\*.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_API_KEY }}
