@@ -25,7 +25,7 @@ namespace Serilog.Sinks.Grafana.Loki
     /// Used to serialize a log event to a json format that loki 2.0 can parse using the json parser ( | json ), more information can be found here https://grafana.com/blog/2020/10/28/loki-2.0-released-transform-logs-as-youre-querying-them-and-set-up-alerts-within-loki/
     /// </summary>
     [SuppressMessage("ReSharper", "PossibleMultipleEnumeration", Justification = "Reviewed")]
-    internal class LokiJsonTextFormatter : ITextFormatter, ILabelAwareTextFormatter
+    public class LokiJsonTextFormatter : ITextFormatter, ILabelAwareTextFormatter
     {
         private readonly JsonValueFormatter _valueFormatter;
 
