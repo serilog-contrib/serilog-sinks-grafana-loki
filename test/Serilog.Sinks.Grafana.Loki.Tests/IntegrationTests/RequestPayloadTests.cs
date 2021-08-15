@@ -41,6 +41,27 @@ namespace Serilog.Sinks.Grafana.Loki.Tests.IntegrationTests
         }
 
         [Fact]
+        public void LevelLabelShouldBeCreatedCorrectly()
+        {
+            var logger = new LoggerConfiguration()
+                .WriteTo.GrafanaLoki(
+                    "https://loki:3100",
+                    outputTemplate: OutputTemplate,
+                    httpClient: _client,
+                    createLevelLabel: true)
+                .CreateLogger();
+
+            logger.Error("An error occured");
+            logger.Dispose();
+
+            _client.Content.ShouldMatchApproved(c =>
+            {
+                c.SubFolder(ApprovalsFolderName);
+                c.WithScrubber(s => Regex.Replace(s, "\"[0-9]{19}\"", "\"<unixepochinnanoseconds>\""));
+            });
+        }
+
+        [Fact]
         public void OnlyIncludedLabelsShouldBePresentInRequest()
         {
             var logger = new LoggerConfiguration()
@@ -154,7 +175,7 @@ namespace Serilog.Sinks.Grafana.Loki.Tests.IntegrationTests
         }
 
         [Fact]
-        public void DifferentGroupLabelsShouldBeInDifferentStreams()
+        public void DifferentLevelsShouldNotGenerateDifferentStreamsWithoutLevelLabel()
         {
             var logger = new LoggerConfiguration()
                 .WriteTo.GrafanaLoki(
@@ -162,6 +183,29 @@ namespace Serilog.Sinks.Grafana.Loki.Tests.IntegrationTests
                     outputTemplate: OutputTemplate,
                     period: BatchPeriod,
                     httpClient: _client)
+                .CreateLogger();
+
+            logger.Information("This is an information without params");
+            logger.Error("This is an error without params");
+            logger.Dispose();
+
+            _client.Content.ShouldMatchApproved(c =>
+            {
+                c.SubFolder(ApprovalsFolderName);
+                c.WithScrubber(s => Regex.Replace(s, "\"[0-9]{19}\"", "\"<unixepochinnanoseconds>\""));
+            });
+        }
+
+        [Fact]
+        public void LevelLabelShouldGenerateNewGroupAndStream()
+        {
+            var logger = new LoggerConfiguration()
+                .WriteTo.GrafanaLoki(
+                    "https://loki:3100",
+                    outputTemplate: OutputTemplate,
+                    period: BatchPeriod,
+                    httpClient: _client,
+                    createLevelLabel: true)
                 .CreateLogger();
 
             logger.Information("This is an information without params");

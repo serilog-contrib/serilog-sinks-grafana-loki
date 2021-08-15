@@ -1,1 +1,1 @@
-{"streams":[{"stream":{"level":"info","Param-0":"Namespace.Module.Method"},"values":[["<unixepochinnanoseconds>","An error occured in \u0022Namespace.Module.Method\u0022"]]}]}
+{"streams":[{"stream":{"Param-0":"Namespace.Module.Method"},"values":[["<unixepochinnanoseconds>","An error occured in \u0022Namespace.Module.Method\u0022"]]}]}

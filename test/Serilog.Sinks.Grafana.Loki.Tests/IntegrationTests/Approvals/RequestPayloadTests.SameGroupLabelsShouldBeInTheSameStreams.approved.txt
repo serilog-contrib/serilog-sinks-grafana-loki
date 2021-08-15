@@ -1,1 +1,1 @@
-{"streams":[{"stream":{"level":"info"},"values":[["<unixepochinnanoseconds>","This is an information without params"],["<unixepochinnanoseconds>","This is also an information without params"]]}]}
+{"streams":[{"stream":{},"values":[["<unixepochinnanoseconds>","This is an information without params"],["<unixepochinnanoseconds>","This is also an information without params"]]}]}

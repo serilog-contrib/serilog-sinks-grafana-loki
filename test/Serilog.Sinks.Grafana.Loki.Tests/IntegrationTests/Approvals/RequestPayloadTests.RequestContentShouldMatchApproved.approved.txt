@@ -1,1 +1,1 @@
-﻿{"streams":[{"stream":{"level":"error"},"values":[["<unixepochinnanoseconds>","An error occured"]]}]}
+{"streams":[{"stream":{},"values":[["<unixepochinnanoseconds>","An error occured"]]}]}

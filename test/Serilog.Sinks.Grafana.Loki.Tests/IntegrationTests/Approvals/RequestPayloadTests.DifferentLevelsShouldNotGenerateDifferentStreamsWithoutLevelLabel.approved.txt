@@ -1,0 +1,1 @@
+{"streams":[{"stream":{},"values":[["<unixepochinnanoseconds>","This is an information without params"],["<unixepochinnanoseconds>","This is an error without params"]]}]}
