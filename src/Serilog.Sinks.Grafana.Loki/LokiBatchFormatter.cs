@@ -154,12 +154,21 @@ namespace Serilog.Sinks.Grafana.Loki
             {
                 var key = property.Key;
 
+                // If a message template is a composite format string that contains indexed placeholders ({0}, {1} etc),
+                // Serilog turns these placeholders into event properties keyed by numeric strings.
+                // Loki doesn't accept such strings as label keys. Prefix these numeric strings with "param"
+                // to turn them into valid label keys and at the same time denote them as ordinal parameters.
+                if (char.IsDigit(key[0]))
+                {
+                    key = "param" + key;
+                }
+
                 // Some enrichers generates extra quotes and it breaks the payload
                 var value = property.Value.ToString().Replace("\"", string.Empty);
 
                 if (IsAllowedByFilter(key))
                 {
-                    labels.Add(property.Key, value);
+                    labels.Add(key, value);
                 }
             }
 
