@@ -19,9 +19,9 @@ namespace Serilog.Sinks.Grafana.Loki.Tests.TestHelpers
 
         public HttpClient Client => HttpClient;
 
-        public string Content { get; private set; }
+        public string Content { get; private set; } = null!;
 
-        public string RequestUri { get; private set; }
+        public string RequestUri { get; private set; } = null!;
 
         public override async Task<HttpResponseMessage> PostAsync(string requestUri, Stream contentStream)
         {

@@ -13,7 +13,7 @@ namespace Serilog.Sinks.Grafana.Loki.Tests.InfrastructureTests
         [Fact]
         public void TimerShouldThrowExceptionOnCreatingWithNullOnTick()
         {
-            Should.Throw<ArgumentNullException>(() => new PortableTimer(null))
+            Should.Throw<ArgumentNullException>(() => new PortableTimer(null!))
                 .ParamName.ShouldBe("onTick");
         }
 
@@ -87,7 +87,7 @@ namespace Serilog.Sinks.Grafana.Loki.Tests.InfrastructureTests
             var userHandlerOverlapped = false;
 
             // ReSharper disable AccessToModifiedClosure
-            PortableTimer timer = null;
+            PortableTimer timer = null!;
             timer = new PortableTimer(
                 async () =>
                 {
@@ -120,7 +120,7 @@ namespace Serilog.Sinks.Grafana.Loki.Tests.InfrastructureTests
         [Fact]
         public void TimerCanBeDisposedFromMultipleThread()
         {
-            PortableTimer timer = null;
+            PortableTimer timer = null!;
 
             // ReSharper disable once PossibleNullReferenceException
             timer = new PortableTimer(async () => timer.Start(TimeSpan.FromMilliseconds(1)));
