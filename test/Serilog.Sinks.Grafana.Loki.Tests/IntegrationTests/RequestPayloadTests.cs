@@ -196,5 +196,25 @@ namespace Serilog.Sinks.Grafana.Loki.Tests.IntegrationTests
                 c.WithScrubber(s => Regex.Replace(s, "\"[0-9]{19}\"", "\"<unixepochinnanoseconds>\""));
             });
         }
+
+        [Fact]
+        public void LabelsForIndexedPlaceholdersShouldBeCreatedWithParamPrefix()
+        {
+            var logger = new LoggerConfiguration()
+                .WriteTo.GrafanaLoki(
+                    "https://loki:3100",
+                    outputTemplate: OutputTemplate,
+                    httpClient: _client)
+                .CreateLogger();
+
+            logger.Information("An error occured in {0}", "Namespace.Module.Method");
+            logger.Dispose();
+
+            _client.Content.ShouldMatchApproved(c =>
+            {
+                c.SubFolder(ApprovalsFolderName);
+                c.WithScrubber(s => Regex.Replace(s, "\"[0-9]{19}\"", "\"<unixepochinnanoseconds>\""));
+            });
+        }
     }
 }

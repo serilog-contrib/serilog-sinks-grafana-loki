@@ -160,7 +160,7 @@ namespace Serilog.Sinks.Grafana.Loki
                 // to turn them into valid label keys and at the same time denote them as ordinal parameters.
                 if (char.IsDigit(key[0]))
                 {
-                    key = "param" + key;
+                    key = $"Param-{key}";
                 }
 
                 // Some enrichers generates extra quotes and it breaks the payload
