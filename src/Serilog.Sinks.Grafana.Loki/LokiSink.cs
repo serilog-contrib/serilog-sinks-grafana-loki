@@ -99,7 +99,7 @@ namespace Serilog.Sinks.Grafana.Loki
                 {
                     while (_waitingBatch.Count < _batchPostingLimit && _queue.TryDequeue(out var next))
                     {
-                        _waitingBatch.Enqueue(next);
+                        _waitingBatch.Enqueue(next!);
                     }
 
                     batchWasFull = _waitingBatch.Count >= _batchPostingLimit;

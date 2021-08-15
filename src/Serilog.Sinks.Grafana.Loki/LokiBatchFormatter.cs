@@ -55,14 +55,14 @@ namespace Serilog.Sinks.Grafana.Loki
         /// Used to force the level to be created as a label
         /// </param>
         public LokiBatchFormatter(
-            IEnumerable<LokiLabel> globalLabels = null,
+            IEnumerable<LokiLabel>? globalLabels = null,
             LokiLabelFiltrationMode? filtrationMode = null,
-            IEnumerable<string> filtrationLabels = null,
+            IEnumerable<string>? filtrationLabels = null,
             bool createLevelLabel = true)
         {
             _globalLabels = globalLabels ?? Enumerable.Empty<LokiLabel>();
             _filtrationMode = filtrationMode;
-            _filtrationLabels = filtrationLabels;
+            _filtrationLabels = filtrationLabels ?? Enumerable.Empty<string>();
             _createLevelLabel = createLevelLabel;
         }
 
@@ -184,6 +184,6 @@ namespace Serilog.Sinks.Grafana.Loki
                 _ => true
             };
 
-        private bool IsInFilterList(string label) => _filtrationLabels != null && _filtrationLabels.Contains(label);
+        private bool IsInFilterList(string label) => _filtrationLabels.Contains(label);
     }
 }

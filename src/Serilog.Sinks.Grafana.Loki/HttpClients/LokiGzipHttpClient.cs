@@ -36,7 +36,7 @@ namespace Serilog.Sinks.Grafana.Loki.HttpClients
         /// <see cref="CompressionLevel"/> be used for HTTP requests.
         /// </param>
         public LokiGzipHttpClient(
-            HttpClient httpClient = null,
+            HttpClient? httpClient = null,
             CompressionLevel compressionLevel = CompressionLevel.Fastest)
             : base(httpClient)
         {

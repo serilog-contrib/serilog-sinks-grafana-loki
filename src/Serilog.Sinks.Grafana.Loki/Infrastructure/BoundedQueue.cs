@@ -48,7 +48,7 @@ namespace Serilog.Sinks.Grafana.Loki.Infrastructure
             }
         }
 
-        public bool TryDequeue(out T item)
+        public bool TryDequeue(out T? item)
         {
             lock (_syncRoot)
             {

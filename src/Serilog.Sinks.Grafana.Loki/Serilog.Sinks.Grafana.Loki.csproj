@@ -18,6 +18,7 @@
         <PackageProjectUrl>https://github.com/mishamyte/serilog-sinks-grafana-loki</PackageProjectUrl>
         <PackageReleaseNotes>For release notes, please see the change log on GitHub.</PackageReleaseNotes>
         <PackageTags>serilog;loki;grafana</PackageTags>
+        <Nullable>enable</Nullable>
     </PropertyGroup>
 
     <ItemGroup>

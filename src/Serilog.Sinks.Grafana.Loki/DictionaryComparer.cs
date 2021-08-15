@@ -20,7 +20,7 @@ namespace Serilog.Sinks.Grafana.Loki
     /// <typeparam name="TValue"></typeparam>
     internal class DictionaryComparer<TKey, TValue> : IEqualityComparer<IDictionary<TKey, TValue>>
     {
-        public static DictionaryComparer<TKey, TValue> Instance { get; } = new DictionaryComparer<TKey, TValue>();
+        public static DictionaryComparer<TKey, TValue> Instance { get; } = new();
 
         public bool Equals(IDictionary<TKey, TValue> x, IDictionary<TKey, TValue> y)
         {
@@ -29,7 +29,7 @@ namespace Serilog.Sinks.Grafana.Loki
                 return true;
             }
 
-            if (x is null || y is null || x.GetType() != y.GetType())
+            if (x.GetType() != y.GetType())
             {
                 return false;
             }
@@ -45,8 +45,8 @@ namespace Serilog.Sinks.Grafana.Loki
                 var hash = 17;
                 foreach (var kvp in obj.OrderBy(kvp => kvp.Key))
                 {
-                    hash = (hash * 27) + kvp.Key.GetHashCode();
-                    hash = (hash * 27) + kvp.Value.GetHashCode();
+                    hash = (hash * 27) + kvp.Key!.GetHashCode();
+                    hash = (hash * 27) + kvp.Value!.GetHashCode();
                 }
 
                 return hash;

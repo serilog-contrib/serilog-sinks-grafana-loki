@@ -18,11 +18,11 @@ namespace Serilog.Sinks.Grafana.Loki
         /// <summary>
         /// Label's name
         /// </summary>
-        public string Key { get; set; }
+        public string Key { get; set; } = null!;
 
         /// <summary>
         /// Label's value
         /// </summary>
-        public string Value { get; set; }
+        public string Value { get; set; } = null!;
     }
 }

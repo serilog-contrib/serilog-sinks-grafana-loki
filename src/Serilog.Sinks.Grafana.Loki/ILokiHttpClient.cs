@@ -35,8 +35,8 @@ namespace Serilog.Sinks.Grafana.Loki
         /// Adds authorization header to all requests.
         /// </summary>
         /// <param name="credentials">
-        /// <see cref="LokiCredentials"/> used for authorization.
+        ///     <see cref="LokiCredentials"/> used for authorization.
         /// </param>
-        void SetCredentials(LokiCredentials credentials);
+        void SetCredentials(LokiCredentials? credentials);
     }
 }

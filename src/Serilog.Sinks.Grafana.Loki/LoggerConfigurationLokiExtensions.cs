@@ -83,17 +83,17 @@ namespace Serilog.Sinks.Grafana.Loki
         public static LoggerConfiguration GrafanaLoki(
             this LoggerSinkConfiguration sinkConfiguration,
             string uri,
-            IEnumerable<LokiLabel> labels = null,
+            IEnumerable<LokiLabel>? labels = null,
             LokiLabelFiltrationMode? filtrationMode = null,
-            IEnumerable<string> filtrationLabels = null,
-            LokiCredentials credentials = null,
+            IEnumerable<string>? filtrationLabels = null,
+            LokiCredentials? credentials = null,
             string outputTemplate = DefaultOutputTemplate,
             LogEventLevel restrictedToMinimumLevel = LevelAlias.Minimum,
             int batchPostingLimit = 1000,
             int? queueLimit = null,
             TimeSpan? period = null,
-            ITextFormatter textFormatter = null,
-            ILokiHttpClient httpClient = null)
+            ITextFormatter? textFormatter = null,
+            ILokiHttpClient? httpClient = null)
         {
             if (sinkConfiguration == null)
             {

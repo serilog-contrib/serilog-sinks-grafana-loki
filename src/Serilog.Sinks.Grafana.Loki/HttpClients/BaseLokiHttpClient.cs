@@ -35,7 +35,7 @@ namespace Serilog.Sinks.Grafana.Loki.HttpClients
         /// <param name="httpClient">
         /// <see cref="HttpClient"/> be used for HTTP requests.
         /// </param>
-        protected BaseLokiHttpClient(HttpClient httpClient = null)
+        protected BaseLokiHttpClient(HttpClient? httpClient = null)
         {
             HttpClient = httpClient ?? new HttpClient();
         }
@@ -44,7 +44,7 @@ namespace Serilog.Sinks.Grafana.Loki.HttpClients
         public abstract Task<HttpResponseMessage> PostAsync(string requestUri, Stream contentStream);
 
         /// <inheritdoc/>
-        public virtual void SetCredentials(LokiCredentials credentials)
+        public virtual void SetCredentials(LokiCredentials? credentials)
         {
             if (credentials == null || credentials.IsEmpty)
             {
