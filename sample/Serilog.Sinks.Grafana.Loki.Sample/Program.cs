@@ -20,18 +20,14 @@ namespace Serilog.Sinks.Grafana.Loki.Sample
                 .WriteTo.Console(outputTemplate: OutputTemplate)
                 .WriteTo.GrafanaLoki(
                     "http://localhost:3100",
-                    new List<LokiLabel> {new() {Key = "app", Value = "console"}},
+                    new List<LokiLabel> { new() { Key = "app", Value = "console" } },
                     credentials: null,
                     outputTemplate: OutputTemplate)
                 .CreateLogger();
 
             Log.Debug("This is a debug message");
 
-            var person = new Person
-            {
-                Name = "Billy",
-                Age = 42
-            };
+            var person = new Person("Billy", 42);
 
             Log.Information("Person of the day: {@Person}", person);
 

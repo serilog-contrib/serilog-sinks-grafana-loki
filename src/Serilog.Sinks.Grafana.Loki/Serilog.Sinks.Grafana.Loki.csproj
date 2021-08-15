@@ -5,6 +5,7 @@
         <Description>A Serilog sink sending log events to Grafana Loki</Description>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <TargetFramework>netstandard2.0</TargetFramework>
+        <Nullable>enable</Nullable>
         <!--SourceLink -->
         <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
         <DebugType>embedded</DebugType>
@@ -18,7 +19,6 @@
         <PackageProjectUrl>https://github.com/mishamyte/serilog-sinks-grafana-loki</PackageProjectUrl>
         <PackageReleaseNotes>For release notes, please see the change log on GitHub.</PackageReleaseNotes>
         <PackageTags>serilog;loki;grafana</PackageTags>
-        <Nullable>enable</Nullable>
     </PropertyGroup>
 
     <ItemGroup>
