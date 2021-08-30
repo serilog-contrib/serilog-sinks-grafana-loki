@@ -1,0 +1,69 @@
+name: Bug Report
+description: Create a report to help us improve
+labels: [bug]
+assignees:
+  - mishamyte
+body:
+  - type: input
+    id: sink-version
+    attributes:
+      label: Which version of Serilog.Sinks.Grafana.Loki are you using?
+      placeholder: v7.0.2
+    validations:
+      required: true
+  - type: input
+    id: net-version
+    attributes:
+      label: Which version of .NET are you using?
+      placeholder: net5.0
+    validations:
+      required: true
+  - type: textarea
+    id: describe-bug
+    attributes:
+      label: Describe the bug
+      description: A clear and concise description of what the bug is.
+    validations:
+      required: true
+  - type: textarea
+    id: to-reproduce
+    attributes:
+      label: To Reproduce
+      description: Steps to reproduce the behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected behavior
+      description: A clear and concise description of what you expected to happen.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Log/SelfLog output or exception with stacktrace
+      placeholder: data
+    validations:
+      required: false
+  - type: input
+    id: code-sample
+    attributes:
+      label: Application or code sample, which could be used to reproduce a bug
+      placeholder: https://gist.github.com/
+    validations:
+      required: false
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional context
+      description: Add any other context about the problem here.
+    validations:
+      required: false
+  - type: checkboxes
+    id: common-problems-agreement
+    attributes:
+      label: I have read the documentation
+      options:
+        - label: I have read [Common Problems](https://github.com/serilog-contrib/serilog-sinks-grafana-loki/wiki/Common-problems) section in project wiki
+          required: true
