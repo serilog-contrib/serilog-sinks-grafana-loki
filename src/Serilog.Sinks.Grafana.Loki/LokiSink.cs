@@ -134,12 +134,14 @@ namespace Serilog.Sinks.Grafana.Loki
                         }
                         else
                         {
-                            _connectionSchedule.MarkFailure();
-
                             SelfLog.WriteLine(
-                                "Received failure on HTTP shipping {0}: {1}",
-                                response.StatusCode,
-                                await response.Content.ReadAsStringAsync().ConfigureAwait(false));
+                                "Received failure on HTTP shipping ({0}): {1}. {2} log events will be dropped",
+                                (int)response.StatusCode,
+                                await response.Content.ReadAsStringAsync().ConfigureAwait(false),
+                                _waitingBatch.Count);
+
+                            _connectionSchedule.MarkFailure();
+                            _waitingBatch.Clear();
 
                             break;
                         }
