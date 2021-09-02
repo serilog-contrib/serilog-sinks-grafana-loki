@@ -38,6 +38,7 @@ namespace Serilog.Sinks.Grafana.Loki
         private readonly LokiLabelFiltrationMode? _filtrationMode;
         private readonly IEnumerable<string> _filtrationLabels;
         private readonly bool _createLevelLabel;
+        private readonly bool _useInternalTimestamp;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="LokiBatchFormatter"/> class.
@@ -54,16 +55,21 @@ namespace Serilog.Sinks.Grafana.Loki
         /// <param name="createLevelLabel">
         /// Used to force the level to be created as a label
         /// </param>
+        /// <param name="useInternalTimestamp">
+        /// Compute internal timestamp
+        /// </param>
         public LokiBatchFormatter(
             IEnumerable<LokiLabel>? globalLabels = null,
             LokiLabelFiltrationMode? filtrationMode = null,
             IEnumerable<string>? filtrationLabels = null,
-            bool createLevelLabel = true)
+            bool createLevelLabel = true,
+            bool useInternalTimestamp = false)
         {
             _globalLabels = globalLabels ?? Enumerable.Empty<LokiLabel>();
             _filtrationMode = filtrationMode;
             _filtrationLabels = filtrationLabels ?? Enumerable.Empty<string>();
             _createLevelLabel = createLevelLabel;
+            _useInternalTimestamp = useInternalTimestamp;
         }
 
         /// <summary>
@@ -79,7 +85,7 @@ namespace Serilog.Sinks.Grafana.Loki
         /// The payload to send over the network.
         /// </param>
         /// <exception cref="ArgumentNullException"></exception>
-        public void Format(IReadOnlyCollection<LogEvent> logEvents, ITextFormatter formatter, TextWriter output)
+        public void Format(IReadOnlyCollection<(LogEvent Event, DateTimeOffset Timestamp)> logEvents, ITextFormatter formatter, TextWriter output)
         {
             if (logEvents == null)
             {
@@ -100,8 +106,8 @@ namespace Serilog.Sinks.Grafana.Loki
 
             // Group logEvent by labels
             var groups = logEvents
-                .Select(le => new { Labels = GenerateLabels(le), LogEvent = le })
-                .GroupBy(le => le.Labels, le => le.LogEvent, DictionaryComparer<string, string>.Instance);
+                .Select(le => new { Labels = GenerateLabels(le), LogEventTuple = le })
+                .GroupBy(le => le.Labels, le => le.LogEventTuple, DictionaryComparer<string, string>.Instance);
 
             foreach (var group in groups)
             {
@@ -113,7 +119,7 @@ namespace Serilog.Sinks.Grafana.Loki
                     stream.AddLabel(label.Key, label.Value);
                 }
 
-                foreach (var logEvent in group.OrderBy(x => x.Timestamp))
+                foreach (var logEvent in group.OrderBy(x => _useInternalTimestamp ? x.Timestamp : x.Event.Timestamp))
                 {
                     GenerateEntry(logEvent, formatter, stream, labels.Keys);
                 }
@@ -125,32 +131,38 @@ namespace Serilog.Sinks.Grafana.Loki
             }
         }
 
-        private static void GenerateEntry(LogEvent logEvent, ITextFormatter formatter, LokiStream stream, IEnumerable<string> labels)
+        private void GenerateEntry((LogEvent Event, DateTimeOffset Timestamp) logEventTuple, ITextFormatter formatter, LokiStream stream, IEnumerable<string> labels)
         {
             var buffer = new StringWriter(new StringBuilder(DefaultWriteBufferCapacity));
 
             if (formatter is ILabelAwareTextFormatter labelAwareTextFormatter)
             {
-                labelAwareTextFormatter.Format(logEvent, buffer, labels);
+                labelAwareTextFormatter.Format(logEventTuple.Event, buffer, labels);
             }
             else
             {
-                formatter.Format(logEvent, buffer);
+                formatter.Format(logEventTuple.Event, buffer);
             }
 
-            stream.AddEntry(logEvent.Timestamp, buffer.ToString().TrimEnd('\r', '\n'));
+            DateTimeOffset timestamp = logEventTuple.Event.Timestamp;
+            if (_useInternalTimestamp)
+            {
+                timestamp = logEventTuple.Timestamp;
+            }
+
+            stream.AddEntry(timestamp, buffer.ToString().TrimEnd('\r', '\n'));
         }
 
-        private Dictionary<string, string> GenerateLabels(LogEvent logEvent)
+        private Dictionary<string, string> GenerateLabels((LogEvent Event, DateTimeOffset Timestamp) logEventTuple)
         {
             var labels = _globalLabels.ToDictionary(label => label.Key, label => label.Value);
 
             if (_createLevelLabel)
             {
-                labels.Add("level", logEvent.Level.ToGrafanaLogLevel());
+                labels.Add("level", logEventTuple.Event.Level.ToGrafanaLogLevel());
             }
 
-            foreach (var property in logEvent.Properties)
+            foreach (var property in logEventTuple.Event.Properties)
             {
                 var key = property.Key;
 
@@ -170,6 +182,11 @@ namespace Serilog.Sinks.Grafana.Loki
                 {
                     labels.Add(key, value);
                 }
+            }
+
+            if (_useInternalTimestamp)
+            {
+                labels.Add("time", logEventTuple.Event.Timestamp.ToString("O"));
             }
 
             return labels;

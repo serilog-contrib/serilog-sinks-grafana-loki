@@ -8,6 +8,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See LICENSE file in the project root for full license information.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Serilog.Events;
@@ -32,6 +33,6 @@ namespace Serilog.Sinks.Grafana.Loki
         /// <param name="output">
         /// The payload to send over the network.
         /// </param>
-        void Format(IReadOnlyCollection<LogEvent> logEvents, ITextFormatter formatter, TextWriter output);
+        void Format(IReadOnlyCollection<(LogEvent Event, DateTimeOffset Timestamp)> logEvents, ITextFormatter formatter, TextWriter output);
     }
 }
