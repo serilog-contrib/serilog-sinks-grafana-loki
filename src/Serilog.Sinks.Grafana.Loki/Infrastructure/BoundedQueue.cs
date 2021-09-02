@@ -10,6 +10,7 @@
 
 using System;
 using System.Collections.Generic;
+using Serilog.Events;
 
 namespace Serilog.Sinks.Grafana.Loki.Infrastructure
 {
@@ -17,7 +18,7 @@ namespace Serilog.Sinks.Grafana.Loki.Infrastructure
     {
         private const int Unbounded = -1;
 
-        private readonly Queue<T> _queue;
+        private readonly Queue<(T Event, DateTimeOffset Timestamp)> _queue;
         private readonly int _queueLimit;
         private readonly object _syncRoot = new();
 
@@ -30,7 +31,7 @@ namespace Serilog.Sinks.Grafana.Loki.Infrastructure
                     "Queue limit must be positive, or `null` to indicate unbounded");
             }
 
-            _queue = new Queue<T>();
+            _queue = new Queue<(T, DateTimeOffset)>();
             _queueLimit = queueLimit ?? Unbounded;
         }
 
@@ -43,12 +44,12 @@ namespace Serilog.Sinks.Grafana.Loki.Infrastructure
                     return false;
                 }
 
-                _queue.Enqueue(item);
+                _queue.Enqueue((item, DateTimeOffset.UtcNow));
                 return true;
             }
         }
 
-        public bool TryDequeue(out T? item)
+        public bool TryDequeue(out (T Event, DateTimeOffset Timestamp)? item)
         {
             lock (_syncRoot)
             {
