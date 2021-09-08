@@ -33,6 +33,6 @@ namespace Serilog.Sinks.Grafana.Loki
         /// <param name="output">
         /// The payload to send over the network.
         /// </param>
-        void Format(IReadOnlyCollection<(LogEvent Event, DateTimeOffset Timestamp)> logEvents, ITextFormatter formatter, TextWriter output);
+        void Format(IReadOnlyCollection<(LogEvent LogEntry, DateTimeOffset Timestamp)> logEvents, ITextFormatter formatter, TextWriter output);
     }
 }

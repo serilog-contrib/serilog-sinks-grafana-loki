@@ -85,7 +85,7 @@ namespace Serilog.Sinks.Grafana.Loki
         /// The payload to send over the network.
         /// </param>
         /// <exception cref="ArgumentNullException"></exception>
-        public void Format(IReadOnlyCollection<(LogEvent Event, DateTimeOffset Timestamp)> logEvents, ITextFormatter formatter, TextWriter output)
+        public void Format(IReadOnlyCollection<(LogEvent LogEntry, DateTimeOffset Timestamp)> logEvents, ITextFormatter formatter, TextWriter output)
         {
             if (logEvents == null)
             {
@@ -119,7 +119,7 @@ namespace Serilog.Sinks.Grafana.Loki
                     stream.AddLabel(label.Key, label.Value);
                 }
 
-                foreach (var logEvent in group.OrderBy(x => _useInternalTimestamp ? x.Timestamp : x.Event.Timestamp))
+                foreach (var logEvent in group.OrderBy(x => _useInternalTimestamp ? x.Timestamp : x.LogEntry.Timestamp))
                 {
                     GenerateEntry(logEvent, formatter, stream, labels.Keys);
                 }
@@ -131,39 +131,39 @@ namespace Serilog.Sinks.Grafana.Loki
             }
         }
 
-        private void GenerateEntry((LogEvent Event, DateTimeOffset Timestamp) logEventTuple, ITextFormatter formatter, LokiStream stream, IEnumerable<string> labels)
+        private void GenerateEntry((LogEvent LogEntry, DateTimeOffset Timestamp) logEventTuple, ITextFormatter formatter, LokiStream stream, IEnumerable<string> labels)
         {
             var buffer = new StringWriter(new StringBuilder(DefaultWriteBufferCapacity));
 
-            DateTimeOffset timestamp = logEventTuple.Event.Timestamp;
+            DateTimeOffset timestamp = logEventTuple.LogEntry.Timestamp;
             if (_useInternalTimestamp)
             {
-                logEventTuple.Event.AddPropertyIfAbsent(new LogEventProperty("Time", new ScalarValue(logEventTuple.Event.Timestamp)));
+                logEventTuple.LogEntry.AddPropertyIfAbsent(new LogEventProperty("Timestamp", new ScalarValue(timestamp)));
                 timestamp = logEventTuple.Timestamp;
             }
 
             if (formatter is ILabelAwareTextFormatter labelAwareTextFormatter)
             {
-                labelAwareTextFormatter.Format(logEventTuple.Event, buffer, labels);
+                labelAwareTextFormatter.Format(logEventTuple.LogEntry, buffer, labels);
             }
             else
             {
-                formatter.Format(logEventTuple.Event, buffer);
+                formatter.Format(logEventTuple.LogEntry, buffer);
             }
 
             stream.AddEntry(timestamp, buffer.ToString().TrimEnd('\r', '\n'));
         }
 
-        private Dictionary<string, string> GenerateLabels((LogEvent Event, DateTimeOffset Timestamp) logEventTuple)
+        private Dictionary<string, string> GenerateLabels((LogEvent LogEntry, DateTimeOffset Timestamp) logEventTuple)
         {
             var labels = _globalLabels.ToDictionary(label => label.Key, label => label.Value);
 
             if (_createLevelLabel)
             {
-                labels.Add("level", logEventTuple.Event.Level.ToGrafanaLogLevel());
+                labels.Add("level", logEventTuple.LogEntry.Level.ToGrafanaLogLevel());
             }
 
-            foreach (var property in logEventTuple.Event.Properties)
+            foreach (var property in logEventTuple.LogEntry.Properties)
             {
                 var key = property.Key;
 

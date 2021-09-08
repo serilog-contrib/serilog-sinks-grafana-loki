@@ -34,7 +34,7 @@ namespace Serilog.Sinks.Grafana.Loki
         private readonly PortableTimer _timer;
         private readonly BoundedQueue<LogEvent> _queue;
         private readonly bool _useInternalTimestamp;
-        private readonly Queue<(LogEvent Event, DateTimeOffset Timestamp)> _waitingBatch = new();
+        private readonly Queue<(LogEvent LogEntry, DateTimeOffset Timestamp)> _waitingBatch = new();
 
         private bool _isDisposed;
 
@@ -102,7 +102,7 @@ namespace Serilog.Sinks.Grafana.Loki
                 {
                     while (_waitingBatch.Count < _batchPostingLimit && _queue.TryDequeue(out var next))
                     {
-                        _waitingBatch.Enqueue(((LogEvent Event, DateTimeOffset Timestamp))(next!));
+                        _waitingBatch.Enqueue(((LogEvent LogEntry, DateTimeOffset Timestamp))(next!));
                     }
 
                     batchWasFull = _waitingBatch.Count >= _batchPostingLimit;
