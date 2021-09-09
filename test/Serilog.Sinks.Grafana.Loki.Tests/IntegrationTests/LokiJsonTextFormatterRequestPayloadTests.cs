@@ -207,7 +207,7 @@ namespace Serilog.Sinks.Grafana.Loki.Tests.IntegrationTests
                 c.WithScrubber(s =>
                 {
                     var replaced = Regex.Replace(s, "\"[0-9]{19}\"", "\"<unixepochinnanoseconds>\"");
-                    return Regex.Replace(replaced, "[0-9]{4}\\-[0-9]{2}\\-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]*\\-[0-9]{2}:[0-9]{2}", "<unixepochinnanoseconds>");
+                    return Regex.Replace(replaced, "[0-9]{4}\\-[0-9]{2}\\-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]*(\\-|\\+|\\\\u002B)[0-9]{2}:[0-9]{2}", "<datetimeformatted>");
                 });
             });
         }
