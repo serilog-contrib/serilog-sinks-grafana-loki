@@ -83,6 +83,9 @@ namespace Serilog.Sinks.Grafana.Loki
         /// Should level label be created. Default value is false
         /// The level label always won't be created while using <see cref="ILabelAwareTextFormatter"/>
         /// </param>
+        /// <param name="useInternalTimestamp">
+        /// Should use internal timestamp instead of application timestamp to use as Log Timestamp.
+        /// </param>
         /// <returns>Logger configuration, allowing configuration to continue.</returns>
         public static LoggerConfiguration GrafanaLoki(
             this LoggerSinkConfiguration sinkConfiguration,
@@ -98,7 +101,8 @@ namespace Serilog.Sinks.Grafana.Loki
             TimeSpan? period = null,
             ITextFormatter? textFormatter = null,
             ILokiHttpClient? httpClient = null,
-            bool createLevelLabel = false)
+            bool createLevelLabel = false,
+            bool useInternalTimestamp = false)
         {
             if (sinkConfiguration == null)
             {
@@ -106,7 +110,7 @@ namespace Serilog.Sinks.Grafana.Loki
             }
 
             createLevelLabel = createLevelLabel && textFormatter is not ILabelAwareTextFormatter {ExcludeLevelLabel: true};
-            var batchFormatter = new LokiBatchFormatter(labels, filtrationMode, filtrationLabels, createLevelLabel);
+            var batchFormatter = new LokiBatchFormatter(labels, filtrationMode, filtrationLabels, createLevelLabel, useInternalTimestamp);
 
             period ??= TimeSpan.FromSeconds(1);
             textFormatter ??= new MessageTemplateTextFormatter(outputTemplate);
@@ -121,7 +125,8 @@ namespace Serilog.Sinks.Grafana.Loki
                 period.Value,
                 textFormatter,
                 batchFormatter,
-                httpClient);
+                httpClient,
+                useInternalTimestamp);
 
             return sinkConfiguration.Sink(sink, restrictedToMinimumLevel);
         }

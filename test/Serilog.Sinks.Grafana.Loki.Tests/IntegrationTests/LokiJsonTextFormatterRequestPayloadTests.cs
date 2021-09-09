@@ -185,5 +185,31 @@ namespace Serilog.Sinks.Grafana.Loki.Tests.IntegrationTests
                 });
             });
         }
+
+        [Fact]
+        public void MessagePropertyForInternalTimestampShouldBeCreated()
+        {
+            var logger = new LoggerConfiguration()
+                .WriteTo.GrafanaLoki(
+                    "https://loki:3100",
+                    outputTemplate: OutputTemplate,
+                    textFormatter: new LokiJsonTextFormatter(),
+                    httpClient: _client,
+                    useInternalTimestamp: true)
+                .CreateLogger();
+
+            logger.Information("The meaning of life is {@MeaningOfLife}", 42);
+            logger.Dispose();
+
+            _client.Content.ShouldMatchApproved(c =>
+            {
+                c.SubFolder(ApprovalsFolderName);
+                c.WithScrubber(s =>
+                {
+                    var replaced = Regex.Replace(s, "\"[0-9]{19}\"", "\"<unixepochinnanoseconds>\"");
+                    return Regex.Replace(replaced, "[0-9]{4}\\-[0-9]{2}\\-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]*(\\-|\\+|\\\\u002B)[0-9]{2}:[0-9]{2}", "<datetimeformatted>");
+                });
+            });
+        }
     }
 }

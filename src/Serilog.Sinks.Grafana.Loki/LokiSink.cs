@@ -33,7 +33,8 @@ namespace Serilog.Sinks.Grafana.Loki
         private readonly object _syncRoot = new();
         private readonly PortableTimer _timer;
         private readonly BoundedQueue<LogEvent> _queue;
-        private readonly Queue<LogEvent> _waitingBatch = new();
+        private readonly bool _useInternalTimestamp;
+        private readonly Queue<(LogEvent LogEntry, DateTimeOffset Timestamp)> _waitingBatch = new();
 
         private bool _isDisposed;
 
@@ -44,7 +45,8 @@ namespace Serilog.Sinks.Grafana.Loki
             TimeSpan period,
             ITextFormatter textFormatter,
             ILokiBatchFormatter batchFormatter,
-            ILokiHttpClient httpClient)
+            ILokiHttpClient httpClient,
+            bool useInternalTimestamp)
         {
             _requestUri = requestUri ?? throw new ArgumentNullException(nameof(requestUri));
             _batchPostingLimit = batchPostingLimit;
@@ -55,6 +57,7 @@ namespace Serilog.Sinks.Grafana.Loki
             _connectionSchedule = new ExponentialBackoffConnectionSchedule(period);
             _timer = new PortableTimer(OnTick);
             _queue = new BoundedQueue<LogEvent>(queueLimit);
+            _useInternalTimestamp = useInternalTimestamp;
 
             SetTimer();
         }
@@ -99,7 +102,7 @@ namespace Serilog.Sinks.Grafana.Loki
                 {
                     while (_waitingBatch.Count < _batchPostingLimit && _queue.TryDequeue(out var next))
                     {
-                        _waitingBatch.Enqueue(next!);
+                        _waitingBatch.Enqueue(((LogEvent LogEntry, DateTimeOffset Timestamp))(next!));
                     }
 
                     batchWasFull = _waitingBatch.Count >= _batchPostingLimit;

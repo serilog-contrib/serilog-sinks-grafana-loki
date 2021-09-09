@@ -36,9 +36,9 @@ namespace Serilog.Sinks.Grafana.Loki.Tests.InfrastructureTests
             dequeueResult2.ShouldBeTrue();
             dequeueResult3.ShouldBeTrue();
 
-            dequeueItem1.ShouldBe(1);
-            dequeueItem2.ShouldBe(2);
-            dequeueItem3.ShouldBe(3);
+            dequeueItem1!.Value.Event.ShouldBe(1);
+            dequeueItem2!.Value.Event.ShouldBe(2);
+            dequeueItem3!.Value.Event.ShouldBe(3);
         }
 
         [Fact]
