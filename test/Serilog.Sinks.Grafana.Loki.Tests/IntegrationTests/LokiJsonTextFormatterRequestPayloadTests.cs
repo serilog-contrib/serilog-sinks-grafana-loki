@@ -180,7 +180,7 @@ namespace Serilog.Sinks.Grafana.Loki.Tests.IntegrationTests
                         .Replace(s, "\"[0-9]{19}\"", "\"<unixepochinnanoseconds>\"");
                     return Regex.Replace(
                         s,
-                        @"(?<=\\u0022StackTrace)(.*?)(?=}})",
+                        @"(?<=\\u0022StackTrace)(.*?)}\](?=}})",
                         @"<stack-trace>");
                 });
             });
