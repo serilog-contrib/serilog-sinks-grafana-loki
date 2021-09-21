@@ -165,7 +165,7 @@ namespace Serilog.Sinks.Grafana.Loki
                 var count = aggregateException.InnerExceptions.Count;
                 for (var i = 0; i < count; i++)
                 {
-                    var isLast = i == count;
+                    var isLast = i == count - 1;
                     SerializeException(output, aggregateException.InnerExceptions[i], level + 1);
                     if (!isLast)
                     {
