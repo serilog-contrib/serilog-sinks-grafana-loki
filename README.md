@@ -106,9 +106,9 @@ or create one implementing `Serilog.Sinks.Grafana.Loki.ILokiHttpClient`.
 
 public class CustomHttpClient : BaseLokiHttpClient
 {
-    public override Task<HttpResponseMessage> PostAsync(string requestUri, Stream contentStream);
+    public override Task<HttpResponseMessage> PostAsync(string requestUri, Stream contentStream)
     {
-        return base.PostAsync(requestUri, content);
+        return base.PostAsync(requestUri, contentStream);
     }
 }
 ```
