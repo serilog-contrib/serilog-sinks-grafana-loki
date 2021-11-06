@@ -33,7 +33,6 @@ namespace Serilog.Sinks.Grafana.Loki
         private readonly object _syncRoot = new();
         private readonly PortableTimer _timer;
         private readonly BoundedQueue<LogEvent> _queue;
-        private readonly bool _useInternalTimestamp;
         private readonly Queue<(LogEvent LogEntry, DateTimeOffset Timestamp)> _waitingBatch = new();
 
         private bool _isDisposed;
@@ -45,8 +44,7 @@ namespace Serilog.Sinks.Grafana.Loki
             TimeSpan period,
             ITextFormatter textFormatter,
             ILokiBatchFormatter batchFormatter,
-            ILokiHttpClient httpClient,
-            bool useInternalTimestamp)
+            ILokiHttpClient httpClient)
         {
             _requestUri = requestUri ?? throw new ArgumentNullException(nameof(requestUri));
             _batchPostingLimit = batchPostingLimit;
@@ -57,7 +55,6 @@ namespace Serilog.Sinks.Grafana.Loki
             _connectionSchedule = new ExponentialBackoffConnectionSchedule(period);
             _timer = new PortableTimer(OnTick);
             _queue = new BoundedQueue<LogEvent>(queueLimit);
-            _useInternalTimestamp = useInternalTimestamp;
 
             SetTimer();
         }

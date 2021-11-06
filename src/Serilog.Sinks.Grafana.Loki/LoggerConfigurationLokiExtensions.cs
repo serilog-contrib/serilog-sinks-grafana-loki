@@ -42,10 +42,11 @@ namespace Serilog.Sinks.Grafana.Loki
         /// The root URI of Loki.
         /// </param>
         /// <param name="labels">
-        /// The globals log event labels, which will be user for enriching all requests.
+        /// The global log event labels, which will be user for enriching all requests.
         /// </param>
         /// <param name="filtrationMode">
         /// The mode for labels filtration
+        /// <see cref="LokiLabelFiltrationMode"/>
         /// </param>
         /// <param name="filtrationLabels">
         /// The list of label keys used for filtration
@@ -84,7 +85,7 @@ namespace Serilog.Sinks.Grafana.Loki
         /// The level label always won't be created while using <see cref="ILabelAwareTextFormatter"/>
         /// </param>
         /// <param name="useInternalTimestamp">
-        /// Should use internal timestamp instead of application timestamp to use as Log Timestamp.
+        /// Should use internal sink timestamp instead of application one to use as log timestamp.
         /// </param>
         /// <returns>Logger configuration, allowing configuration to continue.</returns>
         public static LoggerConfiguration GrafanaLoki(
@@ -125,8 +126,7 @@ namespace Serilog.Sinks.Grafana.Loki
                 period.Value,
                 textFormatter,
                 batchFormatter,
-                httpClient,
-                useInternalTimestamp);
+                httpClient);
 
             return sinkConfiguration.Sink(sink, restrictedToMinimumLevel);
         }
