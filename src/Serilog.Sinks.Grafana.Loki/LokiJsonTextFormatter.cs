@@ -32,13 +32,17 @@ namespace Serilog.Sinks.Grafana.Loki
         /// <summary>
         /// Initializes a new instance of the <see cref="LokiJsonTextFormatter"/> class.
         /// </summary>
-        public LokiJsonTextFormatter()
+        /// <param name="excludeLevelLabel">
+        /// If set, the level label will be excluded from the set of labels sent to Loki.
+        /// </param>
+        public LokiJsonTextFormatter(bool excludeLevelLabel = true)
         {
+            ExcludeLevelLabel = excludeLevelLabel;
             _valueFormatter = new JsonValueFormatter("$type");
         }
 
         /// <inheritdoc/>
-        public bool ExcludeLevelLabel => true;
+        public bool ExcludeLevelLabel { get; }
 
         /// <summary>
         /// Format the log event into the output.
