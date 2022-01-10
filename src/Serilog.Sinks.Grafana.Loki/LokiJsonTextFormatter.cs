@@ -28,6 +28,8 @@ namespace Serilog.Sinks.Grafana.Loki
     public class LokiJsonTextFormatter : ITextFormatter, ILabelAwareTextFormatter
     {
         private readonly JsonValueFormatter _valueFormatter;
+        private readonly bool _excludeTemplate;
+        private readonly bool _excludeRenderings;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="LokiJsonTextFormatter"/> class.
@@ -35,9 +37,17 @@ namespace Serilog.Sinks.Grafana.Loki
         /// <param name="excludeLevelLabel">
         /// If set, the level label will be excluded from the set of labels sent to Loki.
         /// </param>
-        public LokiJsonTextFormatter(bool excludeLevelLabel = true)
+        /// <param name="excludeTemplate">
+        /// If set, the message template will not be included in the JSON rendering of each event.
+        /// </param>
+        /// <param name="excludeRenderings">
+        /// If set, the rendered tokens will not be included in the JSON rendering of each event.
+        /// </param>
+        public LokiJsonTextFormatter(bool excludeLevelLabel = true, bool excludeTemplate = false, bool excludeRenderings = false)
         {
             ExcludeLevelLabel = excludeLevelLabel;
+            _excludeTemplate = excludeTemplate;
+            _excludeRenderings = excludeRenderings;
             _valueFormatter = new JsonValueFormatter("$type");
         }
 
@@ -71,28 +81,34 @@ namespace Serilog.Sinks.Grafana.Loki
             output.Write("{\"Message\":");
             JsonValueFormatter.WriteQuotedJsonString(logEvent.MessageTemplate.Render(logEvent.Properties), output);
 
-            output.Write(",\"MessageTemplate\":");
-            JsonValueFormatter.WriteQuotedJsonString(logEvent.MessageTemplate.Text, output);
-
-            var tokensWithFormat = logEvent.MessageTemplate.Tokens
-                .OfType<PropertyToken>()
-                .Where(pt => pt.Format != null);
-
-            // Better not to allocate an array in the 99.9% of cases where this is false
-            if (tokensWithFormat.Any())
+            if (!_excludeTemplate)
             {
-                output.Write(",\"Renderings\":[");
-                var delimiter = string.Empty;
-                foreach (var r in tokensWithFormat)
-                {
-                    output.Write(delimiter);
-                    delimiter = ",";
-                    var space = new StringWriter();
-                    r.Render(logEvent.Properties, space);
-                    JsonValueFormatter.WriteQuotedJsonString(space.ToString(), output);
-                }
+                output.Write(",\"MessageTemplate\":");
+                JsonValueFormatter.WriteQuotedJsonString(logEvent.MessageTemplate.Text, output);
+            }
 
-                output.Write(']');
+            if (!_excludeRenderings)
+            {
+                var tokensWithFormat = logEvent.MessageTemplate.Tokens
+                    .OfType<PropertyToken>()
+                    .Where(pt => pt.Format != null);
+
+                // Better not to allocate an array in the 99.9% of cases where this is false
+                if (tokensWithFormat.Any())
+                {
+                    output.Write(",\"Renderings\":[");
+                    var delimiter = string.Empty;
+                    foreach (var r in tokensWithFormat)
+                    {
+                        output.Write(delimiter);
+                        delimiter = ",";
+                        var space = new StringWriter();
+                        r.Render(logEvent.Properties, space);
+                        JsonValueFormatter.WriteQuotedJsonString(space.ToString(), output);
+                    }
+
+                    output.Write(']');
+                }
             }
 
             output.Write(",\"level\":\"");
