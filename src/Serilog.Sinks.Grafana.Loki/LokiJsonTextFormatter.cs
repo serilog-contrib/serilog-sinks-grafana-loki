@@ -24,9 +24,14 @@ namespace Serilog.Sinks.Grafana.Loki
     /// <summary>
     /// Used to serialize a log event to a json format that loki 2.0 can parse using the json parser ( | json ), more information can be found here https://grafana.com/blog/2020/10/28/loki-2.0-released-transform-logs-as-youre-querying-them-and-set-up-alerts-within-loki/
     /// </summary>
-    [SuppressMessage("ReSharper", "PossibleMultipleEnumeration", Justification = "Reviewed")]
+    [SuppressMessage(
+        "ReSharper",
+        "PossibleMultipleEnumeration",
+        Justification = "Reviewed")]
     public class LokiJsonTextFormatter : ITextFormatter, ILabelAwareTextFormatter
     {
+        private static readonly string[] ReservedKeywords = { "Message", "MessageTemplate", "Renderings", "level", "Exception" };
+
         private readonly JsonValueFormatter _valueFormatter;
 
         /// <summary>
@@ -52,7 +57,10 @@ namespace Serilog.Sinks.Grafana.Loki
         /// <param name="labels">
         /// List of labels that should not be written as json fields.
         /// </param>
-        public void Format(LogEvent logEvent, TextWriter output, IEnumerable<string> labels)
+        public void Format(
+            LogEvent logEvent,
+            TextWriter output,
+            IEnumerable<string> labels)
         {
             if (logEvent == null)
             {
@@ -98,12 +106,15 @@ namespace Serilog.Sinks.Grafana.Loki
             if (logEvent.Exception != null)
             {
                 output.Write(",\"Exception\":");
-                SerializeException(output, logEvent.Exception, 1);
+                SerializeException(
+                    output,
+                    logEvent.Exception,
+                    1);
             }
 
             foreach (var property in logEvent.Properties)
             {
-                var name = property.Key;
+                var name = GetSanitizedPropertyName(property.Key);
                 if (labels.Contains(name))
                 {
                     continue;
@@ -120,7 +131,20 @@ namespace Serilog.Sinks.Grafana.Loki
 
         /// <inheritdoc/>
         [Obsolete("Use \"Format(LogEvent logEvent, TextWriter output, IEnumerable<string> labels)\" instead!")]
-        public void Format(LogEvent logEvent, TextWriter output) => Format(logEvent, output, Enumerable.Empty<string>());
+        public void Format(LogEvent logEvent, TextWriter output) => Format(
+            logEvent,
+            output,
+            Enumerable.Empty<string>());
+
+        /// <summary>
+        /// Used to sanitize property name to avoid conflict with reserved keywords.
+        /// Appends _ to the property name if it matches with reserved keyword.
+        /// </summary>
+        /// <param name="propertyName">
+        /// Name of property to sanitize
+        /// </param>
+        protected virtual string GetSanitizedPropertyName(string propertyName) =>
+            ReservedKeywords.Contains(propertyName) ? $"_{propertyName}" : propertyName;
 
         /// <summary>
         /// Used to serialize exceptions, can be overridden when inheriting to change the format.
@@ -134,17 +158,23 @@ namespace Serilog.Sinks.Grafana.Loki
         /// <param name="level">
         /// The current nesting level of the exception.
         /// </param>
-        protected virtual void SerializeException(TextWriter output, Exception exception, int level)
+        protected virtual void SerializeException(
+            TextWriter output,
+            Exception exception,
+            int level)
         {
             if (level == 4)
             {
                 JsonValueFormatter.WriteQuotedJsonString(exception.ToString(), output);
+
                 return;
             }
 
             output.Write("{\"Type\":");
             var typeNamespace = exception.GetType().Namespace;
-            var typeName = typeNamespace != null && typeNamespace.StartsWith("System.") ? exception.GetType().Name : exception.GetType().ToString();
+            var typeName = typeNamespace != null && typeNamespace.StartsWith("System.")
+                ? exception.GetType().Name
+                : exception.GetType().ToString();
             JsonValueFormatter.WriteQuotedJsonString(typeName, output);
 
             if (!string.IsNullOrWhiteSpace(exception.Message))
@@ -166,7 +196,10 @@ namespace Serilog.Sinks.Grafana.Loki
                 for (var i = 0; i < count; i++)
                 {
                     var isLast = i == count - 1;
-                    SerializeException(output, aggregateException.InnerExceptions[i], level + 1);
+                    SerializeException(
+                        output,
+                        aggregateException.InnerExceptions[i],
+                        level + 1);
                     if (!isLast)
                     {
                         output.Write(',');
@@ -178,7 +211,10 @@ namespace Serilog.Sinks.Grafana.Loki
             else if (exception.InnerException != null)
             {
                 output.Write(",\"InnerException\":");
-                SerializeException(output, exception.InnerException, level + 1);
+                SerializeException(
+                    output,
+                    exception.InnerException,
+                    level + 1);
             }
 
             output.Write('}');

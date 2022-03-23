@@ -1,0 +1,1 @@
+{"streams":[{"stream":{"Message":"Ukraine!"},"values":[["<unixepochinnanoseconds>","{\u0022Message\u0022:\u0022This is \\\u0022Ukraine!\\\u0022\u0022,\u0022MessageTemplate\u0022:\u0022This is {Message}\u0022,\u0022level\u0022:\u0022info\u0022,\u0022_Message\u0022:\u0022Ukraine!\u0022}"]]}]}

@@ -211,5 +211,26 @@ namespace Serilog.Sinks.Grafana.Loki.Tests.IntegrationTests
                 });
             });
         }
+
+        [Fact]
+        public void PropertyNameEqualToReservedKeywordShouldBeSanitized()
+        {
+            var logger = new LoggerConfiguration()
+                .WriteTo.GrafanaLoki(
+                    "https://loki:3100",
+                    outputTemplate: OutputTemplate,
+                    textFormatter: new LokiJsonTextFormatter(),
+                    httpClient: _client)
+                .CreateLogger();
+
+            logger.Information("This is {Message}", "Ukraine!");
+            logger.Dispose();
+
+            _client.Content.ShouldMatchApproved(c =>
+            {
+                c.SubFolder(ApprovalsFolderName);
+                c.WithScrubber(s => Regex.Replace(s, "\"[0-9]{19}\"", "\"<unixepochinnanoseconds>\""));
+            });
+        }
     }
 }
