@@ -2,18 +2,17 @@
 using Shouldly;
 using Xunit;
 
-namespace Serilog.Sinks.Grafana.Loki.Tests.UtilsTests
+namespace Serilog.Sinks.Grafana.Loki.Tests.UtilsTests;
+
+public class EncodingTests
 {
-    public class EncodingTests
+    [Fact]
+    public void Utf8WithoutBomShouldNotHasPreamble()
     {
-        [Fact]
-        public void Utf8WithoutBomShouldNotHasPreamble()
-        {
-            var encoding = Encoding.UTF8WithoutBom;
+        var encoding = Encoding.UTF8WithoutBom;
 
-            var preamble = encoding.GetPreamble();
+        var preamble = encoding.GetPreamble();
 
-            preamble.Length.ShouldBe(0);
-        }
+        preamble.Length.ShouldBe(0);
     }
 }

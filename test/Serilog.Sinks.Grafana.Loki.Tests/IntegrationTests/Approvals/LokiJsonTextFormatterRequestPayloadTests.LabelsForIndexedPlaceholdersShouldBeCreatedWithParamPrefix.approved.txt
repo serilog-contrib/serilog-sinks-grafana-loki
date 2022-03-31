@@ -1,0 +1,1 @@
+{"streams":[{"stream":{},"values":[["<unixepochinnanoseconds>","{\u0022Message\u0022:\u0022An error occured in \\\u0022Namespace.Module.Method\\\u0022\u0022,\u0022MessageTemplate\u0022:\u0022An error occured in {0}\u0022,\u00220\u0022:\u0022Namespace.Module.Method\u0022,\u0022level\u0022:\u0022info\u0022}"]]}]}

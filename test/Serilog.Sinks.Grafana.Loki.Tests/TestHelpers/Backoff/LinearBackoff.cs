@@ -1,38 +1,36 @@
-﻿using System;
-using Serilog.Sinks.Grafana.Loki.Infrastructure;
+﻿using Serilog.Sinks.Grafana.Loki.Infrastructure;
 
-namespace Serilog.Sinks.Grafana.Loki.Tests.TestHelpers.Backoff
+namespace Serilog.Sinks.Grafana.Loki.Tests.TestHelpers.Backoff;
+
+internal class LinearBackoff : IBackoff
 {
-    internal class LinearBackoff : IBackoff
+    private readonly TimeSpan _currentInterval;
+
+    public LinearBackoff(TimeSpan currentInterval)
     {
-        private readonly TimeSpan _currentInterval;
+        _currentInterval = currentInterval;
+    }
 
-        public LinearBackoff(TimeSpan currentInterval)
+    IBackoff IBackoff.GetNext(TimeSpan nextInterval)
+    {
+        // From the state of being linear, the implementation can become capped
+        if (nextInterval == ExponentialBackoffConnectionSchedule.MaximumBackoffInterval)
         {
-            _currentInterval = currentInterval;
+            return new CappedBackoff(nextInterval);
         }
 
-        IBackoff IBackoff.GetNext(TimeSpan nextInterval)
+        // From the state of being linear, the implementation can become exponential
+        if (nextInterval > _currentInterval)
         {
-            // From the state of being linear, the implementation can become capped
-            if (nextInterval == ExponentialBackoffConnectionSchedule.MaximumBackoffInterval)
-            {
-                return new CappedBackoff(nextInterval);
-            }
-
-            // From the state of being linear, the implementation can become exponential
-            if (nextInterval > _currentInterval)
-            {
-                return new ExponentialBackoff(nextInterval);
-            }
-
-            // From the state of being linear, the implementation can remain linear
-            if (nextInterval == _currentInterval)
-            {
-                return this;
-            }
-
-            throw new Exception("The implementation from being linear must remain linear or become exponential");
+            return new ExponentialBackoff(nextInterval);
         }
+
+        // From the state of being linear, the implementation can remain linear
+        if (nextInterval == _currentInterval)
+        {
+            return this;
+        }
+
+        throw new Exception("The implementation from being linear must remain linear or become exponential");
     }
 }

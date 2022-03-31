@@ -33,6 +33,15 @@ public class LokiJsonTextFormatter : ITextFormatter
 
     /// <summary>
     /// Initializes a new instance of the <see cref="LokiJsonTextFormatter"/> class.
+    /// Uses <see cref="DefaultReservedPropertyRenamingStrategy"/>.
+    /// </summary>
+    public LokiJsonTextFormatter()
+        : this(new DefaultReservedPropertyRenamingStrategy())
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="LokiJsonTextFormatter"/> class.
     /// </summary>
     /// <param name="renamingStrategy">
     /// Renaming strategy for properties names equal to reserved keywords.
