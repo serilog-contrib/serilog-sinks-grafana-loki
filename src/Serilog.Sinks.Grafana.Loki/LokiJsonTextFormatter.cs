@@ -30,7 +30,7 @@ namespace Serilog.Sinks.Grafana.Loki;
     Justification = "Reviewed")]
 public class LokiJsonTextFormatter : ITextFormatter
 {
-    private static readonly string[] ReservedKeywords = { "Message", "MessageTemplate", "Renderings", "level", "Exception" };
+    private static readonly string[] ReservedKeywords = { "Message", "MessageTemplate", "Renderings", "Exception" };
 
     private readonly IReservedPropertyRenamingStrategy _renamingStrategy;
     private readonly JsonValueFormatter _valueFormatter;
@@ -95,10 +95,6 @@ public class LokiJsonTextFormatter : ITextFormatter
 
             output.Write(']');
         }
-
-        output.Write(",\"level\":\"");
-        output.Write(logEvent.Level.ToGrafanaLogLevel());
-        output.Write('\"');
 
         if (logEvent.Exception != null)
         {
