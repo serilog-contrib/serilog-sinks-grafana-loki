@@ -8,8 +8,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See LICENSE file in the project root for full license information.
 
-using System;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Serilog.Configuration;
 using Serilog.Events;

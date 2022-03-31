@@ -8,8 +8,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See LICENSE file in the project root for full license information.
 
-using System.Collections.Generic;
-using System.IO;
 using Serilog.Events;
 
 namespace Serilog.Sinks.Grafana.Loki;

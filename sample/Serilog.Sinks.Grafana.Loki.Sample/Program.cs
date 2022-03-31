@@ -14,7 +14,7 @@ public static class Program
         Log.Logger = new LoggerConfiguration()
             .MinimumLevel.Debug()
             .Enrich.WithThreadId()
-            .Enrich.WithProperty("meaning_of_life", "42")
+            .Enrich.WithProperty("meaning_of_life", 42)
             .WriteTo.Console(outputTemplate: OutputTemplate)
             .WriteTo.GrafanaLoki(
                 "http://localhost:3100",
