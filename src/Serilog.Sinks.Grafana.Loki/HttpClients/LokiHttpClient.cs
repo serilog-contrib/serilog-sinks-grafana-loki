@@ -13,30 +13,29 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 
-namespace Serilog.Sinks.Grafana.Loki.HttpClients
+namespace Serilog.Sinks.Grafana.Loki.HttpClients;
+
+/// <summary>
+/// Default http client used for sending log events to Grafana Loki.
+/// </summary>
+public class LokiHttpClient : BaseLokiHttpClient
 {
     /// <summary>
-    /// Default http client used for sending log events to Grafana Loki.
+    /// Initializes a new instance of the <see cref="LokiHttpClient"/> class.
     /// </summary>
-    public class LokiHttpClient : BaseLokiHttpClient
+    /// <param name="httpClient">
+    /// <see cref="HttpClient"/> be used for HTTP requests.
+    /// </param>
+    public LokiHttpClient(HttpClient? httpClient = null)
+        : base(httpClient)
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="LokiHttpClient"/> class.
-        /// </summary>
-        /// <param name="httpClient">
-        /// <see cref="HttpClient"/> be used for HTTP requests.
-        /// </param>
-        public LokiHttpClient(HttpClient? httpClient = null)
-            : base(httpClient)
-        {
-        }
+    }
 
-        /// <inheritdoc/>
-        public override async Task<HttpResponseMessage> PostAsync(string requestUri, Stream contentStream)
-        {
-            using var content = new StreamContent(contentStream);
-            content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
-            return await HttpClient.PostAsync(requestUri, content).ConfigureAwait(false);
-        }
+    /// <inheritdoc/>
+    public override async Task<HttpResponseMessage> PostAsync(string requestUri, Stream contentStream)
+    {
+        using var content = new StreamContent(contentStream);
+        content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
+        return await HttpClient.PostAsync(requestUri, content).ConfigureAwait(false);
     }
 }

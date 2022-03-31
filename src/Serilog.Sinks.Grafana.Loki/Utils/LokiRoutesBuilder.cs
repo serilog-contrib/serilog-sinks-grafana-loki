@@ -8,12 +8,11 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See LICENSE file in the project root for full license information.
 
-namespace Serilog.Sinks.Grafana.Loki.Utils
-{
-    internal static class LokiRoutesBuilder
-    {
-        private const string LogEntriesEndpoint = "/loki/api/v1/push";
+namespace Serilog.Sinks.Grafana.Loki.Utils;
 
-        public static string BuildLogsEntriesRoute(string host) => $"{host.TrimEnd('/')}{LogEntriesEndpoint}";
-    }
+internal static class LokiRoutesBuilder
+{
+    private const string LogEntriesEndpoint = "/loki/api/v1/push";
+
+    public static string BuildLogsEntriesRoute(string host) => $"{host.TrimEnd('/')}{LogEntriesEndpoint}";
 }

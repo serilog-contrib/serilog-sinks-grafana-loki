@@ -2,7 +2,7 @@
     <PropertyGroup>
         <Authors>Mykhailo Shevchuk, Contributors</Authors>
         <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)StyleCop.ruleset</CodeAnalysisRuleSet>
-        <LangVersion>9</LangVersion>
+        <LangVersion>10</LangVersion>
         <MinVerTagPrefix>v</MinVerTagPrefix>
     </PropertyGroup>
 

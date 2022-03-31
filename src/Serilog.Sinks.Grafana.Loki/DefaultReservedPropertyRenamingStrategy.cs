@@ -8,12 +8,15 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See LICENSE file in the project root for full license information.
 
-using System;
+namespace Serilog.Sinks.Grafana.Loki;
 
-namespace Serilog.Sinks.Grafana.Loki.Utils;
-
-internal static class DateTimeOffsetExtensions
+/// <summary>
+/// <inheritdoc cref="IReservedPropertyRenamingStrategy"/>
+/// </summary>
+public class DefaultReservedPropertyRenamingStrategy : IReservedPropertyRenamingStrategy
 {
-    internal static string ToUnixNanosecondsString(this DateTimeOffset offset) =>
-        (offset.ToUnixTimeMilliseconds() * 1000000).ToString();
+    /// <summary>
+    /// <inheritdoc cref="IReservedPropertyRenamingStrategy.Rename"/>
+    /// </summary>
+    public string Rename(string originalName) => $"_{originalName}";
 }

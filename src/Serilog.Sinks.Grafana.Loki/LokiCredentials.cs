@@ -8,23 +8,22 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See LICENSE file in the project root for full license information.
 
-namespace Serilog.Sinks.Grafana.Loki
+namespace Serilog.Sinks.Grafana.Loki;
+
+/// <summary>
+/// Credentials used for Grafana Loki authorization
+/// </summary>
+public class LokiCredentials
 {
     /// <summary>
-    /// Credentials used for Grafana Loki authorization
+    /// Email or username
     /// </summary>
-    public class LokiCredentials
-    {
-        /// <summary>
-        /// Email or username
-        /// </summary>
-        public string Login { get; set; } = null!;
+    public string Login { get; set; } = null!;
 
-        /// <summary>
-        /// Password
-        /// </summary>
-        public string Password { get; set; } = null!;
+    /// <summary>
+    /// Password
+    /// </summary>
+    public string Password { get; set; } = null!;
 
-        internal bool IsEmpty => string.IsNullOrEmpty(Login) || string.IsNullOrEmpty(Password);
-    }
+    internal bool IsEmpty => string.IsNullOrEmpty(Login) || string.IsNullOrEmpty(Password);
 }

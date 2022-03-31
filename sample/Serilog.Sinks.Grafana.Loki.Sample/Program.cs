@@ -22,9 +22,7 @@ namespace Serilog.Sinks.Grafana.Loki.Sample
                     "http://localhost:3100",
                     new List<LokiLabel> { new() { Key = "app", Value = "console" } },
                     credentials: null,
-                    outputTemplate: OutputTemplate,
-                    createLevelLabel: true,
-                    useInternalTimestamp: false)
+                    outputTemplate: OutputTemplate)
                 .CreateLogger();
 
             Log.Debug("This is a debug message");

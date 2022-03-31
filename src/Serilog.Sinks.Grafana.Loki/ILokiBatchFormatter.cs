@@ -8,31 +8,32 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See LICENSE file in the project root for full license information.
 
-using System;
 using System.Collections.Generic;
 using System.IO;
-using Serilog.Events;
 using Serilog.Formatting;
+using Serilog.Sinks.Grafana.Loki.Models;
 
-namespace Serilog.Sinks.Grafana.Loki
+namespace Serilog.Sinks.Grafana.Loki;
+
+/// <summary>
+/// Formats batches of log events into payloads that can be sent over the network.
+/// </summary>
+public interface ILokiBatchFormatter
 {
     /// <summary>
-    /// Formats batches of log events into payloads that can be sent over the network.
+    /// Format the log events into a payload.
     /// </summary>
-    public interface ILokiBatchFormatter
-    {
-        /// <summary>
-        /// Format the log events into a payload.
-        /// </summary>
-        /// <param name="logEvents">
-        /// The events to format.
-        /// </param>
-        /// <param name="formatter">
-        /// The formatter turning the log events into a textual representation.
-        /// </param>
-        /// <param name="output">
-        /// The payload to send over the network.
-        /// </param>
-        void Format(IReadOnlyCollection<(LogEvent LogEntry, DateTimeOffset Timestamp)> logEvents, ITextFormatter formatter, TextWriter output);
-    }
+    /// <param name="lokiLogEvents">
+    /// The events to format wrapped in <see cref="LokiLogEvent"/>.
+    /// </param>
+    /// <param name="formatter">
+    /// The formatter turning the log events into a textual representation.
+    /// </param>
+    /// <param name="output">
+    /// The payload to send over the network.
+    /// </param>
+    void Format(
+        IReadOnlyCollection<LokiLogEvent> lokiLogEvents,
+        ITextFormatter formatter,
+        TextWriter output);
 }

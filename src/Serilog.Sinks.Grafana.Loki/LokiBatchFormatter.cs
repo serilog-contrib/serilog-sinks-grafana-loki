@@ -3,200 +3,216 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Serilog.Debugging;
 using Serilog.Events;
 using Serilog.Formatting;
 using Serilog.Sinks.Grafana.Loki.Models;
 using Serilog.Sinks.Grafana.Loki.Utils;
 
-namespace Serilog.Sinks.Grafana.Loki
+namespace Serilog.Sinks.Grafana.Loki;
+
+/// <summary>
+/// Formatter serializing batches of log events into a JSON object in the format, recognized by Grafana Loki.
+/// <para/>
+/// Example:
+/// <code>
+/// {
+///     "streams": [
+///     {
+///         "stream": {
+///             "label": "value"
+///             },
+///         "values": [
+///             [ "unix epoch in nanoseconds", "log line" ],
+///             [ "unix epoch in nanoseconds", "log line" ]
+///         ]
+///     }
+///     ]
+/// }
+/// </code>
+/// </summary>
+internal class LokiBatchFormatter : ILokiBatchFormatter
 {
+    private const int DefaultWriteBufferCapacity = 256;
+
+    private readonly IEnumerable<LokiLabel> _globalLabels;
+    private readonly IReservedPropertyRenamingStrategy _renamingStrategy;
+    private readonly IEnumerable<string> _propertiesAsLabels;
+    private readonly bool _useInternalTimestamp;
+
     /// <summary>
-    /// Formatter serializing batches of log events into a JSON object in the format, recognized by Grafana Loki.
-    /// <para/>
-    /// Example:
-    /// <code>
-    /// {
-    ///     "streams": [
-    ///     {
-    ///         "stream": {
-    ///             "label": "value"
-    ///             },
-    ///         "values": [
-    ///             [ "unix epoch in nanoseconds", "log line" ],
-    ///             [ "unix epoch in nanoseconds", "log line" ]
-    ///         ]
-    ///     }
-    ///     ]
-    /// }
-    /// </code>
+    /// Initializes a new instance of the <see cref="LokiBatchFormatter"/> class.
     /// </summary>
-    internal class LokiBatchFormatter : ILokiBatchFormatter
+    /// <param name="renamingStrategy">
+    /// Renaming strategy for properties' names equal to reserved keywords.
+    /// <see cref="IReservedPropertyRenamingStrategy"/>
+    /// </param>
+    /// <param name="globalLabels">
+    /// The list of global <see cref="LokiLabel"/>.
+    /// </param>
+    /// <param name="propertiesAsLabels">
+    /// The list of properties, which would be mapped to the labels.
+    /// </param>
+    /// <param name="useInternalTimestamp">
+    /// Compute internal timestamp
+    /// </param>
+    public LokiBatchFormatter(
+        IReservedPropertyRenamingStrategy renamingStrategy,
+        IEnumerable<LokiLabel>? globalLabels = null,
+        IEnumerable<string>? propertiesAsLabels = null,
+        bool useInternalTimestamp = false)
     {
-        private const int DefaultWriteBufferCapacity = 256;
+        _renamingStrategy = renamingStrategy;
+        _globalLabels = globalLabels ?? Enumerable.Empty<LokiLabel>();
+        _propertiesAsLabels = propertiesAsLabels ?? Enumerable.Empty<string>();
+        _useInternalTimestamp = useInternalTimestamp;
+    }
 
-        private readonly IEnumerable<LokiLabel> _globalLabels;
-        private readonly LokiLabelFiltrationMode? _filtrationMode;
-        private readonly IEnumerable<string> _filtrationLabels;
-        private readonly bool _createLevelLabel;
-        private readonly bool _useInternalTimestamp;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="LokiBatchFormatter"/> class.
-        /// </summary>
-        /// <param name="globalLabels">
-        /// The list of global <see cref="LokiLabel"/>.
-        /// </param>
-        /// <param name="filtrationMode">
-        /// The mode for labels filtration
-        /// </param>
-        /// <param name="filtrationLabels">
-        /// The list of label keys used for filtration
-        /// </param>
-        /// <param name="createLevelLabel">
-        /// Used to force the level to be created as a label
-        /// </param>
-        /// <param name="useInternalTimestamp">
-        /// Compute internal timestamp
-        /// </param>
-        public LokiBatchFormatter(
-            IEnumerable<LokiLabel>? globalLabels = null,
-            LokiLabelFiltrationMode? filtrationMode = null,
-            IEnumerable<string>? filtrationLabels = null,
-            bool createLevelLabel = true,
-            bool useInternalTimestamp = false)
+    /// <summary>
+    /// Format the log events into a payload.
+    /// </summary>
+    /// <param name="lokiLogEvents">
+    /// The events to format wrapped in <see cref="LokiLogEvent"/>.
+    /// </param>
+    /// <param name="formatter">
+    /// The formatter turning the log events into a textual representation.
+    /// </param>
+    /// <param name="output">
+    /// The payload to send over the network.
+    /// </param>
+    /// <exception cref="ArgumentNullException">
+    /// Thrown if one of params is null.
+    /// </exception>
+    public void Format(
+        IReadOnlyCollection<LokiLogEvent> lokiLogEvents,
+        ITextFormatter formatter,
+        TextWriter output)
+    {
+        if (lokiLogEvents == null)
         {
-            _globalLabels = globalLabels ?? Enumerable.Empty<LokiLabel>();
-            _filtrationMode = filtrationMode;
-            _filtrationLabels = filtrationLabels ?? Enumerable.Empty<string>();
-            _createLevelLabel = createLevelLabel;
-            _useInternalTimestamp = useInternalTimestamp;
+            throw new ArgumentNullException(nameof(lokiLogEvents));
         }
 
-        /// <summary>
-        /// Format the log events into a payload.
-        /// </summary>
-        /// <param name="logEvents">
-        /// The events to format.
-        /// </param>
-        /// <param name="formatter">
-        /// The formatter turning the log events into a textual representation.
-        /// </param>
-        /// <param name="output">
-        /// The payload to send over the network.
-        /// </param>
-        /// <exception cref="ArgumentNullException"></exception>
-        public void Format(IReadOnlyCollection<(LogEvent LogEntry, DateTimeOffset Timestamp)> logEvents, ITextFormatter formatter, TextWriter output)
+        if (formatter == null)
         {
-            if (logEvents == null)
+            throw new ArgumentNullException(nameof(formatter));
+        }
+
+        if (output == null)
+        {
+            throw new ArgumentNullException(nameof(output));
+        }
+
+        if (lokiLogEvents.Count == 0)
+        {
+            return;
+        }
+
+        var batch = new LokiBatch();
+
+        // Group logEvent by labels
+        var groups = lokiLogEvents
+            .Select(AddLevelAsPropertySafely)
+            .Select(GenerateLabels)
+            .GroupBy(
+                le => le.Labels,
+                le => le.LokiLogEvent,
+                DictionaryComparer<string, string>.Instance);
+
+        foreach (var group in groups)
+        {
+            var labels = group.Key;
+            var stream = batch.CreateStream();
+
+            foreach (var (key, value) in labels)
             {
-                throw new ArgumentNullException(nameof(logEvents));
+                stream.AddLabel(key, value);
             }
 
-            if (output == null)
+            foreach (var logEvent in group.OrderBy(x => _useInternalTimestamp ? x.InternalTimestamp : x.LogEvent.Timestamp))
             {
-                throw new ArgumentNullException(nameof(output));
-            }
-
-            if (logEvents.Count == 0)
-            {
-                return;
-            }
-
-            var batch = new LokiBatch();
-
-            // Group logEvent by labels
-            var groups = logEvents
-                .Select(le => new { Labels = GenerateLabels(le), LogEventTuple = le })
-                .GroupBy(le => le.Labels, le => le.LogEventTuple, DictionaryComparer<string, string>.Instance);
-
-            foreach (var group in groups)
-            {
-                var labels = group.Key;
-                var stream = batch.CreateStream();
-
-                foreach (var label in labels)
-                {
-                    stream.AddLabel(label.Key, label.Value);
-                }
-
-                foreach (var logEvent in group.OrderBy(x => _useInternalTimestamp ? x.Timestamp : x.LogEntry.Timestamp))
-                {
-                    GenerateEntry(logEvent, formatter, stream, labels.Keys);
-                }
-            }
-
-            if (batch.IsNotEmpty)
-            {
-                output.Write(batch.Serialize());
+                GenerateEntry(
+                    logEvent,
+                    formatter,
+                    stream);
             }
         }
 
-        private void GenerateEntry((LogEvent LogEntry, DateTimeOffset Timestamp) logEventTuple, ITextFormatter formatter, LokiStream stream, IEnumerable<string> labels)
+        if (batch.IsNotEmpty)
         {
-            var buffer = new StringWriter(new StringBuilder(DefaultWriteBufferCapacity));
-
-            DateTimeOffset timestamp = logEventTuple.LogEntry.Timestamp;
-            if (_useInternalTimestamp)
-            {
-                logEventTuple.LogEntry.AddPropertyIfAbsent(new LogEventProperty("Timestamp", new ScalarValue(timestamp)));
-                timestamp = logEventTuple.Timestamp;
-            }
-
-            if (formatter is ILabelAwareTextFormatter labelAwareTextFormatter)
-            {
-                labelAwareTextFormatter.Format(logEventTuple.LogEntry, buffer, labels);
-            }
-            else
-            {
-                formatter.Format(logEventTuple.LogEntry, buffer);
-            }
-
-            stream.AddEntry(timestamp, buffer.ToString().TrimEnd('\r', '\n'));
+            output.Write(batch.Serialize());
         }
 
-        private Dictionary<string, string> GenerateLabels((LogEvent LogEntry, DateTimeOffset Timestamp) logEventTuple)
+        LokiLogEvent AddLevelAsPropertySafely(LokiLogEvent lokiLogEvent)
         {
-            var labels = _globalLabels.ToDictionary(label => label.Key, label => label.Value);
+            var logEvent = lokiLogEvent.LogEvent;
+            logEvent.RenamePropertyIfPresent("level", _renamingStrategy.Rename);
+            logEvent.AddOrUpdateProperty(
+                new LogEventProperty("level", new ScalarValue(logEvent.Level.ToGrafanaLogLevel())));
 
-            if (_createLevelLabel)
-            {
-                labels.Add("level", logEventTuple.LogEntry.Level.ToGrafanaLogLevel());
-            }
+            return lokiLogEvent;
+        }
+    }
 
-            foreach (var property in logEventTuple.LogEntry.Properties)
-            {
-                var key = property.Key;
+    private void GenerateEntry(
+        LokiLogEvent lokiLogEvent,
+        ITextFormatter formatter,
+        LokiStream stream)
+    {
+        var buffer = new StringWriter(new StringBuilder(DefaultWriteBufferCapacity));
 
-                // If a message template is a composite format string that contains indexed placeholders ({0}, {1} etc),
-                // Serilog turns these placeholders into event properties keyed by numeric strings.
-                // Loki doesn't accept such strings as label keys. Prefix these numeric strings with "param"
-                // to turn them into valid label keys and at the same time denote them as ordinal parameters.
-                if (char.IsDigit(key[0]))
-                {
-                    key = $"param{key}";
-                }
+        var logEvent = lokiLogEvent.LogEvent;
+        var timestamp = logEvent.Timestamp;
 
-                // Some enrichers generates extra quotes and it breaks the payload
-                var value = property.Value.ToString().Replace("\"", string.Empty);
-
-                if (IsAllowedByFilter(key))
-                {
-                    labels.Add(key, value);
-                }
-            }
-
-            return labels;
+        if (_useInternalTimestamp)
+        {
+            logEvent.AddPropertyIfAbsent(
+                new LogEventProperty("Timestamp", new ScalarValue(timestamp)));
+            timestamp = lokiLogEvent.InternalTimestamp;
         }
 
-        private bool IsAllowedByFilter(string label) =>
-            _filtrationMode switch
-            {
-                LokiLabelFiltrationMode.Include => IsInFilterList(label),
-                LokiLabelFiltrationMode.Exclude => !IsInFilterList(label),
-                null => true,
-                _ => true
-            };
+        formatter.Format(logEvent, buffer);
 
-        private bool IsInFilterList(string label) => _filtrationLabels.Contains(label);
+        stream.AddEntry(timestamp, buffer.ToString().TrimEnd('\r', '\n'));
+    }
+
+    private (Dictionary<string, string> Labels, LokiLogEvent LokiLogEvent) GenerateLabels(LokiLogEvent lokiLogEvent)
+    {
+        var labels = _globalLabels.ToDictionary(label => label.Key, label => label.Value);
+        var properties = lokiLogEvent.Properties;
+        var (propertiesAsLabels, remainingProperties) =
+            properties.Partition(kvp => _propertiesAsLabels.Contains(kvp.Key));
+
+        foreach (var property in propertiesAsLabels)
+        {
+            var key = property.Key;
+
+            // If a message template is a composite format string that contains indexed placeholders ({0}, {1} etc),
+            // Serilog turns these placeholders into event properties keyed by numeric strings.
+            // Loki doesn't accept such strings as label keys. Prefix these numeric strings with "param"
+            // to turn them into valid label keys and at the same time denote them as ordinal parameters.
+            if (char.IsDigit(key[0]))
+            {
+                key = $"param{key}";
+            }
+
+            // Some enrichers generates extra quotes and it breaks the payload
+            var value = property.Value.ToString().Replace("\"", string.Empty);
+
+            if (labels.ContainsKey(key))
+            {
+                SelfLog.WriteLine(
+                    "Labels already contains key {0}, added from global labels. Property value ({1}) with the same key is ignored",
+                    key,
+                    value);
+
+                continue;
+            }
+
+            labels.Add(key, value);
+        }
+
+        return (labels,
+            lokiLogEvent.CopyWithProperties(remainingProperties));
     }
 }

@@ -8,20 +8,22 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See LICENSE file in the project root for full license information.
 
-namespace Serilog.Sinks.Grafana.Loki
+namespace Serilog.Sinks.Grafana.Loki;
+
+/// <summary>
+/// Defines renaming strategy for properties with names equal to sink's reserved keywords.
+/// </summary>
+public interface IReservedPropertyRenamingStrategy
 {
     /// <summary>
-    /// Mode, used for labels filtration
+    /// Property rename function
+    /// By default adds an underscore to the property name.
     /// </summary>
-    public enum LokiLabelFiltrationMode
-    {
-        /// <summary>
-        /// By including specific labels
-        /// </summary>
-        Include = 0,
-        /// <summary>
-        /// By excluding specific labels
-        /// </summary>
-        Exclude = 1
-    }
+    /// <param name="originalName">
+    /// Original name of property.
+    /// </param>
+    /// <returns>
+    /// New property name.
+    /// </returns>
+    string Rename(string originalName);
 }
