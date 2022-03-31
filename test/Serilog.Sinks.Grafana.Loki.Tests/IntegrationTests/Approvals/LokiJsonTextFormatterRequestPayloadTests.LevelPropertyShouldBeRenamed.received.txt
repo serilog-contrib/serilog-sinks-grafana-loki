@@ -1,0 +1,1 @@
+{"streams":[{"stream":{},"values":[["<unixepochinnanoseconds>","{\u0022Message\u0022:\u0022Hero\u0027s \\\u0022info\\\u0022\u0022,\u0022MessageTemplate\u0022:\u0022Hero\u0027s {level}\u0022,\u0022_level\u0022:42,\u0022level\u0022:\u0022info\u0022}"]]}]}

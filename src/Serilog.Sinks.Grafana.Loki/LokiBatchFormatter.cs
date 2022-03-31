@@ -139,6 +139,11 @@ internal class LokiBatchFormatter : ILokiBatchFormatter
             output.Write(batch.Serialize());
         }
 
+        // Current behavior breaks rendering
+        // Log.Info("Hero's {level}", 42)
+        // Message: "Hero's \"info\""
+        // level: "info"
+        // _level: 42
         LokiLogEvent AddLevelAsPropertySafely(LokiLogEvent lokiLogEvent)
         {
             var logEvent = lokiLogEvent.LogEvent;

@@ -388,4 +388,55 @@ public class LokiJsonTextFormatterRequestPayloadTests
                         "\"<unixepochinnanoseconds>\""));
             });
     }
+
+    [Fact]
+    public void GlobalLabelShouldHavePriorityOverPropertyOne()
+    {
+        var logger = new LoggerConfiguration()
+            .WriteTo.GrafanaLoki(
+                "https://loki:3100",
+                labels: new[] { new LokiLabel { Key = "App", Value = "test" } },
+                propertiesAsLabels: new[] { "App" },
+                httpClient: _client)
+            .CreateLogger();
+
+        logger.Information("Hello {App}", "not test");
+        logger.Dispose();
+
+        _client.Content.ShouldMatchApproved(
+            c =>
+            {
+                c.SubFolder(ApprovalsFolderName);
+                c.WithScrubber(
+                    s => Regex.Replace(
+                        s,
+                        "\"[0-9]{19}\"",
+                        "\"<unixepochinnanoseconds>\""));
+            });
+    }
+
+    [Fact]
+    public void LevelPropertyShouldBeRenamed()
+    {
+        var logger = new LoggerConfiguration()
+            .WriteTo.GrafanaLoki(
+                "https://loki:3100",
+                httpClient: _client)
+            .CreateLogger();
+
+        // ReSharper disable once InconsistentLogPropertyNaming
+        logger.Information("Hero's {level}", 42);
+        logger.Dispose();
+
+        _client.Content.ShouldMatchApproved(
+            c =>
+            {
+                c.SubFolder(ApprovalsFolderName);
+                c.WithScrubber(
+                    s => Regex.Replace(
+                        s,
+                        "\"[0-9]{19}\"",
+                        "\"<unixepochinnanoseconds>\""));
+            });
+    }
 }
