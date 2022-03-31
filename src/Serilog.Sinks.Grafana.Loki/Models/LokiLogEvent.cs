@@ -53,7 +53,7 @@ public class LokiLogEvent
             LogEvent.Level,
             LogEvent.Exception,
             LogEvent.MessageTemplate,
-            properties.Select(p => new LogEventProperty(p.Key, new ScalarValue(p.Value))));
+            properties.Select(p => new LogEventProperty(p.Key, p.Value)));
 
         return this;
     }
