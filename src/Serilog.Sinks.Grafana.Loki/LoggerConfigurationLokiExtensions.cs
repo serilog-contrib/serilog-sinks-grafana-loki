@@ -48,10 +48,6 @@ public static class LoggerConfigurationLokiExtensions
     /// <param name="credentials">
     /// Auth <see cref="LokiCredentials"/>.
     /// </param>
-    /// <param name="outputTemplate">
-    /// A message template describing the format used to write to the sink.
-    /// Default value is <code>"[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}"</code>.
-    /// </param>
     /// <param name="restrictedToMinimumLevel">
     /// The minimum level for events passed through the sink.
     /// Default value is <see cref="LevelAlias.Minimum"/>.
@@ -87,7 +83,6 @@ public static class LoggerConfigurationLokiExtensions
         IEnumerable<LokiLabel>? labels = null,
         IEnumerable<string>? propertiesAsLabels = null,
         LokiCredentials? credentials = null,
-        string outputTemplate = DefaultOutputTemplate,
         LogEventLevel restrictedToMinimumLevel = LevelAlias.Minimum,
         int batchPostingLimit = 1000,
         int? queueLimit = null,
