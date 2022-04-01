@@ -8,14 +8,14 @@ body:
     id: sink-version
     attributes:
       label: Which version of Serilog.Sinks.Grafana.Loki are you using?
-      placeholder: v7.0.2
+      placeholder: v8.0.0
     validations:
       required: true
   - type: input
     id: net-version
     attributes:
       label: Which version of .NET are you using?
-      placeholder: net5.0
+      placeholder: net6.0
     validations:
       required: true
   - type: textarea
@@ -43,7 +43,7 @@ body:
     id: logs
     attributes:
       label: Log/SelfLog output or exception with stacktrace
-      placeholder: data
+      placeholder: The data.
     validations:
       required: false
   - type: input
