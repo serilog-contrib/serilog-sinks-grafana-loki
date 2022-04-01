@@ -1,9 +1,6 @@
-﻿using System;
+﻿namespace Serilog.Sinks.Grafana.Loki.Tests.TestHelpers.Backoff;
 
-namespace Serilog.Sinks.Grafana.Loki.Tests.TestHelpers.Backoff
+internal interface IBackoff
 {
-    internal interface IBackoff
-    {
-        public IBackoff GetNext(TimeSpan nextInterval);
-    }
+    public IBackoff GetNext(TimeSpan nextInterval);
 }

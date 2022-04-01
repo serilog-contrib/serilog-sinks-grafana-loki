@@ -1,24 +1,20 @@
-using System;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+using Serilog;
 using Serilog.Debugging;
 
-namespace Serilog.Sinks.Grafana.Loki.SampleWebApp
-{
-    public static class Program
-    {
-        public static void Main(string[] args)
-        {
-            SelfLog.Enable(Console.Error);
+SelfLog.Enable(Console.Error);
 
-            CreateHostBuilder(args).Build().Run();
-        }
+var builder = WebApplication.CreateBuilder();
 
-        private static IHostBuilder CreateHostBuilder(string[] args) =>
-            Host.CreateDefaultBuilder(args)
-                .ConfigureLogging((ctx, cfg) => cfg.ClearProviders())
-                .UseSerilog((ctx, cfg) => cfg.ReadFrom.Configuration(ctx.Configuration))
-                .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); });
-    }
-}
+builder.Host
+    .ConfigureLogging((_, loggingBuilder) => loggingBuilder.ClearProviders())
+    .UseSerilog((ctx, cfg) => cfg.ReadFrom.Configuration(ctx.Configuration));
+
+// Add services to the container.
+builder.Services.AddControllers();
+
+var app = builder.Build();
+
+// Configure the HTTP request pipeline.
+app.MapControllers();
+
+app.Run();

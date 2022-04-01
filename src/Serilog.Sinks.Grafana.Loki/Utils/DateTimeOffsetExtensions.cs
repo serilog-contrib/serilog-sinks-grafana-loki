@@ -8,13 +8,10 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See LICENSE file in the project root for full license information.
 
-using System;
+namespace Serilog.Sinks.Grafana.Loki.Utils;
 
-namespace Serilog.Sinks.Grafana.Loki.Utils
+internal static class DateTimeOffsetExtensions
 {
-    internal static class DateTimeOffsetExtensions
-    {
-        internal static string ToUnixNanosecondsString(this DateTimeOffset offset) =>
-            (offset.ToUnixTimeMilliseconds() * 1000000).ToString();
-    }
+    internal static string ToUnixNanosecondsString(this DateTimeOffset offset) =>
+        (offset.ToUnixTimeMilliseconds() * 1000000).ToString();
 }

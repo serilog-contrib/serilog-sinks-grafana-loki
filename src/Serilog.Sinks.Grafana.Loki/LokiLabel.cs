@@ -8,21 +8,20 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See LICENSE file in the project root for full license information.
 
-namespace Serilog.Sinks.Grafana.Loki
+namespace Serilog.Sinks.Grafana.Loki;
+
+/// <summary>
+/// Label used for enriching log entries in Grafana Loki
+/// </summary>
+public class LokiLabel
 {
     /// <summary>
-    /// Label used for enriching log entries in Grafana Loki
+    /// Label's name
     /// </summary>
-    public class LokiLabel
-    {
-        /// <summary>
-        /// Label's name
-        /// </summary>
-        public string Key { get; set; } = null!;
+    public string Key { get; set; } = null!;
 
-        /// <summary>
-        /// Label's value
-        /// </summary>
-        public string Value { get; set; } = null!;
-    }
+    /// <summary>
+    /// Label's value
+    /// </summary>
+    public string Value { get; set; } = null!;
 }

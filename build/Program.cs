@@ -1,44 +1,42 @@
-﻿using System.IO;
-using static Bullseye.Targets;
+﻿using static Bullseye.Targets;
 using static SimpleExec.Command;
 
-namespace Build
+namespace Build;
+
+internal static class Program
 {
-    internal static class Program
+    private const string PackOutput = "./artifacts";
+    private const string Solution = "Serilog.Sinks.Grafana.Loki.sln";
+
+    internal static async Task Main(string[] args)
     {
-        private const string PackOutput = "./artifacts";
-        private const string Solution = "Serilog.Sinks.Grafana.Loki.sln";
+        Target(Targets.CleanBuildOutput, () => { Run("dotnet", $"clean {Solution} -c Release -v m --nologo"); });
 
-        internal static void Main(string[] args)
+        Target(Targets.Build, DependsOn(Targets.CleanBuildOutput), () =>
         {
-            Target(Targets.CleanBuildOutput, () => { Run("dotnet", $"clean {Solution} -c Release -v m --nologo"); });
+            Run("dotnet", $"build {Solution} -c Release --nologo");
+        });
 
-            Target(Targets.Build, DependsOn(Targets.CleanBuildOutput), () =>
+        Target(Targets.Test, DependsOn(Targets.Build), () =>
+        {
+            Run("dotnet", $"test {Solution} -c Release --no-build --nologo");
+        });
+
+        Target(Targets.CleanPackOutput, () =>
+        {
+            if (Directory.Exists(PackOutput))
             {
-                Run("dotnet", $"build {Solution} -c Release --nologo");
-            });
+                Directory.Delete(PackOutput, true);
+            }
+        });
 
-            Target(Targets.Test, DependsOn(Targets.Build), () =>
-            {
-                Run("dotnet", $"test {Solution} -c Release --no-build --nologo");
-            });
+        Target(Targets.Pack, DependsOn(Targets.CleanPackOutput), () =>
+        {
+            Run("dotnet", $"pack ./src/Serilog.Sinks.Grafana.Loki/Serilog.Sinks.Grafana.Loki.csproj -c Release -o {Directory.CreateDirectory(PackOutput).FullName} --no-build --nologo");
+        });
 
-            Target(Targets.CleanPackOutput, () =>
-            {
-                if (Directory.Exists(PackOutput))
-                {
-                    Directory.Delete(PackOutput, true);
-                }
-            });
+        Target("default", DependsOn(Targets.Test, Targets.Pack));
 
-            Target(Targets.Pack, DependsOn(Targets.CleanPackOutput), () =>
-            {
-                Run("dotnet", $"pack ./src/Serilog.Sinks.Grafana.Loki/Serilog.Sinks.Grafana.Loki.csproj -c Release -o {Directory.CreateDirectory(PackOutput).FullName} --no-build --nologo");
-            });
-
-            Target("default", DependsOn(Targets.Test, Targets.Pack));
-
-            RunTargetsAndExit(args, ex => ex is SimpleExec.NonZeroExitCodeException);
-        }
+        await RunTargetsAndExitAsync(args, ex => ex is SimpleExec.ExitCodeException);
     }
 }

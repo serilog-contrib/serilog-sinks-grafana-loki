@@ -8,60 +8,55 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See LICENSE file in the project root for full license information.
 
-using System;
-using System.Collections.Generic;
-using Serilog.Events;
+namespace Serilog.Sinks.Grafana.Loki.Infrastructure;
 
-namespace Serilog.Sinks.Grafana.Loki.Infrastructure
+internal class BoundedQueue<T>
 {
-    internal class BoundedQueue<T>
+    private const int Unbounded = -1;
+
+    private readonly Queue<T> _queue;
+    private readonly int _queueLimit;
+    private readonly object _syncRoot = new();
+
+    public BoundedQueue(int? queueLimit)
     {
-        private const int Unbounded = -1;
-
-        private readonly Queue<(T Event, DateTimeOffset Timestamp)> _queue;
-        private readonly int _queueLimit;
-        private readonly object _syncRoot = new();
-
-        public BoundedQueue(int? queueLimit)
+        if (queueLimit < 1)
         {
-            if (queueLimit < 1)
-            {
-                throw new ArgumentOutOfRangeException(
-                    nameof(queueLimit),
-                    "Queue limit must be positive, or `null` to indicate unbounded");
-            }
-
-            _queue = new Queue<(T, DateTimeOffset)>();
-            _queueLimit = queueLimit ?? Unbounded;
+            throw new ArgumentOutOfRangeException(
+                nameof(queueLimit),
+                "Queue limit must be positive, or `null` to indicate unbounded");
         }
 
-        public bool TryEnqueue(T item)
-        {
-            lock (_syncRoot)
-            {
-                if (_queueLimit != Unbounded && _queueLimit == _queue.Count)
-                {
-                    return false;
-                }
+        _queue = new Queue<T>();
+        _queueLimit = queueLimit ?? Unbounded;
+    }
 
-                _queue.Enqueue((item, DateTimeOffset.UtcNow));
-                return true;
+    public bool TryEnqueue(T item)
+    {
+        lock (_syncRoot)
+        {
+            if (_queueLimit != Unbounded && _queueLimit == _queue.Count)
+            {
+                return false;
             }
+
+            _queue.Enqueue(item);
+            return true;
         }
+    }
 
-        public bool TryDequeue(out (T Event, DateTimeOffset Timestamp)? item)
+    public bool TryDequeue(out T? item)
+    {
+        lock (_syncRoot)
         {
-            lock (_syncRoot)
+            if (_queue.Count == 0)
             {
-                if (_queue.Count == 0)
-                {
-                    item = default;
-                    return false;
-                }
-
-                item = _queue.Dequeue();
-                return true;
+                item = default;
+                return false;
             }
+
+            item = _queue.Dequeue();
+            return true;
         }
     }
 }

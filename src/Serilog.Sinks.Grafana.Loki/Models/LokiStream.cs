@@ -8,29 +8,26 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See LICENSE file in the project root for full license information.
 
-using System;
-using System.Collections.Generic;
 using System.Text.Json.Serialization;
 using Serilog.Sinks.Grafana.Loki.Utils;
 
-namespace Serilog.Sinks.Grafana.Loki.Models
+namespace Serilog.Sinks.Grafana.Loki.Models;
+
+internal class LokiStream
 {
-    internal class LokiStream
+    [JsonPropertyName("stream")]
+    public Dictionary<string, string> Labels { get; } = new();
+
+    [JsonPropertyName("values")]
+    public IList<IList<string>> Entries { get; set; } = new List<IList<string>>();
+
+    public void AddLabel(string key, string value)
     {
-        [JsonPropertyName("stream")]
-        public Dictionary<string, string> Labels { get; } = new();
+        Labels[key] = value;
+    }
 
-        [JsonPropertyName("values")]
-        public IList<IList<string>> Entries { get; set; } = new List<IList<string>>();
-
-        public void AddLabel(string key, string value)
-        {
-            Labels[key] = value;
-        }
-
-        public void AddEntry(DateTimeOffset timestamp, string entry)
-        {
-            Entries.Add(new[] {timestamp.ToUnixNanosecondsString(), entry});
-        }
+    public void AddEntry(DateTimeOffset timestamp, string entry)
+    {
+        Entries.Add(new[] {timestamp.ToUnixNanosecondsString(), entry});
     }
 }

@@ -1,1 +1,0 @@
-{"streams":[{"stream":{},"values":[["<unixepochinnanoseconds>","What is the meaning of life?"]]},{"stream":{"MeaningOfLife":"42"},"values":[["<unixepochinnanoseconds>","The meaning of life is 42"]]}]}
