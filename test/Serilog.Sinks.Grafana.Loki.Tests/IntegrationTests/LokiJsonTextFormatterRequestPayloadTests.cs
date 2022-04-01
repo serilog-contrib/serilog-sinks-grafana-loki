@@ -8,6 +8,10 @@ namespace Serilog.Sinks.Grafana.Loki.Tests.IntegrationTests;
 public class LokiJsonTextFormatterRequestPayloadTests
 {
     private const string ApprovalsFolderName = "Approvals";
+    private const string ExceptionStackTraceRegEx = @"(?<= in)(.*?)(?=},\\)";
+    private const string ExceptionStackTraceReplacement = " <stack-trace>";
+    private const string TimeStampRegEx = "\"[0-9]{19}\"";
+    private const string TimeStampReplacement = "\"<unixepochinnanoseconds>\"";
 
     private readonly TestLokiHttpClient _client;
 
@@ -35,8 +39,8 @@ public class LokiJsonTextFormatterRequestPayloadTests
                 c.WithScrubber(
                     s => Regex.Replace(
                         s,
-                        "\"[0-9]{19}\"",
-                        "\"<unixepochinnanoseconds>\""));
+                        TimeStampRegEx,
+                        TimeStampReplacement));
             });
     }
 
@@ -59,8 +63,8 @@ public class LokiJsonTextFormatterRequestPayloadTests
                 c.WithScrubber(
                     s => Regex.Replace(
                         s,
-                        "\"[0-9]{19}\"",
-                        "\"<unixepochinnanoseconds>\""));
+                        TimeStampRegEx,
+                        TimeStampReplacement));
             });
     }
 
@@ -94,13 +98,13 @@ public class LokiJsonTextFormatterRequestPayloadTests
                         s = Regex
                             .Replace(
                                 s,
-                                "\"[0-9]{19}\"",
-                                "\"<unixepochinnanoseconds>\"");
+                                TimeStampRegEx,
+                                TimeStampReplacement);
 
                         return Regex.Replace(
                             s,
-                            @"(?<=\\u0022StackTrace)(.*?)(?=}})",
-                            @"<stack-trace>");
+                            ExceptionStackTraceRegEx,
+                            ExceptionStackTraceReplacement);
                     });
             });
     }
@@ -136,13 +140,13 @@ public class LokiJsonTextFormatterRequestPayloadTests
                         s = Regex
                             .Replace(
                                 s,
-                                "\"[0-9]{19}\"",
-                                "\"<unixepochinnanoseconds>\"");
+                                TimeStampRegEx,
+                                TimeStampReplacement);
 
                         return Regex.Replace(
                             s,
-                            @"(?<=\\u0022StackTrace)(.*?)(?=}})",
-                            @"<stack-trace>");
+                            ExceptionStackTraceRegEx,
+                            ExceptionStackTraceReplacement);
                     });
             });
     }
@@ -192,13 +196,13 @@ public class LokiJsonTextFormatterRequestPayloadTests
                         s = Regex
                             .Replace(
                                 s,
-                                "\"[0-9]{19}\"",
-                                "\"<unixepochinnanoseconds>\"");
+                                TimeStampRegEx,
+                                TimeStampReplacement);
 
                         return Regex.Replace(
                             s,
-                            @"(?<=\\u0022StackTrace)(.*?)}\](?=}})",
-                            @"<stack-trace>");
+                            ExceptionStackTraceRegEx,
+                            ExceptionStackTraceReplacement);
                     });
             });
     }
@@ -226,8 +230,8 @@ public class LokiJsonTextFormatterRequestPayloadTests
                     {
                         var replaced = Regex.Replace(
                             s,
-                            "\"[0-9]{19}\"",
-                            "\"<unixepochinnanoseconds>\"");
+                            TimeStampRegEx,
+                            TimeStampReplacement);
 
                         return Regex.Replace(
                             replaced,
@@ -257,8 +261,8 @@ public class LokiJsonTextFormatterRequestPayloadTests
                 c.WithScrubber(
                     s => Regex.Replace(
                         s,
-                        "\"[0-9]{19}\"",
-                        "\"<unixepochinnanoseconds>\""));
+                        TimeStampRegEx,
+                        TimeStampReplacement));
             });
     }
 
@@ -283,8 +287,8 @@ public class LokiJsonTextFormatterRequestPayloadTests
                 c.WithScrubber(
                     s => Regex.Replace(
                         s,
-                        "\"[0-9]{19}\"",
-                        "\"<unixepochinnanoseconds>\""));
+                        TimeStampRegEx,
+                        TimeStampReplacement));
             });
     }
 
@@ -309,8 +313,8 @@ public class LokiJsonTextFormatterRequestPayloadTests
                 c.WithScrubber(
                     s => Regex.Replace(
                         s,
-                        "\"[0-9]{19}\"",
-                        "\"<unixepochinnanoseconds>\""));
+                        TimeStampRegEx,
+                        TimeStampReplacement));
             });
     }
 
@@ -334,8 +338,8 @@ public class LokiJsonTextFormatterRequestPayloadTests
                 c.WithScrubber(
                     s => Regex.Replace(
                         s,
-                        "\"[0-9]{19}\"",
-                        "\"<unixepochinnanoseconds>\""));
+                        TimeStampRegEx,
+                        TimeStampReplacement));
             });
     }
 
@@ -360,8 +364,8 @@ public class LokiJsonTextFormatterRequestPayloadTests
                 c.WithScrubber(
                     s => Regex.Replace(
                         s,
-                        "\"[0-9]{19}\"",
-                        "\"<unixepochinnanoseconds>\""));
+                        TimeStampRegEx,
+                        TimeStampReplacement));
             });
     }
 
@@ -384,8 +388,8 @@ public class LokiJsonTextFormatterRequestPayloadTests
                 c.WithScrubber(
                     s => Regex.Replace(
                         s,
-                        "\"[0-9]{19}\"",
-                        "\"<unixepochinnanoseconds>\""));
+                        TimeStampRegEx,
+                        TimeStampReplacement));
             });
     }
 
@@ -410,8 +414,8 @@ public class LokiJsonTextFormatterRequestPayloadTests
                 c.WithScrubber(
                     s => Regex.Replace(
                         s,
-                        "\"[0-9]{19}\"",
-                        "\"<unixepochinnanoseconds>\""));
+                        TimeStampRegEx,
+                        TimeStampReplacement));
             });
     }
 
@@ -435,8 +439,8 @@ public class LokiJsonTextFormatterRequestPayloadTests
                 c.WithScrubber(
                     s => Regex.Replace(
                         s,
-                        "\"[0-9]{19}\"",
-                        "\"<unixepochinnanoseconds>\""));
+                        TimeStampRegEx,
+                        TimeStampReplacement));
             });
     }
 }
