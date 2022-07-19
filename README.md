@@ -36,7 +36,8 @@ You can find more information about what Loki is over on [Grafana's website here
 ## Features:
 - Formats and batches log entries to Loki via HTTP (using actual API)
 - Global and contextual labels support
-- Labels filtration modes
+- Flexible Loki labels configuration possibilities
+- Collision avoiding mechanism for labels
 - Integration with Serilog.Settings.Configuration
 - Customizable HTTP clients
 - HTTP client with gzip compression
@@ -94,7 +95,9 @@ Used in conjunction with [Serilog.Settings.Configuration](https://github.com/ser
               "value": "web_app"
             }
           ],
-          "outputTemplate": "{Timestamp:dd-MM-yyyy HH:mm:ss} [{Level:u3}] [{ThreadId}] {Message}{NewLine}{Exception}"
+          "propertiesAsLabels": [
+            "app"
+          ]
         }
       }
     ]
@@ -136,7 +139,10 @@ Log.Logger = new LoggerConfiguration()
 ```
 
 ### Sending json content to Loki
-Serilog.Sinks.Grafana.Loki can be configured to send json content to Loki, this enables easier filtering in Loki v2, more information about how to filter can be found [here](https://grafana.com/blog/2020/10/28/loki-2.0-released-transform-logs-as-youre-querying-them-and-set-up-alerts-within-loki/)  
+From v8 Serilog.Sinks.Grafana.Loki uses `LokiJsonTextFormatter` by default, which allows to send logs to Loki as a JSON-payloads. This allows easier filtering in Loki v2, more information about how to filter can be found [here](https://grafana.com/blog/2020/10/28/loki-2.0-released-transform-logs-as-youre-querying-them-and-set-up-alerts-within-loki/)  
+
+Also, you could implement your own formatter, implementing `Serilog.Formatting.ITextFormatter` interface and pass it to the sink configuration.
+
 Example configuration:
 ```json
 {
@@ -152,7 +158,7 @@ Example configuration:
         "Name": "GrafanaLoki",
         "Args": {
           "uri": "http://localhost:3100",
-          "textFormatter": "Serilog.Sinks.Grafana.Loki.LokiJsonTextFormatter, Serilog.Sinks.Grafana.Loki"
+          "textFormatter": "My.Awesome.Namespace.MyTextFormatter, MyCoolAssembly"
         }
       }
     ]

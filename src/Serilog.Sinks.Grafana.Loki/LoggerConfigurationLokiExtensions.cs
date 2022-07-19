@@ -26,9 +26,6 @@ namespace Serilog.Sinks.Grafana.Loki;
 /// </summary>
 public static class LoggerConfigurationLokiExtensions
 {
-    private const string DefaultOutputTemplate =
-        "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}";
-
     /// <summary>
     /// Adds a non-durable sink that will send log events to Grafana Loki.
     /// A non-durable sink will lose data after a system or process restart.
