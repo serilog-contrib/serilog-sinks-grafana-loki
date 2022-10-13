@@ -64,7 +64,7 @@ internal class LokiSink : ILogEventSink, IDisposable
 
         if (!_queue.TryEnqueue(new LokiLogEvent(logEvent)))
         {
-            SelfLog.WriteLine("Queue has reached it's limit and the log event {@Event} will be dropped", logEvent);
+            SelfLog.WriteLine("Queue has reached it's limit and the log event will be dropped");
         }
     }
 
