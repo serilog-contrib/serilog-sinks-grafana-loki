@@ -34,6 +34,8 @@ internal class LokiBatchFormatter : ILokiBatchFormatter
     private readonly IEnumerable<LokiLabel> _globalLabels;
     private readonly IReservedPropertyRenamingStrategy _renamingStrategy;
     private readonly IEnumerable<string> _propertiesAsLabels;
+
+    private readonly bool _leavePropertiesIntact;
     private readonly bool _useInternalTimestamp;
 
     /// <summary>
@@ -56,12 +58,14 @@ internal class LokiBatchFormatter : ILokiBatchFormatter
         IReservedPropertyRenamingStrategy renamingStrategy,
         IEnumerable<LokiLabel>? globalLabels = null,
         IEnumerable<string>? propertiesAsLabels = null,
-        bool useInternalTimestamp = false)
+        bool useInternalTimestamp = false,
+        bool leavePropertiesIntact = false)
     {
         _renamingStrategy = renamingStrategy;
         _globalLabels = globalLabels ?? Enumerable.Empty<LokiLabel>();
         _propertiesAsLabels = propertiesAsLabels ?? Enumerable.Empty<string>();
         _useInternalTimestamp = useInternalTimestamp;
+        _leavePropertiesIntact = leavePropertiesIntact;
     }
 
     /// <summary>
@@ -214,6 +218,6 @@ internal class LokiBatchFormatter : ILokiBatchFormatter
         }
 
         return (labels,
-            lokiLogEvent.CopyWithProperties(remainingProperties));
+            lokiLogEvent.CopyWithProperties(_leavePropertiesIntact ? properties : remainingProperties));
     }
 }
