@@ -54,6 +54,9 @@ internal class LokiBatchFormatter : ILokiBatchFormatter
     /// <param name="useInternalTimestamp">
     /// Compute internal timestamp
     /// </param>
+    /// <param name="leavePropertiesIntact">
+    /// Leave the list of properties intact after extracting the labels specified in propertiesAsLabels.
+    /// </param>
     public LokiBatchFormatter(
         IReservedPropertyRenamingStrategy renamingStrategy,
         IEnumerable<LokiLabel>? globalLabels = null,
