@@ -73,6 +73,9 @@ public static class LoggerConfigurationLokiExtensions
     /// <param name="useInternalTimestamp">
     /// Should use internal sink timestamp instead of application one to use as log timestamp.
     /// </param>
+    /// <param name="leavePropertiesIntact">
+    /// Leaves the list of properties intact after extracting the labels specified in propertiesAsLabels.
+    /// </param>
     /// <returns>Logger configuration, allowing configuration to continue.</returns>
     public static LoggerConfiguration GrafanaLoki(
         this LoggerSinkConfiguration sinkConfiguration,
@@ -87,7 +90,8 @@ public static class LoggerConfigurationLokiExtensions
         ITextFormatter? textFormatter = null,
         ILokiHttpClient? httpClient = null,
         IReservedPropertyRenamingStrategy? reservedPropertyRenamingStrategy = null,
-        bool useInternalTimestamp = false)
+        bool useInternalTimestamp = false,
+        bool leavePropertiesIntact = false)
     {
         if (sinkConfiguration == null)
         {
@@ -105,7 +109,8 @@ public static class LoggerConfigurationLokiExtensions
             reservedPropertyRenamingStrategy,
             labels,
             propertiesAsLabels,
-            useInternalTimestamp);
+            useInternalTimestamp,
+            leavePropertiesIntact);
 
         var sink = new LokiSink(
             LokiRoutesBuilder.BuildLogsEntriesRoute(uri),
