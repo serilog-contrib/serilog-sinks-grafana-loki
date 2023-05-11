@@ -9,7 +9,7 @@
     <ItemGroup>
         <PackageReference Include="Serilog.AspNetCore" Version="6.1.0" />
         <PackageReference Include="Serilog.Enrichers.Thread" Version="3.1.0" />
-        <PackageReference Include="Serilog.Settings.Configuration" Version="3.4.0" />
+        <PackageReference Include="Serilog.Settings.Configuration" Version="7.0.0" />
     </ItemGroup>
 
     <ItemGroup>
