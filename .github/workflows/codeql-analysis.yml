@@ -41,7 +41,7 @@ jobs:
       - name: Setup dotnet
         uses: actions/setup-dotnet@v3.2.0
         with:
-          dotnet-version: "6.0.x"
+          dotnet-version: "7.0.x"
 
       - name: DotNet Info
         run: dotnet --info
