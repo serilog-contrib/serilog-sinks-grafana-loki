@@ -4,7 +4,7 @@
         <AssemblyName>Serilog.Sinks.Grafana.Loki</AssemblyName>
         <Description>A Serilog sink sending log events to Grafana Loki</Description>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
-        <TargetFramework>netstandard2.0</TargetFramework>
+        <TargetFrameworks>netstandard2.0;net5.0;net6.0;net7.0</TargetFrameworks>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <!--SourceLink -->
@@ -12,12 +12,12 @@
         <DebugType>embedded</DebugType>
         <EmbedUntrackedSources>true</EmbedUntrackedSources>
         <PublishRepositoryUrl>true</PublishRepositoryUrl>
-        <RepositoryUrl>https://github.com/mishamyte/serilog-sinks-grafana-loki.git</RepositoryUrl>
+        <RepositoryUrl>https://github.com/serilog-contrib/serilog-sinks-grafana-loki.git</RepositoryUrl>
         <!--NuGet package-->
         <PackageIcon>serilog-sink-nuget.png</PackageIcon>
         <PackageId>Serilog.Sinks.Grafana.Loki</PackageId>
         <PackageLicenseFile>LICENSE</PackageLicenseFile>
-        <PackageProjectUrl>https://github.com/mishamyte/serilog-sinks-grafana-loki</PackageProjectUrl>
+        <PackageProjectUrl>https://github.com/erilog-contrib/serilog-sinks-grafana-loki</PackageProjectUrl>
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageReleaseNotes>For release notes, please see the change log on GitHub.</PackageReleaseNotes>
         <PackageTags>serilog;loki;grafana</PackageTags>
@@ -25,7 +25,7 @@
 
     <ItemGroup>
         <PackageReference Include="Serilog" Version="2.12.0" />
-        <PackageReference Include="System.Text.Json" Version="7.0.3" />
+        <PackageReference Include="System.Text.Json" Version="4.7.0" />
     </ItemGroup>
 
     <ItemGroup>

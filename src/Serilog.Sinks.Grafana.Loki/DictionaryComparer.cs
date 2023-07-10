@@ -19,11 +19,21 @@ internal class DictionaryComparer<TKey, TValue> : IEqualityComparer<IDictionary<
 {
     public static DictionaryComparer<TKey, TValue> Instance { get; } = new();
 
-    public bool Equals(IDictionary<TKey, TValue> x, IDictionary<TKey, TValue> y)
+    public bool Equals(IDictionary<TKey, TValue>? x, IDictionary<TKey, TValue>? y)
     {
         if (ReferenceEquals(x, y))
         {
             return true;
+        }
+
+        if (ReferenceEquals(x, null))
+        {
+            return false;
+        }
+
+        if (ReferenceEquals(y, null))
+        {
+            return false;
         }
 
         if (x.GetType() != y.GetType())

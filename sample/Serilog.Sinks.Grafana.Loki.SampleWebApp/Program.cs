@@ -5,9 +5,9 @@ SelfLog.Enable(Console.Error);
 
 var builder = WebApplication.CreateBuilder();
 
-builder.Host
-    .ConfigureLogging((_, loggingBuilder) => loggingBuilder.ClearProviders())
-    .UseSerilog((ctx, cfg) => cfg.ReadFrom.Configuration(ctx.Configuration));
+builder.Logging.ClearProviders();
+
+builder.Host.UseSerilog((ctx, cfg) => cfg.ReadFrom.Configuration(ctx.Configuration));
 
 // Add services to the container.
 builder.Services.AddControllers();

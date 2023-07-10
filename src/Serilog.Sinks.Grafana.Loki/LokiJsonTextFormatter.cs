@@ -62,7 +62,7 @@ public class LokiJsonTextFormatter : ITextFormatter
     /// <param name="output">
     /// The output.
     /// </param>
-    public void Format(LogEvent logEvent, TextWriter output)
+    public virtual void Format(LogEvent logEvent, TextWriter output)
     {
         if (logEvent == null)
         {
