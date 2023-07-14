@@ -34,4 +34,12 @@ public interface ILokiHttpClient : IDisposable
     ///     <see cref="LokiCredentials"/> used for authorization.
     /// </param>
     void SetCredentials(LokiCredentials? credentials);
+
+    /// <summary>
+    /// Adds tenant header to all requests. See <a href="https://grafana.com/docs/loki/latest/operations/multi-tenancy/">docs</a>.
+    /// </summary>
+    /// <param name="tenant">
+    ///     Tenant ID
+    /// </param>
+    void SetTenant(string? tenant);
 }

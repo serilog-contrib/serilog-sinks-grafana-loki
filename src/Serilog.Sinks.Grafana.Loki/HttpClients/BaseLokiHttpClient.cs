@@ -10,6 +10,7 @@
 
 using System.Net.Http.Headers;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Serilog.Sinks.Grafana.Loki.HttpClients;
 
@@ -23,6 +24,16 @@ public abstract class BaseLokiHttpClient : ILokiHttpClient
     /// <see cref="HttpClient"/> used for requests.
     /// </summary>
     protected readonly HttpClient HttpClient;
+
+    /// <summary>
+    /// Header used for passing tenant ID. See <a href="https://grafana.com/docs/loki/latest/operations/multi-tenancy/">docs</a>.
+    /// </summary>
+    private const string TenantHeader = "X-Scope-OrgID";
+
+    /// <summary>
+    /// Regex for Tenant ID validation.
+    /// </summary>
+    private static readonly Regex TenantIdValueRegex = new Regex(@"^[a-zA-Z0-9]*$");
 
     /// <summary>
     /// Initializes a new instance of the <see cref="BaseLokiHttpClient"/> class.
@@ -55,6 +66,29 @@ public abstract class BaseLokiHttpClient : ILokiHttpClient
 
         var token = Base64Encode($"{credentials.Login}:{credentials.Password ?? string.Empty}");
         headers.Authorization = new AuthenticationHeaderValue("Basic", token);
+    }
+
+    /// <inheritdoc/>
+    public virtual void SetTenant(string? tenant)
+    {
+        if (string.IsNullOrEmpty(tenant))
+        {
+            return;
+        }
+
+        if (!TenantIdValueRegex.IsMatch(tenant))
+        {
+            throw new ArgumentException($"{tenant} argument does not follow rule for Tenant ID", nameof(tenant));
+        }
+
+        var headers = HttpClient.DefaultRequestHeaders;
+
+        if (headers.Any(h => h.Key == TenantHeader))
+        {
+            return;
+        }
+
+        headers.Add(TenantHeader, tenant);
     }
 
     /// <inheritdoc/>

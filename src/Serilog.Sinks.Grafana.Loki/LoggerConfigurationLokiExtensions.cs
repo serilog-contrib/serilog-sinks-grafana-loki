@@ -45,6 +45,9 @@ public static class LoggerConfigurationLokiExtensions
     /// <param name="credentials">
     /// Auth <see cref="LokiCredentials"/>.
     /// </param>
+    /// <param name="tenant">
+    /// Tenant ID See <a href="https://grafana.com/docs/loki/latest/operations/multi-tenancy/">docs</a>.
+    /// </param>
     /// <param name="restrictedToMinimumLevel">
     /// The minimum level for events passed through the sink.
     /// Default value is <see cref="LevelAlias.Minimum"/>.
@@ -83,6 +86,7 @@ public static class LoggerConfigurationLokiExtensions
         IEnumerable<LokiLabel>? labels = null,
         IEnumerable<string>? propertiesAsLabels = null,
         LokiCredentials? credentials = null,
+        string? tenant = null,
         LogEventLevel restrictedToMinimumLevel = LevelAlias.Minimum,
         int batchPostingLimit = 1000,
         int? queueLimit = null,
@@ -104,6 +108,7 @@ public static class LoggerConfigurationLokiExtensions
         httpClient ??= new LokiHttpClient();
 
         httpClient.SetCredentials(credentials);
+        httpClient.SetTenant(tenant);
 
         var batchFormatter = new LokiBatchFormatter(
             reservedPropertyRenamingStrategy,

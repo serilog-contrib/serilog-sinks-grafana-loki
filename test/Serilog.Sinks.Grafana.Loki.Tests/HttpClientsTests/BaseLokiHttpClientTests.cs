@@ -47,4 +47,35 @@ public class BaseLokiHttpClientTests
 
         client.Client.DefaultRequestHeaders.Authorization.ShouldBeNull();
     }
+
+    [Fact]
+    public void TenantHeaderShouldBeCorrect()
+    {
+        var tenantId = "lokitenant";
+        using var client = new TestLokiHttpClient();
+
+        client.SetTenant(tenantId);
+
+        var tenantHeaders = client.Client.DefaultRequestHeaders.GetValues("X-Scope-OrgID").ToList();
+        tenantHeaders.ShouldBeEquivalentTo(new List<string> {"lokitenant"});
+    }
+
+    [Fact]
+    public void TenantHeaderShouldNotBeSetWithoutTenantId()
+    {
+        using var client = new TestLokiHttpClient();
+
+        client.SetTenant(null);
+
+        client.Client.DefaultRequestHeaders.Contains("X-Scope-OrgID").ShouldBeFalse();
+    }
+
+    [Fact]
+    public void TenantHeaderShouldThrowAnExceptionOnTenantIdAgainstRule()
+    {
+        var tenantId = "non-alphanumerical tenant";
+        using var client = new TestLokiHttpClient();
+
+        Should.Throw<ArgumentException>(() => client.SetTenant(tenantId));
+    }
 }
