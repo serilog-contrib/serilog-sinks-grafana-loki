@@ -26,10 +26,16 @@ namespace Serilog.Sinks.Grafana.Loki;
     Justification = "Reviewed")]
 public class LokiJsonTextFormatter : ITextFormatter
 {
-    private static readonly string[] ReservedKeywords = { "Message", "MessageTemplate", "Renderings", "Exception" };
+    /// <summary>
+    /// Renaming strategy for properties names equal to reserved keywords.
+    /// </summary>
+    protected readonly IReservedPropertyRenamingStrategy RenamingStrategy;
+    /// <summary>
+    /// <see cref="Serilog.Formatting.Json.JsonFormatter"/>.
+    /// </summary>
+    protected readonly JsonValueFormatter ValueFormatter;
 
-    private readonly IReservedPropertyRenamingStrategy _renamingStrategy;
-    private readonly JsonValueFormatter _valueFormatter;
+    private static readonly string[] ReservedKeywords = { "Message", "MessageTemplate", "Renderings", "Exception" };
 
     /// <summary>
     /// Initializes a new instance of the <see cref="LokiJsonTextFormatter"/> class.
@@ -49,8 +55,8 @@ public class LokiJsonTextFormatter : ITextFormatter
     /// </param>
     public LokiJsonTextFormatter(IReservedPropertyRenamingStrategy renamingStrategy)
     {
-        _renamingStrategy = renamingStrategy;
-        _valueFormatter = new JsonValueFormatter("$type");
+        RenamingStrategy = renamingStrategy;
+        ValueFormatter = new JsonValueFormatter("$type");
     }
 
     /// <summary>
@@ -116,7 +122,7 @@ public class LokiJsonTextFormatter : ITextFormatter
             output.Write(',');
             JsonValueFormatter.WriteQuotedJsonString(name, output);
             output.Write(':');
-            _valueFormatter.Format(value, output);
+            ValueFormatter.Format(value, output);
         }
 
         output.Write('}');
@@ -130,7 +136,7 @@ public class LokiJsonTextFormatter : ITextFormatter
     /// Name of property to sanitize
     /// </param>
     protected virtual string GetSanitizedPropertyName(string propertyName) =>
-        ReservedKeywords.Contains(propertyName) ? _renamingStrategy.Rename(propertyName) : propertyName;
+        ReservedKeywords.Contains(propertyName) ? RenamingStrategy.Rename(propertyName) : propertyName;
 
     /// <summary>
     /// Used to serialize exceptions, can be overridden when inheriting to change the format.
