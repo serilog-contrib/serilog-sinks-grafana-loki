@@ -16,7 +16,7 @@ using Serilog.Formatting.Display;
 using Serilog.Sinks.Grafana.Loki.HttpClients;
 using Serilog.Sinks.Grafana.Loki.Utils;
 
-[assembly: InternalsVisibleTo("Serilog.Sinks.Grafana.Loki.Tests")]
+[assembly: InternalsVisibleTo("Serilog.Sinks.Grafana.Loki.Tests, PublicKey=002400000480000094000000060200000024000052534131000400000100010081b26cdb545bda213cd6fb43ab29e5df92cb75d69ec7dff937aa8b866447029a17d7bdfcbca836ba99bbe0ac4c29ed7fe37a58bb0992adca41afc270929378eae9e56297d6e0dcdf8d3e7950fc73fd7195e8587f77cfd93cdec762f92490191e8ac26e4f1ad9ec8f7351922750525f1403fb7a4fe7e399a3cb4d3bfd90d5c3cd")]
 
 namespace Serilog.Sinks.Grafana.Loki;
 

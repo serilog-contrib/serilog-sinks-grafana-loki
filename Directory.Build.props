@@ -4,6 +4,9 @@
         <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)StyleCop.ruleset</CodeAnalysisRuleSet>
         <LangVersion>10</LangVersion>
         <MinVerTagPrefix>v</MinVerTagPrefix>
+        <!-- Sign assemblies with a strong name -->
+        <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)StrongNaming.snk</AssemblyOriginatorKeyFile>
+        <SignAssembly>true</SignAssembly>
     </PropertyGroup>
 
     <ItemGroup>
