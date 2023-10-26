@@ -17,7 +17,7 @@
         <PackageIcon>serilog-sink-nuget.png</PackageIcon>
         <PackageId>Serilog.Sinks.Grafana.Loki</PackageId>
         <PackageLicenseFile>LICENSE</PackageLicenseFile>
-        <PackageProjectUrl>https://github.com/erilog-contrib/serilog-sinks-grafana-loki</PackageProjectUrl>
+        <PackageProjectUrl>https://github.com/serilog-contrib/serilog-sinks-grafana-loki</PackageProjectUrl>
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageReleaseNotes>For release notes, please see the change log on GitHub.</PackageReleaseNotes>
         <PackageTags>serilog;loki;grafana</PackageTags>
