@@ -1,11 +1,12 @@
 <Project>
     <PropertyGroup>
+        <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)assets/Serilog.Sinks.Grafana.Loki.snk</AssemblyOriginatorKeyFile>
         <Authors>Mykhailo Shevchuk, Contributors</Authors>
+        <CheckEolTargetFramework>false</CheckEolTargetFramework>
         <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)StyleCop.ruleset</CodeAnalysisRuleSet>
         <LangVersion>10</LangVersion>
         <MinVerTagPrefix>v</MinVerTagPrefix>
         <SignAssembly>true</SignAssembly>
-        <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)assets/Serilog.Sinks.Grafana.Loki.snk</AssemblyOriginatorKeyFile>
     </PropertyGroup>
 
     <ItemGroup>
