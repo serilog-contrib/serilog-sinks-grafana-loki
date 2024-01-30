@@ -20,8 +20,8 @@ jobs:
       fail-fast: false
       matrix:
         os: [ macOS-latest, ubuntu-latest, windows-latest ]
-        dotnet: [ '5.x', '6.x', '7.x']
-    name: ${{ matrix.os }} - ${{ matrix.dotnet }}
+        dotnet-version: [ '5.x', '6.x', '7.x']
+    name: ${{ matrix.os }} - ${{ matrix.dotnet-version }}
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -31,15 +31,15 @@ jobs:
       - name: Setup .NET Core
         uses: actions/setup-dotnet@v4.0.0
         with:
-          dotnet-version: ${{ matrix.dotnet }}
+          dotnet-version: ${{ matrix.dotnet-version }}
 
       - run: dotnet --info
 
-      - if: contains(matrix.runs-on, 'macOS') || contains(matrix.runs-on, 'ubuntu')
+      - if: contains(matrix.os, 'macOS') || contains(matrix.os, 'ubuntu')
         run: ./build.sh
-      - if: matrix.runs-on == 'windows-latest' && !contains(github.ref, 'refs/tags/')
+      - if: matrix.os == 'windows-latest' && !contains(github.ref, 'refs/tags/')
         run: ./build.ps1
-      - if: matrix.runs-on == 'windows-latest' && github.event_name == 'release' && github.event.action == 'published'
+      - if: matrix.os == 'windows-latest' && github.event_name == 'release' && github.event.action == 'published'
         run: |
           ./build.ps1
           dotnet nuget push .\artifacts\*.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_API_KEY }}
