@@ -29,7 +29,17 @@ public class DateTimeOffsetExtensionsTests
 
     #else
     [Fact]
-    public void DateTimeOffsetShouldBeConvertedCorrectly()
+    public void UnixEpochShouldBeConvertedCorrectly()
+    {
+        var epoch = new DateTimeOffset(1970, 1, 1, 0, 0, 0, TimeSpan.Zero);
+
+        var result = epoch.ToUnixNanosecondsString();
+
+        result.ShouldBe("0");
+    }
+
+    [Fact]
+    public void DateTimeNanosecondsOffsetShouldBeConvertedCorrectly()
     {
         const long nanosecondsPerTick = 100;
 
