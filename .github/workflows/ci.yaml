@@ -20,18 +20,21 @@ jobs:
       fail-fast: false
       matrix:
         os: [ macOS-latest, ubuntu-latest, windows-latest ]
-        dotnet-version: [ '5.x', '6.x', '7.x']
-    name: ${{ matrix.os }} - ${{ matrix.dotnet-version }}
+    name: ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Setup .NET Core
+      - name: Setup .NET
         uses: actions/setup-dotnet@v4.0.0
         with:
-          dotnet-version: ${{ matrix.dotnet-version }}
+          dotnet-version: |
+            3.1.x
+            5.0.x
+            6.0.x
+            7.0.x
 
       - run: dotnet --info
 
