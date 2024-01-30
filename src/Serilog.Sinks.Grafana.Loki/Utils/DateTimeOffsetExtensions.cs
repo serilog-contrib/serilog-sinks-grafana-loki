@@ -12,14 +12,9 @@ namespace Serilog.Sinks.Grafana.Loki.Utils;
 
 internal static class DateTimeOffsetExtensions
 {
-    #if NET7_0_OR_GREATER
-    internal static string ToUnixNanosecondsString(this DateTimeOffset offset) =>
-        ((offset.ToUnixTimeMilliseconds() * 1000000) +
-         (offset.Microsecond * 1000) +
-         offset.Nanosecond).ToString();
-    #else
-    internal static string ToUnixNanosecondsString(this DateTimeOffset offset) =>
-        (offset.ToUnixTimeMilliseconds() * 1000000).ToString();
-    #endif
+    private const long NanosecondsPerTick = 100;
+    private static readonly DateTimeOffset UnixEpoch = new(1970, 1, 1, 0, 0, 0, TimeSpan.Zero);
 
+    internal static string ToUnixNanosecondsString(this DateTimeOffset offset) =>
+        ((offset - UnixEpoch).Ticks * NanosecondsPerTick).ToString();
 }
