@@ -9,8 +9,10 @@
 // See LICENSE file in the project root for full license information.
 
 using System.Diagnostics.CodeAnalysis;
+using System.Text;
 using Serilog.Events;
 using Serilog.Formatting;
+using Serilog.Formatting.Display;
 using Serilog.Formatting.Json;
 using Serilog.Parsing;
 using Serilog.Sinks.Grafana.Loki.Utils;
@@ -30,6 +32,12 @@ public class LokiJsonTextFormatter : ITextFormatter
     /// Renaming strategy for properties names equal to reserved keywords.
     /// </summary>
     protected readonly IReservedPropertyRenamingStrategy RenamingStrategy;
+
+    /// <summary>
+    /// <see cref="Serilog.Formatting.Display.MessageTemplateTextFormatter"/>.
+    /// </summary>
+    protected readonly MessageTemplateTextFormatter? MessageTemplateFormatter;
+
     /// <summary>
     /// <see cref="Serilog.Formatting.Json.JsonFormatter"/>.
     /// </summary>
@@ -41,8 +49,11 @@ public class LokiJsonTextFormatter : ITextFormatter
     /// Initializes a new instance of the <see cref="LokiJsonTextFormatter"/> class.
     /// Uses <see cref="DefaultReservedPropertyRenamingStrategy"/>.
     /// </summary>
-    public LokiJsonTextFormatter()
-        : this(new DefaultReservedPropertyRenamingStrategy())
+    /// <param name="outputTemplate">
+    /// The output template to use when rendering the log event's `Message` field.
+    /// </param>
+    public LokiJsonTextFormatter(string? outputTemplate = null)
+        : this(new DefaultReservedPropertyRenamingStrategy(), outputTemplate: outputTemplate)
     {
     }
 
@@ -53,9 +64,13 @@ public class LokiJsonTextFormatter : ITextFormatter
     /// Renaming strategy for properties names equal to reserved keywords.
     /// <see cref="IReservedPropertyRenamingStrategy"/>
     /// </param>
-    public LokiJsonTextFormatter(IReservedPropertyRenamingStrategy renamingStrategy)
+    /// <param name="outputTemplate">
+    /// The output template to use when rendering the log event's `Message` field.
+    /// </param>
+    public LokiJsonTextFormatter(IReservedPropertyRenamingStrategy renamingStrategy, string? outputTemplate = null)
     {
         RenamingStrategy = renamingStrategy;
+        MessageTemplateFormatter = outputTemplate == null ? null : new MessageTemplateTextFormatter(outputTemplate);
         ValueFormatter = new JsonValueFormatter("$type");
     }
 
@@ -81,7 +96,16 @@ public class LokiJsonTextFormatter : ITextFormatter
         }
 
         output.Write("{\"Message\":");
-        JsonValueFormatter.WriteQuotedJsonString(logEvent.MessageTemplate.Render(logEvent.Properties), output);
+        if (MessageTemplateFormatter == null)
+        {
+            JsonValueFormatter.WriteQuotedJsonString(logEvent.RenderMessage(), output);
+        }
+        else
+        {
+          StringWriter intermediateOutput = new();
+          MessageTemplateFormatter.Format(logEvent, intermediateOutput);
+          JsonValueFormatter.WriteQuotedJsonString(intermediateOutput.ToString(), output);
+        }
 
         output.Write(",\"MessageTemplate\":");
         JsonValueFormatter.WriteQuotedJsonString(logEvent.MessageTemplate.Text, output);
