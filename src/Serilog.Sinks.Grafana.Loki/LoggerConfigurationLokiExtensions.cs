@@ -81,6 +81,9 @@ public static class LoggerConfigurationLokiExtensions
     /// <param name="leavePropertiesIntact">
     /// Leaves the list of properties intact after extracting the labels specified in propertiesAsLabels.
     /// </param>
+    /// <param name="useStringLiteralFormat">
+    /// When true, the `Message` property of the log event will be rendered without quotes wrapping all string properties.
+    /// </param>
     /// <returns>Logger configuration, allowing configuration to continue.</returns>
     public static LoggerConfiguration GrafanaLoki(
         this LoggerSinkConfiguration sinkConfiguration,
@@ -97,7 +100,8 @@ public static class LoggerConfigurationLokiExtensions
         ILokiHttpClient? httpClient = null,
         IReservedPropertyRenamingStrategy? reservedPropertyRenamingStrategy = null,
         bool useInternalTimestamp = false,
-        bool leavePropertiesIntact = false)
+        bool leavePropertiesIntact = false,
+        bool useStringLiteralFormat = false)
     {
         if (sinkConfiguration == null)
         {
@@ -106,7 +110,7 @@ public static class LoggerConfigurationLokiExtensions
 
         reservedPropertyRenamingStrategy ??= new DefaultReservedPropertyRenamingStrategy();
         period ??= TimeSpan.FromSeconds(1);
-        textFormatter ??= new LokiJsonTextFormatter(reservedPropertyRenamingStrategy);
+        textFormatter ??= new LokiJsonTextFormatter(reservedPropertyRenamingStrategy, useStringLiteralFormat);
         httpClient ??= new LokiHttpClient();
 
         httpClient.SetCredentials(credentials);
