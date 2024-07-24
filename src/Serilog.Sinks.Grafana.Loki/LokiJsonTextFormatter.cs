@@ -9,10 +9,13 @@
 // See LICENSE file in the project root for full license information.
 
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
 using Serilog.Events;
 using Serilog.Formatting;
+using Serilog.Formatting.Display;
 using Serilog.Formatting.Json;
 using Serilog.Parsing;
+using Serilog.Rendering;
 using Serilog.Sinks.Grafana.Loki.Utils;
 
 namespace Serilog.Sinks.Grafana.Loki;
@@ -34,6 +37,10 @@ public class LokiJsonTextFormatter : ITextFormatter
     /// <see cref="Serilog.Formatting.Json.JsonFormatter"/>.
     /// </summary>
     protected readonly JsonValueFormatter ValueFormatter;
+    /// <summary>
+    /// When true, the `Message` property of the log event will be rendered without quotes wrapping all string properties.
+    /// </summary>
+    protected readonly bool UseStringLiteralFormat;
 
     private static readonly string[] ReservedKeywords = { "Message", "MessageTemplate", "Renderings", "Exception" };
 
@@ -41,8 +48,11 @@ public class LokiJsonTextFormatter : ITextFormatter
     /// Initializes a new instance of the <see cref="LokiJsonTextFormatter"/> class.
     /// Uses <see cref="DefaultReservedPropertyRenamingStrategy"/>.
     /// </summary>
-    public LokiJsonTextFormatter()
-        : this(new DefaultReservedPropertyRenamingStrategy())
+    /// <param name="useStringLiteralFormat">
+    /// When true, the `Message` property of the log event will be rendered without quotes wrapping all string properties.
+    /// </param>
+    public LokiJsonTextFormatter(bool useStringLiteralFormat = false)
+        : this(new DefaultReservedPropertyRenamingStrategy(), useStringLiteralFormat: useStringLiteralFormat)
     {
     }
 
@@ -53,10 +63,14 @@ public class LokiJsonTextFormatter : ITextFormatter
     /// Renaming strategy for properties names equal to reserved keywords.
     /// <see cref="IReservedPropertyRenamingStrategy"/>
     /// </param>
-    public LokiJsonTextFormatter(IReservedPropertyRenamingStrategy renamingStrategy)
+    /// <param name="useStringLiteralFormat">
+    /// When true, the `Message` property of the log event will be rendered without quotes wrapping all string properties.
+    /// </param>
+    public LokiJsonTextFormatter(IReservedPropertyRenamingStrategy renamingStrategy, bool useStringLiteralFormat = false)
     {
         RenamingStrategy = renamingStrategy;
         ValueFormatter = new JsonValueFormatter("$type");
+        UseStringLiteralFormat = useStringLiteralFormat;
     }
 
     /// <summary>
@@ -81,7 +95,10 @@ public class LokiJsonTextFormatter : ITextFormatter
         }
 
         output.Write("{\"Message\":");
-        JsonValueFormatter.WriteQuotedJsonString(logEvent.MessageTemplate.Render(logEvent.Properties), output);
+        var messageFormatter = new MessageTemplateTextFormatter(UseStringLiteralFormat ? "{Message:l}" : "{Message}");
+        var message = new StringWriter();
+        messageFormatter.Format(logEvent, message);
+        JsonValueFormatter.WriteQuotedJsonString(message.ToString(), output);
 
         output.Write(",\"MessageTemplate\":");
         JsonValueFormatter.WriteQuotedJsonString(logEvent.MessageTemplate.Text, output);
