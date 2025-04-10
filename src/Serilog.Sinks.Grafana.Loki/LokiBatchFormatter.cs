@@ -171,12 +171,26 @@ internal class LokiBatchFormatter : ILokiBatchFormatter
 
         var logEvent = lokiLogEvent.LogEvent;
         var timestamp = logEvent.Timestamp;
+        var traceId = logEvent.TraceId;
+        var spanId = logEvent.SpanId;
 
         if (_useInternalTimestamp)
         {
             logEvent.AddPropertyIfAbsent(
                 new LogEventProperty("Timestamp", new ScalarValue(timestamp)));
             timestamp = lokiLogEvent.InternalTimestamp;
+        }
+
+        if (traceId.HasValue)
+        {
+            logEvent.AddPropertyIfAbsent(
+                new LogEventProperty("TraceId", new ScalarValue(traceId)));
+        }
+
+        if (spanId.HasValue)
+        {
+            logEvent.AddPropertyIfAbsent(
+                new LogEventProperty("SpanId", new ScalarValue(spanId)));
         }
 
         formatter.Format(logEvent, buffer);
