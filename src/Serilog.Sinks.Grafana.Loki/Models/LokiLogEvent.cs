@@ -53,7 +53,9 @@ public class LokiLogEvent
             LogEvent.Level,
             LogEvent.Exception,
             LogEvent.MessageTemplate,
-            properties.Select(p => new LogEventProperty(p.Key, p.Value)));
+            properties.Select(p => new LogEventProperty(p.Key, p.Value)),
+            LogEvent.TraceId ?? default,
+            LogEvent.SpanId ?? default);
 
         return this;
     }
