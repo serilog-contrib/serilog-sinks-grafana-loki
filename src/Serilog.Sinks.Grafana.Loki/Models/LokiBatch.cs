@@ -28,5 +28,5 @@ internal class LokiBatch
         return stream;
     }
 
-    public string Serialize() => JsonSerializer.Serialize(this);
+    public string Serialize() => JsonSerializer.Serialize(this, LokiSerializationContext.Default.LokiBatch);
 }
