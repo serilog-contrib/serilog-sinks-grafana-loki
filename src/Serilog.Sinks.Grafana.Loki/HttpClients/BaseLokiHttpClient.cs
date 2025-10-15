@@ -33,7 +33,7 @@ public abstract class BaseLokiHttpClient : ILokiHttpClient
     /// <summary>
     /// Regex for Tenant ID validation.
     /// </summary>
-    private static readonly Regex TenantIdValueRegex = new Regex(@"^[a-zA-Z0-9]*$");
+    private static readonly Regex TenantIdValueRegex = new Regex(@"^(?!.*\.\.)(?!\.$)[a-zA-Z0-9!._*'()\-\u005F]*$");
 
     /// <summary>
     /// Initializes a new instance of the <see cref="BaseLokiHttpClient"/> class.
@@ -89,6 +89,28 @@ public abstract class BaseLokiHttpClient : ILokiHttpClient
         }
 
         headers.Add(TenantHeader, tenant);
+    }
+
+    /// <summary>
+    /// Sets default headers for the HTTP client.
+    /// Existing headers with the same key will not be overwritten.
+    /// </summary>
+    /// <param name="defaultHeaders">A dictionary of headers to set as default.</param>
+    public virtual void SetDefaultHeaders(IDictionary<string, string> defaultHeaders)
+    {
+        if (defaultHeaders == null)
+        {
+            throw new ArgumentNullException(nameof(defaultHeaders), "Default headers cannot be null.");
+        }
+
+        foreach (var header in defaultHeaders)
+        {
+            // Check if the header already exists before adding
+            if (!HttpClient.DefaultRequestHeaders.Contains(header.Key))
+            {
+                HttpClient.DefaultRequestHeaders.Add(header.Key, header.Value);
+            }
+        }
     }
 
     /// <inheritdoc/>
