@@ -27,7 +27,7 @@ public class BaseLokiHttpClientTests
     [Fact]
     public void BasicAuthHeaderShouldBeCorrect()
     {
-        var credentials = new LokiCredentials {Login = "Billy", Password = "Herrington"};
+        var credentials = new LokiCredentials { Login = "Billy", Password = "Herrington" };
         using var client = new TestLokiHttpClient();
 
         client.SetCredentials(credentials);
@@ -48,37 +48,32 @@ public class BaseLokiHttpClientTests
         client.Client.DefaultRequestHeaders.Authorization.ShouldBeNull();
     }
 
-    [Fact]
-    public void TenantHeaderShouldBeCorrect()
+    [Theory]
+    [InlineData("tenant123", true)]
+    [InlineData("tenant-123", true)]
+    [InlineData("tenant..123", false)]
+    [InlineData(".", false)]
+    [InlineData("tenant!_*.123'()", true)]
+    [InlineData("tenant-123...", false)]
+    [InlineData("tenant123456...test", false)]
+    [InlineData("tenant1234567890!@", false)]
+    public void TenantHeaderShouldBeCorrect(string tenantId, bool isValid)
     {
-        // List of test cases with tenant IDs and their expected validity
-        var validTenantIds = new List<(string TenantId, bool IsValid)>
-    {
-        ("tenant123", true), // Only alphanumeric characters
-        ("tenant-123", true), // Valid special characters
-        ("tenant..123", false), // Double period ".." is not allowed
-        (".", false), // Single period is not allowed
-        ("tenant!_*.123'()", true), // All allowed special characters
-        ("tenant-123...", false), // Multiple periods at the end are not allowed
-        ("tenant123456...test", false), // Ends with a period "."
-        ("tenant1234567890!@", false), // "@" is not allowed
-    };
+        using var client = new TestLokiHttpClient();
 
-        foreach (var (tenantId, isValid) in validTenantIds)
+        if (isValid)
         {
-            using var client = new TestLokiHttpClient();
+            client.SetTenant(tenantId);
 
-            if (isValid)
-            {
-                client.SetTenant(tenantId);
+            var tenantHeaders = client.Client.DefaultRequestHeaders
+                .GetValues("X-Scope-OrgID")
+                .ToList();
 
-                var tenantHeaders = client.Client.DefaultRequestHeaders.GetValues("X-Scope-OrgID").ToList();
-                tenantHeaders.ShouldBeEquivalentTo(new List<string> { tenantId });
-            }
-            else
-            {
-                Should.Throw<ArgumentException>(() => client.SetTenant(tenantId));
-            }
+            tenantHeaders.ShouldBeEquivalentTo(new List<string> { tenantId });
+        }
+        else
+        {
+            Should.Throw<ArgumentException>(() => client.SetTenant(tenantId));
         }
     }
 
