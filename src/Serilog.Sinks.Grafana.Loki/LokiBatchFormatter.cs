@@ -34,8 +34,10 @@ internal class LokiBatchFormatter : ILokiBatchFormatter
     private readonly IEnumerable<LokiLabel> _globalLabels;
     private readonly IReservedPropertyRenamingStrategy _renamingStrategy;
     private readonly IEnumerable<string> _propertiesAsLabels;
+    private readonly IEnumerable<string> _propertiesAsStructuredMetadata;
 
     private readonly bool _leavePropertiesIntact;
+    private readonly bool _leaveStructuredMetadataPropertiesIntact;
     private readonly bool _useInternalTimestamp;
 
     /// <summary>
@@ -51,24 +53,34 @@ internal class LokiBatchFormatter : ILokiBatchFormatter
     /// <param name="propertiesAsLabels">
     /// The list of properties, which would be mapped to the labels.
     /// </param>
+    /// <param name="propertiesAsStructuredMetadata">
+    /// The list of properties, which would be mapped to structured metadata.
+    /// </param>
     /// <param name="useInternalTimestamp">
     /// Compute internal timestamp
     /// </param>
     /// <param name="leavePropertiesIntact">
     /// Leave the list of properties intact after extracting the labels specified in propertiesAsLabels.
     /// </param>
+    /// <param name="leaveStructuredMetadataPropertiesIntact">
+    /// Leave the list of properties intact after extracting the structured metadata specified in propertiesAsStructuredMetadata.
+    /// </param>
     public LokiBatchFormatter(
         IReservedPropertyRenamingStrategy renamingStrategy,
         IEnumerable<LokiLabel>? globalLabels = null,
         IEnumerable<string>? propertiesAsLabels = null,
+        IEnumerable<string>? propertiesAsStructuredMetadata = null,
         bool useInternalTimestamp = false,
-        bool leavePropertiesIntact = false)
+        bool leavePropertiesIntact = false,
+        bool leaveStructuredMetadataPropertiesIntact = false)
     {
         _renamingStrategy = renamingStrategy;
         _globalLabels = globalLabels ?? Enumerable.Empty<LokiLabel>();
         _propertiesAsLabels = propertiesAsLabels ?? Enumerable.Empty<string>();
+        _propertiesAsStructuredMetadata = propertiesAsStructuredMetadata ?? Enumerable.Empty<string>();
         _useInternalTimestamp = useInternalTimestamp;
         _leavePropertiesIntact = leavePropertiesIntact;
+        _leaveStructuredMetadataPropertiesIntact = leaveStructuredMetadataPropertiesIntact;
     }
 
     /// <summary>
@@ -179,9 +191,41 @@ internal class LokiBatchFormatter : ILokiBatchFormatter
             timestamp = lokiLogEvent.InternalTimestamp;
         }
 
+        // Extract structured metadata
+        Dictionary<string, string>? structuredMetadata = null;
+        if (_propertiesAsStructuredMetadata.Any())
+        {
+            structuredMetadata = new Dictionary<string, string>();
+            var propertiesToExtract = logEvent.Properties
+                .Where(kvp => _propertiesAsStructuredMetadata.Contains(kvp.Key))
+                .ToList();
+
+            foreach (var property in propertiesToExtract)
+            {
+                // Remove quotes from the value string representation
+                var value = property.Value.ToString().Replace("\"", string.Empty);
+                structuredMetadata[property.Key] = value;
+
+                // Remove the property from the log event if configured to do so
+                if (!_leaveStructuredMetadataPropertiesIntact)
+                {
+                    logEvent.RemovePropertyIfPresent(property.Key);
+                }
+            }
+        }
+
         formatter.Format(logEvent, buffer);
 
-        stream.AddEntry(timestamp, buffer.ToString().TrimEnd('\r', '\n'));
+        var entry = buffer.ToString().TrimEnd('\r', '\n');
+
+        if (structuredMetadata != null && structuredMetadata.Count > 0)
+        {
+            stream.AddEntry(timestamp, entry, structuredMetadata);
+        }
+        else
+        {
+            stream.AddEntry(timestamp, entry);
+        }
     }
 
     private (Dictionary<string, string> Labels, LokiLogEvent LokiLogEvent) GenerateLabels(LokiLogEvent lokiLogEvent)

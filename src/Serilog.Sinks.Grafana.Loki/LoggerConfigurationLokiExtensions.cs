@@ -44,6 +44,10 @@ public static class LoggerConfigurationLokiExtensions
     /// <param name="propertiesAsLabels">
     /// The list of properties, which would be mapped to the labels.
     /// </param>
+    /// <param name="propertiesAsStructuredMetadata">
+    /// The list of properties, which would be mapped to structured metadata.
+    /// See <a href="https://grafana.com/docs/loki/latest/reference/loki-http-api/#ingest-logs">docs</a>.
+    /// </param>
     /// <param name="credentials">
     /// Auth <see cref="LokiCredentials"/>.
     /// </param>
@@ -81,12 +85,16 @@ public static class LoggerConfigurationLokiExtensions
     /// <param name="leavePropertiesIntact">
     /// Leaves the list of properties intact after extracting the labels specified in propertiesAsLabels.
     /// </param>
+    /// <param name="leaveStructuredMetadataPropertiesIntact">
+    /// Leaves the list of properties intact after extracting the structured metadata specified in propertiesAsStructuredMetadata.
+    /// </param>
     /// <returns>Logger configuration, allowing configuration to continue.</returns>
     public static LoggerConfiguration GrafanaLoki(
         this LoggerSinkConfiguration sinkConfiguration,
         string uri,
         IEnumerable<LokiLabel>? labels = null,
         IEnumerable<string>? propertiesAsLabels = null,
+        IEnumerable<string>? propertiesAsStructuredMetadata = null,
         LokiCredentials? credentials = null,
         string? tenant = null,
         LogEventLevel restrictedToMinimumLevel = LevelAlias.Minimum,
@@ -97,7 +105,8 @@ public static class LoggerConfigurationLokiExtensions
         ILokiHttpClient? httpClient = null,
         IReservedPropertyRenamingStrategy? reservedPropertyRenamingStrategy = null,
         bool useInternalTimestamp = false,
-        bool leavePropertiesIntact = false)
+        bool leavePropertiesIntact = false,
+        bool leaveStructuredMetadataPropertiesIntact = false)
     {
         if (sinkConfiguration == null)
         {
@@ -116,8 +125,10 @@ public static class LoggerConfigurationLokiExtensions
             reservedPropertyRenamingStrategy,
             labels,
             propertiesAsLabels,
+            propertiesAsStructuredMetadata,
             useInternalTimestamp,
-            leavePropertiesIntact);
+            leavePropertiesIntact,
+            leaveStructuredMetadataPropertiesIntact);
 
         var sink = new LokiSink(
             LokiRoutesBuilder.BuildLogsEntriesRoute(uri),
