@@ -170,7 +170,7 @@ public class BaseLokiHttpClientTests
     [InlineData("Invalid Header", "value", false)]
     [InlineData("X-Test", "", false)]
     [InlineData("X-Test", null, false)]
-    public void SetDefaultHeadersShouldValidateCorrectly(string headerKey, string headerValue, bool isValid)
+    public void SetDefaultHeadersShouldValidateCorrectly(string? headerKey, string? headerValue, bool isValid)
     {
         using var httpClient = new HttpClient();
         var client = new TestLokiHttpClient(httpClient);
@@ -179,14 +179,14 @@ public class BaseLokiHttpClientTests
         {
             var headersToSet = new Dictionary<string, string>
             {
-                { headerKey, headerValue }
+                { headerKey!, headerValue! }
             };
 
             client.SetDefaultHeaders(headersToSet);
 
-            httpClient.DefaultRequestHeaders.Contains(headerKey).ShouldBeTrue();
+            httpClient.DefaultRequestHeaders.Contains(headerKey!).ShouldBeTrue();
             httpClient.DefaultRequestHeaders
-                .GetValues(headerKey)
+                .GetValues(headerKey!)
                 .ShouldBe(new[] { headerValue });
         }
         else
@@ -195,7 +195,7 @@ public class BaseLokiHttpClientTests
             {
                 var headersToSet = new Dictionary<string, string>
                 {
-                    { headerKey, headerValue }
+                    { headerKey!, headerValue! }
                 };
                 client.SetDefaultHeaders(headersToSet);
             });
@@ -256,7 +256,7 @@ public class BaseLokiHttpClientTests
             client.SetDefaultHeaders(headersToSet);
 
             httpClient.DefaultRequestHeaders.Contains(headerKey).ShouldBeTrue();
-            httpClient.DefaultRequestHeaders.GetValues(headerKey).ShouldBe(new[] { "value" });
+            httpClient.DefaultRequestHeaders.GetValues(headerKey).ShouldHaveSingleItem().ShouldBe("value");
         }
         else
         {

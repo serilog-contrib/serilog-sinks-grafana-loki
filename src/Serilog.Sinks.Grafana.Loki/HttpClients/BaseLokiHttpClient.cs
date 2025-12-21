@@ -33,12 +33,12 @@ public abstract class BaseLokiHttpClient : ILokiHttpClient
     /// <summary>
     /// Regex for Tenant ID validation.
     /// </summary>
-    private static readonly Regex TenantIdValueRegex = new Regex(@"^(?!.*\.\.)(?!\.$)[a-zA-Z0-9!._*'()\-\u005F]*$", RegexOptions.Compiled);
+    private static readonly Regex TenantIdValueRegex = new(@"^(?!.*\.\.)(?!\.$)[a-zA-Z0-9!._*'()\-\u005F]*$", RegexOptions.Compiled);
 
     /// <summary>
-    /// RFC7230 token characters: letters, digits and these symbols: ! # $ % & ' * + - . ^ _ ` | ~
+    /// RFC7230 token characters: letters, digits and these symbols: ! # $ % &amp; ' * + - . ^ _ ` | ~
     /// </summary>
-    private static readonly Regex HeaderKeyRegEx = new Regex(@"^[A-Za-z0-9!#$%&'*+\-\.\^_`|~]+$", RegexOptions.Compiled);
+    private static readonly Regex HeaderKeyRegEx = new(@"^[A-Za-z0-9!#$%&'*+\-\.\^_`|~]+$", RegexOptions.Compiled);
 
     /// <summary>
     /// Initializes a new instance of the <see cref="BaseLokiHttpClient"/> class.
@@ -103,7 +103,6 @@ public abstract class BaseLokiHttpClient : ILokiHttpClient
     /// <param name="defaultHeaders">A dictionary of headers to set as default.</param>
     public virtual void SetDefaultHeaders(IDictionary<string, string> defaultHeaders)
     {
-
         if (defaultHeaders == null)
         {
             throw new ArgumentNullException(nameof(defaultHeaders), "Default headers cannot be null.");
