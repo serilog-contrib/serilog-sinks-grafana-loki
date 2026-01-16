@@ -25,6 +25,7 @@ Glory to Ukraine! 🇺🇦
 - [Quickstart](#quickstart)
 - [Custom HTTP Client](#custom-http-client)
 - [Sending json content to Loki](#sending-json-content-to-loki)
+- [Structured Metadata](#structured-metadata)
 - [Inspiration and Credits](#inspiration-and-credits)
 
 ## What is this sink and Loki?
@@ -37,6 +38,7 @@ You can find more information about what Loki is over on [Grafana's website here
 - Formats and batches log entries to Loki via HTTP (using actual API)
 - Global and contextual labels support
 - Flexible Loki labels configuration possibilities
+- Structured metadata support for enhanced log context
 - Collision avoiding mechanism for labels
 - Integration with Serilog.Settings.Configuration
 - Customizable HTTP clients
@@ -165,6 +167,77 @@ Example configuration:
   }
 }
 ```
+
+### Structured Metadata
+
+Loki supports [structured metadata](https://grafana.com/docs/loki/latest/reference/loki-http-api/#ingest-logs) - additional key-value pairs that can be attached to each log line without being indexed as labels. This is useful for high-cardinality data like trace IDs, user IDs, or request IDs that you want to query but don't want to use as labels.
+
+> **Requirements:**
+> - Structured metadata requires **Loki 1.2.0 or newer**
+> - You must [enable structured metadata](https://grafana.com/docs/loki/latest/get-started/labels/structured-metadata/#enable-or-disable-structured-metadata) in your Loki configuration by setting `allow_structured_metadata: true` in `limits_config` (enabled by default in Loki 3.0+)
+>
+> Example Loki configuration:
+> ```yaml
+> limits_config:
+>   allow_structured_metadata: true
+> ```
+
+You can configure which log event properties should be extracted as structured metadata using the `propertiesAsStructuredMetadata` parameter:
+
+```csharp
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.GrafanaLoki(
+        "http://localhost:3100",
+        propertiesAsStructuredMetadata: new[] { "trace_id", "user_id", "request_id" })
+    .CreateLogger();
+
+Log.Information("User {user_id} performed action with trace {trace_id}", "user123", "abc-xyz-123");
+```
+
+This produces a log entry with structured metadata attached:
+```json
+{
+  "streams": [{
+    "stream": {},
+    "values": [
+      ["1234567890000000000", "{\"Message\":\"...\",\"level\":\"info\"}", {"trace_id":"abc-xyz-123","user_id":"user123"}]
+    ]
+  }]
+}
+```
+
+By default, properties extracted as structured metadata are removed from the log line JSON to avoid duplication. To keep them in both places, set `leaveStructuredMetadataPropertiesIntact` to `true`:
+
+```csharp
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.GrafanaLoki(
+        "http://localhost:3100",
+        propertiesAsStructuredMetadata: new[] { "trace_id", "user_id" },
+        leaveStructuredMetadataPropertiesIntact: true)
+    .CreateLogger();
+```
+
+Configuration via `appsettings.json`:
+
+```json
+{
+  "Serilog": {
+    "Using": ["Serilog.Sinks.Grafana.Loki"],
+    "WriteTo": [
+      {
+        "Name": "GrafanaLoki",
+        "Args": {
+          "uri": "http://localhost:3100",
+          "propertiesAsStructuredMetadata": ["trace_id", "user_id", "request_id"],
+          "leaveStructuredMetadataPropertiesIntact": false
+        }
+      }
+    ]
+  }
+}
+```
+
+For more details on all configuration parameters, see the [Application Settings wiki page](https://github.com/mishamyte/serilog-sinks-grafana-loki/wiki/Application-settings).
 
 ### Inspiration and Credits
 - [Serilog.Sinks.Loki](https://github.com/JosephWoodward/Serilog-Sinks-Loki)

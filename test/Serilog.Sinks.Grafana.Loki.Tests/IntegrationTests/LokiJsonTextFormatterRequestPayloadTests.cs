@@ -443,4 +443,55 @@ public class LokiJsonTextFormatterRequestPayloadTests
                         TimeStampReplacement));
             });
     }
+
+    [Fact]
+    public void PropertiesAsStructuredMetadataShouldBeSerializedCorrectly()
+    {
+        var logger = new LoggerConfiguration()
+            .WriteTo.GrafanaLoki(
+                "https://loki:3100",
+                propertiesAsStructuredMetadata: new[] { "trace_id", "user_id" },
+                httpClient: _client)
+            .CreateLogger();
+
+        logger.Information("User action: {Action} by {trace_id} for {user_id}", "login", "0242ac120002", "superUser123");
+        logger.Dispose();
+
+        _client.Content.ShouldMatchApproved(
+            c =>
+            {
+                c.SubFolder(ApprovalsFolderName);
+                c.WithScrubber(
+                    s => Regex.Replace(
+                        s,
+                        TimeStampRegEx,
+                        TimeStampReplacement));
+            });
+    }
+
+    [Fact]
+    public void StructuredMetadataWithLeavePropertiesIntactShouldKeepProperties()
+    {
+        var logger = new LoggerConfiguration()
+            .WriteTo.GrafanaLoki(
+                "https://loki:3100",
+                propertiesAsStructuredMetadata: new[] { "trace_id", "user_id" },
+                leaveStructuredMetadataPropertiesIntact: true,
+                httpClient: _client)
+            .CreateLogger();
+
+        logger.Information("User action: {Action} by {trace_id} for {user_id}", "login", "0242ac120002", "superUser123");
+        logger.Dispose();
+
+        _client.Content.ShouldMatchApproved(
+            c =>
+            {
+                c.SubFolder(ApprovalsFolderName);
+                c.WithScrubber(
+                    s => Regex.Replace(
+                        s,
+                        TimeStampRegEx,
+                        TimeStampReplacement));
+            });
+    }
 }
