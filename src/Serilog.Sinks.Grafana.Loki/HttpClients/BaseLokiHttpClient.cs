@@ -33,7 +33,12 @@ public abstract class BaseLokiHttpClient : ILokiHttpClient
     /// <summary>
     /// Regex for Tenant ID validation.
     /// </summary>
-    private static readonly Regex TenantIdValueRegex = new Regex(@"^[a-zA-Z0-9]*$");
+    private static readonly Regex TenantIdValueRegex = new(@"^(?!.*\.\.)(?!\.$)[a-zA-Z0-9!._*'()\-\u005F]*$", RegexOptions.Compiled);
+
+    /// <summary>
+    /// RFC7230 token characters: letters, digits and these symbols: ! # $ % &amp; ' * + - . ^ _ ` | ~
+    /// </summary>
+    private static readonly Regex HeaderKeyRegEx = new(@"^[A-Za-z0-9!#$%&'*+\-\.\^_`|~]+$", RegexOptions.Compiled);
 
     /// <summary>
     /// Initializes a new instance of the <see cref="BaseLokiHttpClient"/> class.
@@ -89,6 +94,47 @@ public abstract class BaseLokiHttpClient : ILokiHttpClient
         }
 
         headers.Add(TenantHeader, tenant);
+    }
+
+    /// <summary>
+    /// Sets default headers for the HTTP client.
+    /// Existing headers with the same key will not be overwritten.
+    /// </summary>
+    /// <param name="defaultHeaders">A dictionary of headers to set as default.</param>
+    public virtual void SetDefaultHeaders(IDictionary<string, string> defaultHeaders)
+    {
+        if (defaultHeaders == null)
+        {
+            throw new ArgumentNullException(nameof(defaultHeaders), "Default headers cannot be null.");
+        }
+
+        foreach (var header in defaultHeaders)
+        {
+            if (string.IsNullOrWhiteSpace(header.Key))
+            {
+                throw new ArgumentException("Header name cannot be null, empty, or whitespace.", nameof(defaultHeaders));
+            }
+
+            if (!HeaderKeyRegEx.IsMatch(header.Key))
+            {
+                throw new ArgumentException($"Header name '{header.Key}' contains invalid characters.", nameof(defaultHeaders));
+            }
+
+            if (header.Value == null)
+            {
+                throw new ArgumentException($"Header value for '{header.Key}' cannot be null.", nameof(defaultHeaders));
+            }
+
+            if (header.Value.Length == 0)
+            {
+                throw new ArgumentException($"Header value for '{header.Key}' cannot be empty.", nameof(defaultHeaders));
+            }
+
+            if (!HttpClient.DefaultRequestHeaders.Contains(header.Key))
+            {
+                HttpClient.DefaultRequestHeaders.Add(header.Key, header.Value);
+            }
+        }
     }
 
     /// <inheritdoc/>
