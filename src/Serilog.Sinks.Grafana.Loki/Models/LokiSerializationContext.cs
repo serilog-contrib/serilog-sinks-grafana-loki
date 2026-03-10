@@ -13,6 +13,9 @@ using System.Text.Json.Serialization;
 namespace Serilog.Sinks.Grafana.Loki.Models;
 
 [JsonSerializable(typeof(LokiBatch))]
+[JsonSerializable(typeof(Dictionary<string, string>))]
+[JsonSerializable(typeof(object[]))]
+[JsonSerializable(typeof(string))]
 internal sealed partial class LokiSerializationContext : JsonSerializerContext
 {
 }
