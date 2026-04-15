@@ -19,7 +19,7 @@ internal class LokiStream
     public Dictionary<string, string> Labels { get; } = new();
 
     [JsonPropertyName("values")]
-    public IList<IList<string>> Entries { get; set; } = new List<IList<string>>();
+    public IList<IList<object>> Entries { get; set; } = new List<IList<object>>();
 
     public void AddLabel(string key, string value)
     {
@@ -28,6 +28,17 @@ internal class LokiStream
 
     public void AddEntry(DateTimeOffset timestamp, string entry)
     {
-        Entries.Add(new[] {timestamp.ToUnixNanosecondsString(), entry});
+        Entries.Add(new object[] {timestamp.ToUnixNanosecondsString(), entry});
+    }
+
+    public void AddEntry(DateTimeOffset timestamp, string entry, Dictionary<string, string>? structuredMetadata)
+    {
+        if (structuredMetadata == null || structuredMetadata.Count == 0)
+        {
+            AddEntry(timestamp, entry);
+            return;
+        }
+
+        Entries.Add(new object[] {timestamp.ToUnixNanosecondsString(), entry, structuredMetadata});
     }
 }
