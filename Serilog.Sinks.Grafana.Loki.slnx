@@ -5,4 +5,8 @@
   <Folder Name="/tests/">
     <Project Path="tests\Serilog.Sinks.Grafana.Loki.UnitTests\Serilog.Sinks.Grafana.Loki.UnitTests.fsproj" />
   </Folder>
+  <Folder Name="/sample/">
+    <Project Path="sample\Serilog.Sinks.Grafana.Loki.Sample\Serilog.Sinks.Grafana.Loki.Sample.csproj" />
+    <Project Path="sample\Serilog.Sinks.Grafana.Loki.SampleWebApp\Serilog.Sinks.Grafana.Loki.SampleWebApp.csproj" />
+  </Folder>
 </Solution>

@@ -1,18 +1,16 @@
-version: "3.9"
-
 networks:
   loki:
 
 services:
   loki:
-    image: grafana/loki:latest
+    image: grafana/loki:3.7.2
     ports:
       - "3100:3100"
     networks:
       - loki
 
   grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana:13.0.2
     depends_on:
       - loki
     environment:
