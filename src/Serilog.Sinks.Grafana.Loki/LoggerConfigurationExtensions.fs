@@ -3,7 +3,6 @@ namespace Serilog.Sinks.Grafana.Loki
 open System
 open System.Runtime.CompilerServices
 open System.Runtime.InteropServices
-open Serilog
 open Serilog.Configuration
 open Serilog.Events
 open Serilog.Sinks.PeriodicBatching

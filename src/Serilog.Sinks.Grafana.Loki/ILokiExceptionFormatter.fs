@@ -1,6 +1,5 @@
 namespace Serilog.Sinks.Grafana.Loki
 
-open System
 open System.Text.Json
 
 /// Serializes exceptions into the Loki log entry JSON body.

@@ -1,6 +1,5 @@
 namespace Serilog.Sinks.Grafana.Loki
 
-open System
 open System.Buffers
 open System.Text.Json
 open Serilog.Events

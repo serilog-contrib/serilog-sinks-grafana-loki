@@ -1,6 +1,5 @@
 namespace Serilog.Sinks.Grafana.Loki
 
-open System.Net
 open System.Net.Http
 open System.Net.Http.Headers
 open Serilog.Sinks.Grafana.Loki.Infrastructure
