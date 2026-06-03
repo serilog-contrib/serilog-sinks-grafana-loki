@@ -88,7 +88,7 @@ let ``Format: InnerException absent when exception has no inner`` () =
 
 [<Fact>]
 let ``Format: AggregateException uses InnerExceptions array not InnerException`` () =
-    let agg          = AggregateException("aggregate", [| Exception("a") :> exn; Exception("b") :> exn |])
+    let agg          = AggregateException("aggregate", [| Exception("a"); Exception("b") |])
     use doc          = serializeException fmt agg
     let hasArray     = doc.RootElement |> tryProp "InnerExceptions" |> Option.isSome
     let hasSingular  = doc.RootElement |> tryProp "InnerException"  |> Option.isSome
@@ -97,7 +97,7 @@ let ``Format: AggregateException uses InnerExceptions array not InnerException``
 
 [<Fact>]
 let ``Format: AggregateException InnerExceptions array has correct count`` () =
-    let agg   = AggregateException("agg", [| Exception("a") :> exn; Exception("b") :> exn; Exception("c") :> exn |])
+    let agg   = AggregateException("agg", [| Exception("a"); Exception("b"); Exception("c") |])
     use doc   = serializeException fmt agg
     let count =
         doc.RootElement

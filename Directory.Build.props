@@ -5,6 +5,11 @@
     <CheckEolTargetFramework>false</CheckEolTargetFramework>
     <MinVerTagPrefix>v</MinVerTagPrefix>
     <SignAssembly>true</SignAssembly>
+
+    <!-- F# compiler strictness — applied to every project in the repo -->
+    <LangVersion>latest</LangVersion>
+    <WarnLevel>5</WarnLevel>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
 
   <ItemGroup>
