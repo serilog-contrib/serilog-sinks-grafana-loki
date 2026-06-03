@@ -1,5 +1,6 @@
 <Solution>
   <Folder Name="/src/">
+    <Project Path="src\Serilog.Sinks.Grafana.Loki\Serilog.Sinks.Grafana.Loki.fsproj" />
   </Folder>
   <Folder Name="/test/">
   </Folder>

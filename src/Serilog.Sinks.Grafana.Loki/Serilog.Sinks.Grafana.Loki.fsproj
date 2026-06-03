@@ -1,0 +1,49 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+    <AssemblyName>Serilog.Sinks.Grafana.Loki</AssemblyName>
+    <RootNamespace>Serilog.Sinks.Grafana.Loki</RootNamespace>
+    <Description>A Serilog sink that writes log events to Grafana Loki</Description>
+    <PackageTags>serilog;loki;grafana;logging;sink</PackageTags>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/serilog-contrib/serilog-sinks-grafana-loki</PackageProjectUrl>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Serilog" />
+    <PackageReference Include="Serilog.Sinks.PeriodicBatching" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\assets\icon.png" Pack="true" Visible="false" PackagePath="/" />
+    <None Include="..\..\README.md" Pack="true" Visible="false" PackagePath="/" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Files must be listed in F# compilation order (dependencies before dependents) -->
+    <!-- Infrastructure -->
+    <!-- <Compile Include="Infrastructure\PooledByteBufferWriter.fs" /> -->
+    <!-- <Compile Include="Infrastructure\Utf8TextWriter.fs" /> -->
+    <!-- Public contract -->
+    <!-- <Compile Include="LokiLabel.fs" /> -->
+    <!-- <Compile Include="LokiCredentials.fs" /> -->
+    <!-- <Compile Include="ILokiExceptionFormatter.fs" /> -->
+    <!-- <Compile Include="LokiSinkOptions.fs" /> -->
+    <!-- Internal pipeline -->
+    <!-- <Compile Include="Labels.fs" /> -->
+    <!-- <Compile Include="Grouping.fs" /> -->
+    <!-- <Compile Include="Serialization.fs" /> -->
+    <!-- <Compile Include="LokiPushContent.fs" /> -->
+    <!-- Sink -->
+    <!-- <Compile Include="LokiJsonTextFormatter.fs" /> -->
+    <!-- <Compile Include="LokiSink.fs" /> -->
+    <!-- Public API -->
+    <!-- <Compile Include="LoggerConfigurationExtensions.fs" /> -->
+  </ItemGroup>
+
+</Project>
