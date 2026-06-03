@@ -11,7 +11,6 @@
     <PackageIcon>icon.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
@@ -25,25 +24,31 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Files must be listed in F# compilation order (dependencies before dependents) -->
-    <!-- Infrastructure -->
+    <!-- Compilation order: dependencies must precede dependents -->
+
+    <!-- Infrastructure (no Serilog dependency) -->
     <Compile Include="Infrastructure\PooledByteBufferWriter.fs" />
     <Compile Include="Infrastructure\Utf8TextWriter.fs" />
-    <!-- Public contract -->
-    <!-- <Compile Include="LokiLabel.fs" /> -->
-    <!-- <Compile Include="LokiCredentials.fs" /> -->
-    <!-- <Compile Include="ILokiExceptionFormatter.fs" /> -->
-    <!-- <Compile Include="LokiSinkOptions.fs" /> -->
-    <!-- Internal pipeline -->
-    <!-- <Compile Include="Labels.fs" /> -->
-    <!-- <Compile Include="Grouping.fs" /> -->
-    <!-- <Compile Include="Serialization.fs" /> -->
-    <!-- <Compile Include="LokiPushContent.fs" /> -->
-    <!-- Sink -->
-    <!-- <Compile Include="LokiJsonTextFormatter.fs" /> -->
-    <!-- <Compile Include="LokiSink.fs" /> -->
-    <!-- Public API -->
-    <!-- <Compile Include="LoggerConfigurationExtensions.fs" /> -->
+
+    <!-- Public contract types -->
+    <Compile Include="LokiLabel.fs" />
+    <Compile Include="LokiCredentials.fs" />
+    <Compile Include="ILokiExceptionFormatter.fs" />
+    <Compile Include="LokiExceptionFormatter.fs" />
+    <Compile Include="LokiJsonTextFormatter.fs" />
+    <Compile Include="LokiSinkOptions.fs" />
+
+    <!-- Internal functional pipeline ([<AutoOpen>] modules) -->
+    <Compile Include="Labels.fs" />
+    <Compile Include="Grouping.fs" />
+    <Compile Include="Serialization.fs" />
+    <Compile Include="LokiPushContent.fs" />
+
+    <!-- Sink wiring -->
+    <Compile Include="LokiSink.fs" />
+
+    <!-- Public API surface -->
+    <Compile Include="LoggerConfigurationExtensions.fs" />
   </ItemGroup>
 
 </Project>
