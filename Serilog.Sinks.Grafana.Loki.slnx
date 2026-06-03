@@ -2,6 +2,7 @@
   <Folder Name="/src/">
     <Project Path="src\Serilog.Sinks.Grafana.Loki\Serilog.Sinks.Grafana.Loki.fsproj" />
   </Folder>
-  <Folder Name="/test/">
+  <Folder Name="/tests/">
+    <Project Path="tests\Serilog.Sinks.Grafana.Loki.UnitTests\Serilog.Sinks.Grafana.Loki.UnitTests.fsproj" />
   </Folder>
 </Solution>

@@ -65,7 +65,7 @@ module internal Labels =
     ///   3. Property-derived labels  (from PropertiesAsLabels)
     ///
     /// Properties whose sanitized key matches a reserved key are silently skipped.
-    let inline buildLabelSet
+    let buildLabelSet
         (globalLabels: Map<string, string>)
         (reservedKeys: Set<string>)
         (propertiesAsLabels: string[])
@@ -90,3 +90,9 @@ module internal Labels =
                 else Map.add key (renderLabelValue value) acc
             | _ -> acc
         ) base'
+
+    // ── Test shim ─────────────────────────────────────────────────────────────
+    // toUnixNanoseconds needs a direct precision test but is inline (can't be
+    // called across assembly boundaries even with InternalsVisibleTo).
+    // This non-inline wrapper exists solely for the UnitTests project.
+    let timestampToNs (ts: DateTimeOffset) : int64 = toUnixNanoseconds ts

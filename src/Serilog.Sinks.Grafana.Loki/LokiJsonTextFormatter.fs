@@ -30,6 +30,10 @@ type LokiJsonTextFormatter
             StringComparer.Ordinal)
 
     // Recursive value renderer — not inline because it calls itself.
+    // Uses direct isinst + cast (`:? T as x`) which compiles to allocation-free IL.
+    // Complete active patterns allocate their result DU, and [<Struct>] on complete
+    // active pattern functions is not supported in the current F# compiler, so the
+    // direct match is the correct zero-allocation approach here.
     static let rec writeValue (writer: Utf8JsonWriter) (value: LogEventPropertyValue) =
         match value with
         | :? ScalarValue as sv ->

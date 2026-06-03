@@ -15,7 +15,7 @@ module internal Grouping =
     /// Assigns a LabelSet to every event then groups into streams.
     /// Within each stream events are sorted ascending by Timestamp so Loki
     /// does not reject out-of-order entries.
-    let inline groupIntoStreams
+    let groupIntoStreams
         (labelOf: LogEvent -> LabelSet)
         (events: LogEvent seq)
         : LokiStream seq =

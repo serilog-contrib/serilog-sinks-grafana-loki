@@ -18,6 +18,7 @@
     <PackageReference Include="Serilog.Sinks.PeriodicBatching" />
   </ItemGroup>
 
+
   <ItemGroup>
     <None Include="..\..\assets\icon.png" Pack="true" Visible="false" PackagePath="/" />
     <None Include="..\..\README.md" Pack="true" Visible="false" PackagePath="/" />
@@ -25,6 +26,7 @@
 
   <ItemGroup>
     <!-- Compilation order: dependencies must precede dependents -->
+    <Compile Include="AssemblyInfo.fs" />
 
     <!-- Infrastructure (no Serilog dependency) -->
     <Compile Include="Infrastructure\PooledByteBufferWriter.fs" />
