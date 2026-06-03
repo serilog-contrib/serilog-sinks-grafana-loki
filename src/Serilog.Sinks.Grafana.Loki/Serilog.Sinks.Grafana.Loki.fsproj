@@ -27,8 +27,8 @@
   <ItemGroup>
     <!-- Files must be listed in F# compilation order (dependencies before dependents) -->
     <!-- Infrastructure -->
-    <!-- <Compile Include="Infrastructure\PooledByteBufferWriter.fs" /> -->
-    <!-- <Compile Include="Infrastructure\Utf8TextWriter.fs" /> -->
+    <Compile Include="Infrastructure\PooledByteBufferWriter.fs" />
+    <Compile Include="Infrastructure\Utf8TextWriter.fs" />
     <!-- Public contract -->
     <!-- <Compile Include="LokiLabel.fs" /> -->
     <!-- <Compile Include="LokiCredentials.fs" /> -->
