@@ -236,6 +236,68 @@ type LokiIntegrationTests(loki: LokiFixture) =
             test <@ entries.Length = 1 @>
         }
 
+    // ── 9. Custom ExceptionFormatter roundtrip ───────────────────────────────
+
+    [<Fact>]
+    member _.``exceptionFormatter: custom shape survives Loki roundtrip``() : Task =
+        task {
+            let startNs = nowNs ()
+            let selector = $"{{testrun=\"{runId}\",test=\"custom-ex-fmt\"}}"
+            let ex       = InvalidOperationException("formatter test")
+            let event    = LogEvent(DateTimeOffset.UtcNow, LogEventLevel.Error, ex, parser.Parse("error"), [])
+
+            do!
+                writeThenFlush
+                    loki.Uri
+                    (fun o ->
+                        { o with
+                            Labels             = testLabel "custom-ex-fmt"
+                            ExceptionFormatter = NoTypeFormatter() })
+                    [ event ]
+
+            let! entries = waitForLogs loki.Uri selector startNs
+            test <@ entries.Length = 1 @>
+            use body = JsonDocument.Parse(entries[0].Line)
+            // NoTypeFormatter writes only Message, no Type or StackTrace
+            let exEl    = body.RootElement.TryGetProperty("Exception") |> snd
+            let hasType = exEl.TryGetProperty("Type")   |> fst
+            let hasMsg  = exEl.TryGetProperty("Message") |> fst
+            test <@ not hasType && hasMsg @>
+        }
+
+    // ── 10. Multiple separate batches all arrive ─────────────────────────────
+
+    [<Fact>]
+    member _.``batching: events across three separate EmitBatchAsync calls all arrive``() : Task =
+        task {
+            let startNs = nowNs ()
+            let selector = $"{{testrun=\"{runId}\",test=\"multi-batch\"}}"
+            let labels   = testLabel "multi-batch"
+
+            // Three sequential flushes simulate what batchSizeLimit=4 would produce
+            // when a queue of 12 events drains across multiple PeriodicBatching ticks.
+            for batch in 1..3 do
+                let events =
+                    [ for i in 1..4 -> mkEvent LogEventLevel.Information $"b{batch} e{i}" [] ]
+
+                do! writeThenFlush loki.Uri (fun o -> { o with Labels = labels }) events
+                do! Task.Delay(300)
+
+            let! entries = waitForLogs loki.Uri selector startNs
+            test <@ entries.Length = 12 @>
+        }
+
+// ── NoTypeFormatter — test helper ────────────────────────────────────────────
+// Writes only the exception Message, no Type or StackTrace, so we can verify
+// the custom ExceptionFormatter is used end-to-end via the Loki roundtrip.
+
+and NoTypeFormatter() =
+    interface ILokiExceptionFormatter with
+        member _.Format(writer: System.Text.Json.Utf8JsonWriter, ex: exn) =
+            writer.WriteStartObject()
+            writer.WriteString("Message", ex.Message)
+            writer.WriteEndObject()
+
 // ── GzipRequestHandler ───────────────────────────────────────────────────────
 // A minimal DelegatingHandler that gzip-compresses the request body.
 // Demonstrates the recommended compression pattern via HttpMessageHandler.

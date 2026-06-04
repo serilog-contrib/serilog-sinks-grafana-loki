@@ -1,6 +1,7 @@
 module Serilog.Sinks.Grafana.Loki.Tests.WireFormatTests
 
 open System
+open System.Diagnostics
 open System.Net
 open System.Net.Http
 open System.Text
@@ -10,9 +11,24 @@ open System.Threading.Tasks
 open Swensen.Unquote
 open Xunit
 open Serilog.Events
+open Serilog.Parsing
 open Serilog.Sinks.PeriodicBatching
 open Serilog.Sinks.Grafana.Loki
 open Serilog.Sinks.Grafana.Loki.Tests.Helpers
+
+// ── Helpers for trace-aware LogEvent construction ─────────────────────────────
+
+let private traceParser = MessageTemplateParser()
+
+/// Creates a LogEvent with an explicit non-default TraceId and SpanId
+/// so that EnrichTraceId / EnrichSpanId can be unit-tested without a
+/// running Activity (ActivitySource + listener setup is not required).
+let private mkEventWithTrace () =
+    let traceId = ActivityTraceId.CreateRandom()
+    let spanId  = ActivitySpanId.CreateRandom()
+    traceId, spanId,
+    LogEvent(DateTimeOffset.UtcNow, LogEventLevel.Information, null,
+             traceParser.Parse(""), [], traceId, spanId)
 
 // ── Fake HTTP infrastructure ──────────────────────────────────────────────────
 
@@ -442,4 +458,44 @@ let ``http tenant: X-Scope-OrgID header set when Tenant configured`` () : Task =
         do! flush sink [ mkInfo [] ]
         let tenant = handler.Last.TenantId
         test <@ tenant = Some "my-tenant" @>
+    }
+
+// ── TraceId / SpanId enrichment ───────────────────────────────────────────────
+
+[<Fact>]
+let ``body: TraceId written when EnrichTraceId=true and event carries a TraceId`` () : Task =
+    task {
+        let handler, sink = makeSinkWithHandler (fun o -> { o with EnrichTraceId = true })
+        use _ = sink
+        let traceId, _, event = mkEventWithTrace ()
+        let expectedTrace = traceId.ToHexString()   // extract before quotation — struct capture not allowed in quotations
+        do! flush sink [ event ]
+        use doc    = handler.LastBodyJson
+        let bodyTr = bodyProp "TraceId" (streamAt 0 doc) 0
+        test <@ bodyTr = Some expectedTrace @>
+    }
+
+[<Fact>]
+let ``body: SpanId written when EnrichSpanId=true and event carries a SpanId`` () : Task =
+    task {
+        let handler, sink = makeSinkWithHandler (fun o -> { o with EnrichSpanId = true })
+        use _ = sink
+        let _, spanId, event = mkEventWithTrace ()
+        let expectedSpan = spanId.ToHexString()
+        do! flush sink [ event ]
+        use doc    = handler.LastBodyJson
+        let bodySp = bodyProp "SpanId" (streamAt 0 doc) 0
+        test <@ bodySp = Some expectedSpan @>
+    }
+
+[<Fact>]
+let ``body: TraceId absent when EnrichTraceId=false (default)`` () : Task =
+    task {
+        let handler, sink = makeSinkWithHandler id   // EnrichTraceId defaults to false
+        use _ = sink
+        let _, _, event = mkEventWithTrace ()   // event has a TraceId but sink won't write it
+        do! flush sink [ event ]
+        use doc      = handler.LastBodyJson
+        let hasTrace = hasBodyProp "TraceId" (streamAt 0 doc) 0
+        test <@ not hasTrace @>
     }
