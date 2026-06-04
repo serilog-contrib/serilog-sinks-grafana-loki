@@ -6,9 +6,7 @@ insert_final_newline = false
 
 [*.cs]
 # ── StyleCop.Analyzers.Unstable — rule severity ───────────────────────────────
-# Rule decisions mirror V8 exactly. The original .ruleset is preserved at
-# v8/StyleCop.ruleset and serves as the human-readable reference.
-# Summary: documentation and file-header rules off; spacing, layout,
+# Rule decisions: documentation and file-header rules off; spacing, layout,
 # ordering and naming enforced as errors.
 
 # SA0001/SA0002 — disable to avoid requiring GenerateDocumentationFile everywhere

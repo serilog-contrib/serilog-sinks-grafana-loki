@@ -43,7 +43,7 @@ let ``sanitizeLabelKey via buildLabelSet: non-numeric key unchanged`` () =
 [<InlineData(2, "info")>] // Information
 [<InlineData(3, "warning")>] // Warning
 [<InlineData(4, "error")>] // Error
-[<InlineData(5, "fatal")>] // Fatal — V9 change from V8's "critical"
+[<InlineData(5, "fatal")>] // Fatal — maps to "fatal", not "critical"
 let ``logLevelToLabel via buildLabelSet: all Serilog levels map to Grafana vocabulary``
     (levelInt: int)
     (expected: string)

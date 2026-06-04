@@ -167,7 +167,7 @@ Log.Logger = new LoggerConfiguration()
 
 ### Sending json content to Loki
 
-From v8 Serilog.Sinks.Grafana.Loki uses `LokiJsonTextFormatter` by default, which allows to send logs to Loki as a
+Serilog.Sinks.Grafana.Loki uses `LokiJsonTextFormatter` by default, which allows to send logs to Loki as a
 JSON-payloads. This allows easier filtering in Loki v2, more information about how to filter can be
 found [here](https://grafana.com/blog/2020/10/28/loki-2.0-released-transform-logs-as-youre-querying-them-and-set-up-alerts-within-loki/)
 

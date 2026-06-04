@@ -238,8 +238,7 @@ type LokiIntegrationTests(loki: LokiFixture) =
 
 // ── GzipRequestHandler ───────────────────────────────────────────────────────
 // A minimal DelegatingHandler that gzip-compresses the request body.
-// Demonstrates the pattern for users who want compression without a
-// separate LokiGzipHttpClient class (the V8 approach we dropped).
+// Demonstrates the recommended compression pattern via HttpMessageHandler.
 
 and GzipRequestHandler(inner: HttpMessageHandler) =
     inherit DelegatingHandler(inner)

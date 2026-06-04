@@ -260,7 +260,7 @@ let ``level label: absent when HandleLogLevelAsLabel = false`` () : Task =
     }
 
 [<Fact>]
-let ``level label: Fatal maps to "fatal" — V9 change from V8 "critical"`` () : Task =
+let ``level label: Fatal maps to "fatal" not "critical"`` () : Task =
     task {
         let handler, sink = makeSink id
         use _ = sink
@@ -318,7 +318,7 @@ let ``labels: property promoted to label appears in stream`` () : Task =
     }
 
 [<Fact>]
-let ``labels: promoted property ALSO stays in body (V9 — V8 removed it by default)`` () : Task =
+let ``labels: promoted property stays in body even when promoted to label`` () : Task =
     task {
         let handler, sink =
             makeSink (fun o ->
