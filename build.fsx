@@ -16,17 +16,23 @@ open Fake.IO.Globbing.Operators
 // `dotnet fsi build.fsx -- --target <name>`.
 Context.setExecutionContext (
     Context.RuntimeContext.Fake(
-        Context.FakeExecutionContext.Create false __SOURCE_FILE__
-            (fsi.CommandLineArgs |> Array.toList |> List.tail)))
+        Context.FakeExecutionContext.Create false __SOURCE_FILE__ (fsi.CommandLineArgs |> Array.toList |> List.tail)
+    )
+)
 
 // ── Paths ──────────────────────────────────────────────────────────────────────
 
-let [<Literal>] Artifacts = "./artifacts"
+[<Literal>]
+let Artifacts = "./artifacts"
 
-let solution  = "Serilog.Sinks.Grafana.Loki.slnx"
-let library   = "src/Serilog.Sinks.Grafana.Loki/Serilog.Sinks.Grafana.Loki.fsproj"
-let unitTests = "tests/Serilog.Sinks.Grafana.Loki.UnitTests/Serilog.Sinks.Grafana.Loki.UnitTests.fsproj"
-let intTests  = "tests/Serilog.Sinks.Grafana.Loki.IntegrationTests/Serilog.Sinks.Grafana.Loki.IntegrationTests.fsproj"
+let solution = "Serilog.Sinks.Grafana.Loki.slnx"
+let library = "src/Serilog.Sinks.Grafana.Loki/Serilog.Sinks.Grafana.Loki.fsproj"
+
+let unitTests =
+    "tests/Serilog.Sinks.Grafana.Loki.UnitTests/Serilog.Sinks.Grafana.Loki.UnitTests.fsproj"
+
+let intTests =
+    "tests/Serilog.Sinks.Grafana.Loki.IntegrationTests/Serilog.Sinks.Grafana.Loki.IntegrationTests.fsproj"
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -39,12 +45,13 @@ let noBinLog (o: MSBuild.CliArguments) = { o with DisableInternalBinLog = true }
 
 // ── Targets ───────────────────────────────────────────────────────────────────
 
-Target.create "Clean" (fun _ ->
-    Shell.cleanDir Artifacts)
+Target.create "Clean" (fun _ -> Shell.cleanDir Artifacts)
 
 Target.create "Restore" (fun _ ->
     DotNet.restore
-        (fun o -> { o with MSBuildParams = noBinLog o.MSBuildParams })
+        (fun o ->
+            { o with
+                MSBuildParams = noBinLog o.MSBuildParams })
         solution)
 
 Target.create "Build" (fun _ ->
@@ -54,7 +61,7 @@ Target.create "Build" (fun _ ->
         (fun o ->
             { o with
                 Configuration = releaseCfg
-                NoRestore     = true
+                NoRestore = true
                 MSBuildParams = noBinLog o.MSBuildParams })
         solution)
 
@@ -63,7 +70,7 @@ Target.create "Test" (fun _ ->
         (fun o ->
             { o with
                 Configuration = releaseCfg
-                NoBuild       = true
+                NoBuild = true
                 MSBuildParams = noBinLog o.MSBuildParams })
         unitTests)
 
@@ -72,7 +79,7 @@ Target.create "IntegrationTest" (fun _ ->
         (fun o ->
             { o with
                 Configuration = releaseCfg
-                NoBuild       = true
+                NoBuild = true
                 MSBuildParams = noBinLog o.MSBuildParams })
         intTests)
 
@@ -81,20 +88,24 @@ Target.create "Pack" (fun _ ->
         (fun o ->
             { o with
                 Configuration = releaseCfg
-                NoBuild       = true
-                OutputPath    = Some Artifacts
+                NoBuild = true
+                OutputPath = Some Artifacts
                 MSBuildParams = noBinLog o.MSBuildParams })
         library)
 
 Target.create "Push" (fun _ ->
     let key = Environment.environVarOrFail "NUGET_API_KEY"
+
     !! $"{Artifacts}/*.nupkg"
     |> Seq.iter (fun pkg ->
         let result =
             DotNet.exec
-                (fun o -> { o with Verbosity = Some DotNet.Verbosity.Minimal })
+                (fun o ->
+                    { o with
+                        Verbosity = Some DotNet.Verbosity.Minimal })
                 "nuget"
                 $"push \"{pkg}\" -s https://api.nuget.org/v3/index.json -k {key}"
+
         if not result.OK then
             failwithf "nuget push failed: %A" result.Errors))
 
@@ -105,7 +116,7 @@ Target.create "Default" ignore
 open Fake.Core.TargetOperators
 
 "Restore" ==> "Build" ==> "Test" ==> "Pack" ==> "Default"
-"Build"   ==> "IntegrationTest"
-"Pack"    ==> "Push"
+"Build" ==> "IntegrationTest"
+"Pack" ==> "Push"
 
 Target.runOrDefaultWithArguments "Default"

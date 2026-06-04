@@ -31,17 +31,55 @@ jobs:
         uses: actions/setup-dotnet@v5.2.0
         with:
           dotnet-version: |
-            6.0.x
-            7.0.x
-            8.0.x
+            8.x
+            9.x
+            10.x
 
-      - run: dotnet --info
+      - name: Build & Test
+        run: dotnet fsi build.fsx -- --target Test
 
-      - if: contains(matrix.os, 'macOS') || contains(matrix.os, 'ubuntu')
-        run: ./build.sh
-      - if: matrix.os == 'windows-latest' && !contains(github.ref, 'refs/tags/')
-        run: ./build.ps1
-      - if: matrix.os == 'windows-latest' && github.event_name == 'release' && github.event.action == 'published'
-        run: |
-          ./build.ps1
-          dotnet nuget push .\artifacts\*.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_API_KEY }}
+      - name: Pack
+        run: dotnet fsi build.fsx -- --target Pack
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-${{ matrix.os }}
+          path: artifacts/*.nupkg
+
+  integration:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5.2.0
+        with:
+          dotnet-version: 10.x
+
+      - name: Integration Tests
+        run: dotnet fsi build.fsx -- --target IntegrationTest
+
+  publish:
+    name: Publish to NuGet
+    runs-on: ubuntu-latest
+    needs: [ build, integration ]
+    if: github.event_name == 'release' && github.event.action == 'published'
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5.2.0
+        with:
+          dotnet-version: 10.x
+
+      - name: Pack & Push
+        run: dotnet fsi build.fsx -- --target Push
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
