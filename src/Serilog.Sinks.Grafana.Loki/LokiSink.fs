@@ -16,6 +16,7 @@ open System.Net.Http
 open System.Net.Http.Headers
 open System.Runtime.ExceptionServices
 open System.Text
+open System.Threading.Tasks
 open Serilog.Core
 open Serilog.Debugging
 open Serilog.Events
@@ -53,34 +54,38 @@ type internal LokiSink(options: LokiSinkOptions) =
     let ownsClient = isNull options.HttpClient
 
     let httpClient: HttpClient =
-        let client =
-            if ownsClient then
+        if not ownsClient then
+            // Injected clients are pre-configured by the caller; the sink never mutates them.
+            options.HttpClient
+        else
+            let client =
                 if isNull options.HttpMessageHandler then
                     new HttpClient()
                 else
                     new HttpClient(options.HttpMessageHandler)
-            else
-                options.HttpClient
 
-        // Apply Basic Auth only to a client we created — injected clients are pre-configured.
-        // box coerces the record to obj so isNull works without [<AllowNullLiteral>].
-        if ownsClient && not (isNull (box options.Credentials)) then
-            let c = options.Credentials
+            // Apply Basic Auth only to a client we created.
+            // box coerces the record to obj so isNull works without [<AllowNullLiteral>].
+            let creds = options.Credentials
 
-            if not (String.IsNullOrEmpty c.Login) then
+            if not (isNull (box creds)) && not (String.IsNullOrEmpty creds.Login) then
                 let token =
-                    $"{c.Login}:{c.Password}" |> Encoding.UTF8.GetBytes |> Convert.ToBase64String
+                    $"{creds.Login}:{creds.Password}"
+                    |> Encoding.UTF8.GetBytes
+                    |> Convert.ToBase64String
 
                 client.DefaultRequestHeaders.Authorization <- AuthenticationHeaderValue("Basic", token)
 
-        if ownsClient && not (String.IsNullOrEmpty options.Tenant) then
-            if not (client.DefaultRequestHeaders.TryAddWithoutValidation("X-Scope-OrgID", options.Tenant)) then
+            if
+                not (String.IsNullOrEmpty options.Tenant)
+                && not (client.DefaultRequestHeaders.TryAddWithoutValidation("X-Scope-OrgID", options.Tenant))
+            then
                 SelfLog.WriteLine(
                     "Serilog.Sinks.GrafanaLoki: X-Scope-OrgID header could not be set for tenant '{0}'. The value may contain invalid characters.",
                     options.Tenant
                 )
 
-        client
+            client
 
     // ── Label pipeline — precomputed once at construction ─────────────────────
 
@@ -130,7 +135,7 @@ type internal LokiSink(options: LokiSinkOptions) =
                 if not response.IsSuccessStatusCode then
                     let! body =
                         if isNull response.Content then
-                            Threading.Tasks.Task.FromResult("<no response body>")
+                            Task.FromResult("<no response body>")
                         else
                             response.Content.ReadAsStringAsync()
 
@@ -143,7 +148,7 @@ type internal LokiSink(options: LokiSinkOptions) =
                     response.EnsureSuccessStatusCode() |> ignore
             }
 
-        member _.OnEmptyBatchAsync() = Threading.Tasks.Task.CompletedTask
+        member _.OnEmptyBatchAsync() = Task.CompletedTask
 
     interface IDisposable with
         member _.Dispose() =

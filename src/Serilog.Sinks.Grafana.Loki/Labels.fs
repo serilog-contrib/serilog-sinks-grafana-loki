@@ -68,7 +68,7 @@ module internal Labels =
     /// Builds the immutable set of keys that user properties cannot override:
     /// all global label keys plus the synthetic 'level' key when enabled.
     let buildReservedKeys (globalLabels: Map<string, string>) (handleLevel: bool) : Set<string> =
-        let keys = globalLabels |> Map.fold (fun acc k _ -> Set.add k acc) Set.empty
+        let keys = globalLabels |> Map.keys |> Set.ofSeq
         if handleLevel then Set.add "level" keys else keys
 
     /// Converts the LokiLabel array into an immutable Map, preserving last-write-wins

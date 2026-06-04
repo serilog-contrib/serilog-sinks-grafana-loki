@@ -36,6 +36,20 @@ type LoggerConfigurationLokiExtensions =
             invalidArg "uri" $"Loki URI scheme must be http or https, got '{u.Scheme}'."
         | _ -> ()
 
+    // Optional TimeSpan parameters arrive as strings (see the period/retryTimeLimit
+    // comments below). Null/empty falls back to the supplied default; anything else
+    // must parse as "hh:mm:ss" or the configuration is rejected.
+    static let parseTimeSpan (paramName: string) (value: string) (fallback: TimeSpan) =
+        if String.IsNullOrEmpty value then
+            fallback
+        else
+            match TimeSpan.TryParse(value, CultureInfo.InvariantCulture) with
+            | true, ts -> ts
+            | false, _ ->
+                invalidArg
+                    paramName
+                    $"'{value}' is not a valid TimeSpan. Expected format: hh:mm:ss (e.g. \"00:00:02\")."
+
     static let wire (sinkConfig: LoggerSinkConfiguration) (options: LokiSinkOptions) (level: LogEventLevel) =
         validateUri options.Uri
 
@@ -134,27 +148,9 @@ type LoggerConfigurationLokiExtensions =
               EnrichSpanId = enrichSpanId
               BatchSizeLimit = batchSizeLimit
               QueueLimit = queueLimit
-              Period =
-                if String.IsNullOrEmpty period then
-                    TimeSpan.FromSeconds 1.0
-                else
-                    match TimeSpan.TryParse(period, CultureInfo.InvariantCulture) with
-                    | true, ts -> ts
-                    | false, _ ->
-                        invalidArg
-                            "period"
-                            $"'{period}' is not a valid TimeSpan. Expected format: hh:mm:ss (e.g. \"00:00:02\")."
+              Period = parseTimeSpan "period" period LokiSinkOptions.Defaults.Period
               EagerlyEmitFirstEvent = eagerlyEmitFirstEvent
-              RetryTimeLimit =
-                if String.IsNullOrEmpty retryTimeLimit then
-                    TimeSpan.FromMinutes 10.0
-                else
-                    match TimeSpan.TryParse(retryTimeLimit, CultureInfo.InvariantCulture) with
-                    | true, ts -> ts
-                    | false, _ ->
-                        invalidArg
-                            "retryTimeLimit"
-                            $"'{retryTimeLimit}' is not a valid TimeSpan. Expected format: hh:mm:ss (e.g. \"00:10:00\")."
+              RetryTimeLimit = parseTimeSpan "retryTimeLimit" retryTimeLimit LokiSinkOptions.Defaults.RetryTimeLimit
               TextFormatter = textFormatter
               ExceptionFormatter = exceptionFormatter
               HttpClient = httpClient
