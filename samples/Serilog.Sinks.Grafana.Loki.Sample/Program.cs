@@ -13,8 +13,8 @@ Log.Logger = new LoggerConfiguration()
     .Enrich.WithProperty("meaning_of_life", 42)
     .WriteTo.Console(outputTemplate: outputTemplate)
     .WriteTo.GrafanaLoki(
-        uri: "http://localhost:3100",
-        labels: [new LokiLabel { Key = "app", Value = "console" }])
+        "http://localhost:3100",
+        [new LokiLabel { Key = "app", Value = "console" }])
     .CreateLogger();
 
 Log.Debug("This is a debug message");

@@ -11,10 +11,10 @@ open Serilog.Sinks.Grafana.Loki.Tests.Helpers
 let private noGlobals = Map.empty<string, string>
 let private noProps = [||]
 
-// ── sanitizeLabelKey (via buildLabelSet — inline helper, tested through behaviour) ──
+// ── sanitizeLabelKey (via buildLabelSet — inline helper, tested through behavior) ──
 
 // sanitizeLabelKey is `inline` and cannot be called directly from an external
-// assembly. Its behaviour is verified through buildLabelSet: numeric property
+// assembly. Its behavior is verified through buildLabelSet: numeric property
 // names must appear with the "param" prefix in the resulting label set.
 
 [<Fact>]

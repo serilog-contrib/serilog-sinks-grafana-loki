@@ -22,7 +22,7 @@ open Serilog.Formatting
 /// Registers the Grafana Loki sink with a LoggerConfiguration.
 /// AbstractClass + Sealed produces the same IL as a C# static class (IsAbstract=true, IsSealed=true),
 /// which is required for Serilog.Settings.Configuration to discover the extension method.
-[<AbstractClass; Sealed; Extension>]
+[<AbstractClass; Sealed>]
 type LoggerConfigurationLokiExtensions =
 
     static let validateUri (uri: string) =
@@ -41,11 +41,12 @@ type LoggerConfigurationLokiExtensions =
         // Serilog 4.x native batching — BatchingOptions has RetryTimeLimit, PeriodicBatchingSinkOptions does not.
         let batchingOpts =
             BatchingOptions(
-                BatchSizeLimit        = options.BatchSizeLimit,
-                BufferingTimeLimit    = options.Period,
+                BatchSizeLimit = options.BatchSizeLimit,
+                BufferingTimeLimit = options.Period,
                 EagerlyEmitFirstEvent = options.EagerlyEmitFirstEvent,
-                QueueLimit            = Nullable options.QueueLimit,
-                RetryTimeLimit        = options.RetryTimeLimit)
+                QueueLimit = Nullable options.QueueLimit,
+                RetryTimeLimit = options.RetryTimeLimit
+            )
 
         let sink = new LokiSink(options)
         sinkConfig.Sink(sink, batchingOpts, level, Unchecked.defaultof<LoggingLevelSwitch>)
@@ -74,60 +75,78 @@ type LoggerConfigurationLokiExtensions =
     /// <param name="httpMessageHandler">Handler for the sink's own HttpClient (compression, retry, etc.).</param>
     /// <param name="restrictedToMinimumLevel">Minimum log level (default: Verbose).</param>
     [<Extension>]
-    static member GrafanaLoki(
-        sinkConfig: LoggerSinkConfiguration,
-        uri: string,
-        // ── Labels ────────────────────────────────────────────────────────────
-        [<Optional; DefaultParameterValue(null: LokiLabel[])>] labels: LokiLabel[],
-        [<Optional; DefaultParameterValue(null: string[])>] propertiesAsLabels: string[],
-        [<Optional; DefaultParameterValue(true)>] handleLogLevelAsLabel: bool,
-        // ── Auth / routing ────────────────────────────────────────────────────
-        [<Optional; DefaultParameterValue(null: string)>] credentialsLogin: string,
-        [<Optional; DefaultParameterValue(null: string)>] credentialsPassword: string,
-        [<Optional; DefaultParameterValue(null: string)>] tenant: string,
-        // ── OpenTelemetry ─────────────────────────────────────────────────────
-        [<Optional; DefaultParameterValue(false)>] enrichTraceId: bool,
-        [<Optional; DefaultParameterValue(false)>] enrichSpanId: bool,
-        // ── Batching ──────────────────────────────────────────────────────────
-        [<Optional; DefaultParameterValue(1_000)>] batchSizeLimit: int,
-        [<Optional; DefaultParameterValue(50_000)>] queueLimit: int,
-        // String type is required: F# [<Optional>] TimeSpan and Nullable<TimeSpan> both compile with
-        // default=Missing.Value which Serilog.Settings.Configuration cannot use when building the
-        // reflection call. C# TimeSpan?=null emits default=null but F# cannot replicate this.
-        // Null/empty = use sink default. Format: "hh:mm:ss" e.g. "00:00:02".
-        [<Optional; DefaultParameterValue(null: string)>] period: string,
-        [<Optional; DefaultParameterValue(true)>] eagerlyEmitFirstEvent: bool,
-        // Null/empty = use sink default (10 min).
-        [<Optional; DefaultParameterValue(null: string)>] retryTimeLimit: string,
-        // ── Extension points ──────────────────────────────────────────────────
-        [<Optional; DefaultParameterValue(null: ITextFormatter)>] textFormatter: ITextFormatter,
-        [<Optional; DefaultParameterValue(null: ILokiExceptionFormatter)>] exceptionFormatter: ILokiExceptionFormatter,
-        [<Optional; DefaultParameterValue(null: HttpClient)>] httpClient: HttpClient,
-        [<Optional; DefaultParameterValue(null: Net.Http.HttpMessageHandler)>] httpMessageHandler: Net.Http.HttpMessageHandler,
-        // ── Level ─────────────────────────────────────────────────────────────
-        [<Optional; DefaultParameterValue(LevelAlias.Minimum)>] restrictedToMinimumLevel: LogEventLevel) =
+    static member GrafanaLoki
+        (
+            sinkConfig: LoggerSinkConfiguration,
+            uri: string,
+            // ── Labels ────────────────────────────────────────────────────────────
+            [<Optional; DefaultParameterValue(null: LokiLabel[])>] labels: LokiLabel[],
+            [<Optional; DefaultParameterValue(null: string[])>] propertiesAsLabels: string[],
+            [<Optional; DefaultParameterValue(true)>] handleLogLevelAsLabel: bool,
+            // ── Auth / routing ────────────────────────────────────────────────────
+            [<Optional; DefaultParameterValue(null: string)>] credentialsLogin: string,
+            [<Optional; DefaultParameterValue(null: string)>] credentialsPassword: string,
+            [<Optional; DefaultParameterValue(null: string)>] tenant: string,
+            // ── OpenTelemetry ─────────────────────────────────────────────────────
+            [<Optional; DefaultParameterValue(false)>] enrichTraceId: bool,
+            [<Optional; DefaultParameterValue(false)>] enrichSpanId: bool,
+            // ── Batching ──────────────────────────────────────────────────────────
+            [<Optional; DefaultParameterValue(1_000)>] batchSizeLimit: int,
+            [<Optional; DefaultParameterValue(50_000)>] queueLimit: int,
+            // String type is required: F# [<Optional>] TimeSpan and Nullable<TimeSpan> both compile with
+            // default=Missing.Value which Serilog.Settings.Configuration cannot use when building the
+            // reflection call. C# TimeSpan?=null emits default=null but F# cannot replicate this.
+            // Null/empty = use sink default. Format: "hh:mm:ss" e.g. "00:00:02".
+            [<Optional; DefaultParameterValue(null: string)>] period: string,
+            [<Optional; DefaultParameterValue(true)>] eagerlyEmitFirstEvent: bool,
+            // Null/empty = use sink default (10 min).
+            [<Optional; DefaultParameterValue(null: string)>] retryTimeLimit: string,
+            // ── Extension points ──────────────────────────────────────────────────
+            [<Optional; DefaultParameterValue(null: ITextFormatter)>] textFormatter: ITextFormatter,
+            [<Optional; DefaultParameterValue(null: ILokiExceptionFormatter)>] exceptionFormatter:
+                ILokiExceptionFormatter,
+            [<Optional; DefaultParameterValue(null: HttpClient)>] httpClient: HttpClient,
+            [<Optional; DefaultParameterValue(null: HttpMessageHandler)>] httpMessageHandler: HttpMessageHandler,
+            // ── Level ─────────────────────────────────────────────────────────────
+            [<Optional; DefaultParameterValue(LevelAlias.Minimum)>] restrictedToMinimumLevel: LogEventLevel
+        ) =
 
         let credentials =
-            if String.IsNullOrEmpty credentialsLogin then Unchecked.defaultof<LokiCredentials>
-            else { Login = credentialsLogin; Password = credentialsPassword }
+            if String.IsNullOrEmpty credentialsLogin then
+                Unchecked.defaultof<LokiCredentials>
+            else
+                { Login = credentialsLogin
+                  Password = credentialsPassword }
 
         let options =
-            { Uri                   = uri
-              Labels                = if isNull labels then [||] else labels
-              PropertiesAsLabels    = if isNull propertiesAsLabels then [||] else propertiesAsLabels
+            { Uri = uri
+              Labels = if isNull labels then [||] else labels
+              PropertiesAsLabels =
+                if isNull propertiesAsLabels then
+                    [||]
+                else
+                    propertiesAsLabels
               HandleLogLevelAsLabel = handleLogLevelAsLabel
-              Credentials           = credentials
-              Tenant                = tenant
-              EnrichTraceId         = enrichTraceId
-              EnrichSpanId          = enrichSpanId
-              BatchSizeLimit        = batchSizeLimit
-              QueueLimit            = queueLimit
-              Period                = if String.IsNullOrEmpty period then TimeSpan.FromSeconds 1.0 else TimeSpan.Parse(period)
+              Credentials = credentials
+              Tenant = tenant
+              EnrichTraceId = enrichTraceId
+              EnrichSpanId = enrichSpanId
+              BatchSizeLimit = batchSizeLimit
+              QueueLimit = queueLimit
+              Period =
+                if String.IsNullOrEmpty period then
+                    TimeSpan.FromSeconds 1.0
+                else
+                    TimeSpan.Parse(period)
               EagerlyEmitFirstEvent = eagerlyEmitFirstEvent
-              RetryTimeLimit        = if String.IsNullOrEmpty retryTimeLimit then TimeSpan.FromMinutes 10.0 else TimeSpan.Parse(retryTimeLimit)
-              TextFormatter         = textFormatter
-              ExceptionFormatter    = exceptionFormatter
-              HttpClient            = httpClient
-              HttpMessageHandler    = httpMessageHandler }
+              RetryTimeLimit =
+                if String.IsNullOrEmpty retryTimeLimit then
+                    TimeSpan.FromMinutes 10.0
+                else
+                    TimeSpan.Parse(retryTimeLimit)
+              TextFormatter = textFormatter
+              ExceptionFormatter = exceptionFormatter
+              HttpClient = httpClient
+              HttpMessageHandler = httpMessageHandler }
 
         wire sinkConfig options restrictedToMinimumLevel

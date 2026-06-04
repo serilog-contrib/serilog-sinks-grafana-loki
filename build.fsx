@@ -12,7 +12,7 @@ open Fake.DotNet
 open Fake.IO
 open Fake.IO.Globbing.Operators
 
-// Initialise FAKE context so Target.create / ==> etc. work when invoked via
+// Initialize FAKE context so Target.create / ==> etc. work when invoked via
 // `dotnet fsi build.fsx -- --target <name>`.
 Context.setExecutionContext (
     Context.RuntimeContext.Fake(
@@ -107,7 +107,7 @@ Target.create "Push" (fun _ ->
                 $"push \"{pkg}\" -s https://api.nuget.org/v3/index.json -k {key}"
 
         if not result.OK then
-            failwithf "nuget push failed: %A" result.Errors))
+            failwithf $"nuget push failed: %A{result.Errors}"))
 
 Target.create "Default" ignore
 

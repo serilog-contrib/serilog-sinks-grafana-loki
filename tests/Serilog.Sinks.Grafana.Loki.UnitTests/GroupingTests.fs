@@ -8,7 +8,7 @@ open Serilog.Sinks.Grafana.Loki
 open Serilog.Sinks.Grafana.Loki.Tests.Helpers
 
 // All grouping tests use a trivial labelOf that returns a fixed or property-derived label set,
-// isolating grouping behaviour from label derivation logic (tested in LabelsTests.fs).
+// isolating grouping behavior from label derivation logic (tested in LabelsTests.fs).
 
 let private fixedLabel key value : LogEvent -> LabelSet = fun _ -> Map.ofList [ key, value ]
 
@@ -116,8 +116,7 @@ let ``groupIntoStreams: stream labels match the computed label set`` () =
 
 [<Fact>]
 let ``groupIntoStreams: three distinct label sets produce three streams`` () =
-    let lf i : LogEvent -> LabelSet = fun _ -> Map.ofList [ "i", string i ]
-
+    
     let events =
         [ mkInfo [] // label i=0
           mkInfo [] // label i=1

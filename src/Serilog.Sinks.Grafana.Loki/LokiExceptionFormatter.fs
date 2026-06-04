@@ -14,7 +14,7 @@ open System
 open System.Text.Json
 
 /// Default ILokiExceptionFormatter.
-/// Recursively serialises Type, Message, Source, StackTrace and inner exceptions.
+/// Recursively serializes Type, Message, Source, StackTrace and inner exceptions.
 type LokiExceptionFormatter() =
 
     // Pre-encode property names once at startup — avoids per-call encoding on the hot path.

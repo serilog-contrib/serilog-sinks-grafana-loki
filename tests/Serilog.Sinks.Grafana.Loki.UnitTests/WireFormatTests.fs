@@ -25,10 +25,11 @@ let private traceParser = MessageTemplateParser()
 /// running Activity (ActivitySource + listener setup is not required).
 let private mkEventWithTrace () =
     let traceId = ActivityTraceId.CreateRandom()
-    let spanId  = ActivitySpanId.CreateRandom()
-    traceId, spanId,
-    LogEvent(DateTimeOffset.UtcNow, LogEventLevel.Information, null,
-             traceParser.Parse(""), [], traceId, spanId)
+    let spanId = ActivitySpanId.CreateRandom()
+
+    traceId,
+    spanId,
+    LogEvent(DateTimeOffset.UtcNow, LogEventLevel.Information, null, traceParser.Parse(""), [], traceId, spanId)
 
 // ── Fake HTTP infrastructure ──────────────────────────────────────────────────
 
@@ -94,7 +95,7 @@ let private makeSink (configure: LokiSinkOptions -> LokiSinkOptions) =
     handler, sink
 
 /// Injects FakeHttpHandler as HttpMessageHandler — sink owns the client and applies
-/// auth/tenant headers. Use for HTTP-behaviour tests.
+/// auth/tenant headers. Use for HTTP-behavior tests.
 let private makeSinkWithHandler (configure: LokiSinkOptions -> LokiSinkOptions) =
     let handler = new FakeHttpHandler()
 
@@ -239,10 +240,9 @@ let ``body: Exception field present when event has exception`` () : Task =
         let handler, sink = makeSink id
         use _ = sink
         let ex = InvalidOperationException("boom")
-        let props = [ "Message", box "error" ]
-
+        
         let event =
-            let template = Serilog.Parsing.MessageTemplateParser().Parse("")
+            let template = MessageTemplateParser().Parse("")
             LogEvent(DateTimeOffset.UtcNow, LogEventLevel.Error, ex, template, [])
 
         do! flush sink [ event ]
@@ -437,7 +437,7 @@ let ``http auth: Authorization header set when credentials provided`` () : Task 
         let scheme = handler.Last.AuthScheme
         let param = handler.Last.AuthParameter
         // base64("user:pass") = "dXNlcjpwYXNz"
-        let expected = Convert.ToBase64String(Text.Encoding.UTF8.GetBytes("user:pass"))
+        let expected = Convert.ToBase64String(Encoding.UTF8.GetBytes("user:pass"))
         test <@ scheme = Some "Basic" && param = Some expected @>
     }
 
@@ -469,9 +469,9 @@ let ``body: TraceId written when EnrichTraceId=true and event carries a TraceId`
         let handler, sink = makeSinkWithHandler (fun o -> { o with EnrichTraceId = true })
         use _ = sink
         let traceId, _, event = mkEventWithTrace ()
-        let expectedTrace = traceId.ToHexString()   // extract before quotation — struct capture not allowed in quotations
+        let expectedTrace = traceId.ToHexString() // extract before quotation — struct capture not allowed in quotations
         do! flush sink [ event ]
-        use doc    = handler.LastBodyJson
+        use doc = handler.LastBodyJson
         let bodyTr = bodyProp "TraceId" (streamAt 0 doc) 0
         test <@ bodyTr = Some expectedTrace @>
     }
@@ -484,7 +484,7 @@ let ``body: SpanId written when EnrichSpanId=true and event carries a SpanId`` (
         let _, spanId, event = mkEventWithTrace ()
         let expectedSpan = spanId.ToHexString()
         do! flush sink [ event ]
-        use doc    = handler.LastBodyJson
+        use doc = handler.LastBodyJson
         let bodySp = bodyProp "SpanId" (streamAt 0 doc) 0
         test <@ bodySp = Some expectedSpan @>
     }
@@ -492,11 +492,11 @@ let ``body: SpanId written when EnrichSpanId=true and event carries a SpanId`` (
 [<Fact>]
 let ``body: TraceId absent when EnrichTraceId=false (default)`` () : Task =
     task {
-        let handler, sink = makeSinkWithHandler id   // EnrichTraceId defaults to false
+        let handler, sink = makeSinkWithHandler id // EnrichTraceId defaults to false
         use _ = sink
-        let _, _, event = mkEventWithTrace ()   // event has a TraceId but sink won't write it
+        let _, _, event = mkEventWithTrace () // event has a TraceId but sink won't write it
         do! flush sink [ event ]
-        use doc      = handler.LastBodyJson
+        use doc = handler.LastBodyJson
         let hasTrace = hasBodyProp "TraceId" (streamAt 0 doc) 0
         test <@ not hasTrace @>
     }

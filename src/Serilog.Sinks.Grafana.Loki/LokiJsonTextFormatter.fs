@@ -18,8 +18,8 @@ open Serilog.Formatting
 open Serilog.Sinks.Grafana.Loki.Infrastructure
 
 /// Formats log events as a JSON object written to the Loki log entry body.
-/// Subclass and override Format or SanitizePropertyName to customise output.
-/// Exception serialisation is delegated to ILokiExceptionFormatter.
+/// Subclass and override Format or SanitizePropertyName to customize output.
+/// Exception serialization is delegated to ILokiExceptionFormatter.
 type LokiJsonTextFormatter(exceptionFormatter: ILokiExceptionFormatter, enrichTraceId: bool, enrichSpanId: bool) =
 
     // ── Statics — must precede constructors and member definitions in F# ──────

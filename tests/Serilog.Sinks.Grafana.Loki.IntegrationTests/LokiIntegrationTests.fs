@@ -243,15 +243,17 @@ type LokiIntegrationTests(loki: LokiFixture) =
         task {
             let startNs = nowNs ()
             let selector = $"{{testrun=\"{runId}\",test=\"custom-ex-fmt\"}}"
-            let ex       = InvalidOperationException("formatter test")
-            let event    = LogEvent(DateTimeOffset.UtcNow, LogEventLevel.Error, ex, parser.Parse("error"), [])
+            let ex = InvalidOperationException("formatter test")
+
+            let event =
+                LogEvent(DateTimeOffset.UtcNow, LogEventLevel.Error, ex, parser.Parse("error"), [])
 
             do!
                 writeThenFlush
                     loki.Uri
                     (fun o ->
                         { o with
-                            Labels             = testLabel "custom-ex-fmt"
+                            Labels = testLabel "custom-ex-fmt"
                             ExceptionFormatter = NoTypeFormatter() })
                     [ event ]
 
@@ -259,9 +261,9 @@ type LokiIntegrationTests(loki: LokiFixture) =
             test <@ entries.Length = 1 @>
             use body = JsonDocument.Parse(entries[0].Line)
             // NoTypeFormatter writes only Message, no Type or StackTrace
-            let exEl    = body.RootElement.TryGetProperty("Exception") |> snd
-            let hasType = exEl.TryGetProperty("Type")   |> fst
-            let hasMsg  = exEl.TryGetProperty("Message") |> fst
+            let exEl = body.RootElement.TryGetProperty("Exception") |> snd
+            let hasType = exEl.TryGetProperty("Type") |> fst
+            let hasMsg = exEl.TryGetProperty("Message") |> fst
             test <@ not hasType && hasMsg @>
         }
 
@@ -272,7 +274,7 @@ type LokiIntegrationTests(loki: LokiFixture) =
         task {
             let startNs = nowNs ()
             let selector = $"{{testrun=\"{runId}\",test=\"multi-batch\"}}"
-            let labels   = testLabel "multi-batch"
+            let labels = testLabel "multi-batch"
 
             // Three sequential flushes simulate what batchSizeLimit=4 would produce
             // when a queue of 12 events drains across multiple batching ticks.
@@ -293,7 +295,7 @@ type LokiIntegrationTests(loki: LokiFixture) =
 
 and NoTypeFormatter() =
     interface ILokiExceptionFormatter with
-        member _.Format(writer: System.Text.Json.Utf8JsonWriter, ex: exn) =
+        member _.Format(writer: Utf8JsonWriter, ex: exn) =
             writer.WriteStartObject()
             writer.WriteString("Message", ex.Message)
             writer.WriteEndObject()

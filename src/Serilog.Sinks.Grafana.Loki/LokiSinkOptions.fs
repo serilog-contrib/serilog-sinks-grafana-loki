@@ -25,7 +25,7 @@ open Serilog.Formatting
 ///   opts.BatchSizeLimit = 500;
 ///
 /// Do NOT use `new LokiSinkOptions { ... }` from C# — unset fields will be
-/// zero-initialised (BatchSizeLimit=0, Period=0s, etc.) which will cause errors.
+/// zero-initialized (BatchSizeLimit=0, Period=0s, etc.) which will cause errors.
 [<CLIMutable>]
 type LokiSinkOptions =
     {
@@ -92,7 +92,7 @@ type LokiSinkOptions =
         /// Optional HttpMessageHandler for the sink's internally-created HttpClient.
         /// Use this to inject retry handlers, compression, or test fakes while keeping the
         /// sink responsible for auth and client lifetime. Ignored when HttpClient is non-null.
-        HttpMessageHandler: Net.Http.HttpMessageHandler
+        HttpMessageHandler: HttpMessageHandler
     }
 
     // ── Defaults — intrinsic member so it is visible to C# consumers ─────────────
@@ -111,20 +111,20 @@ type LokiSinkOptions =
     ///   F#: { LokiSinkOptions.Defaults with Uri = "http://localhost:3100" }
     ///   C#: var opts = LokiSinkOptions.Defaults; opts.Uri = "http://localhost:3100";
     static member Defaults =
-        { Uri                   = ""
-          Labels                = [||]
-          PropertiesAsLabels    = [||]
+        { Uri = ""
+          Labels = [||]
+          PropertiesAsLabels = [||]
           HandleLogLevelAsLabel = true
-          Credentials           = Unchecked.defaultof<LokiCredentials>
-          Tenant                = null
-          EnrichTraceId         = false
-          EnrichSpanId          = false
-          BatchSizeLimit        = LokiSinkOptions.DefaultBatchSizeLimit
-          QueueLimit            = LokiSinkOptions.DefaultQueueLimit
-          Period                = TimeSpan.FromSeconds 1.0
+          Credentials = Unchecked.defaultof<LokiCredentials>
+          Tenant = null
+          EnrichTraceId = false
+          EnrichSpanId = false
+          BatchSizeLimit = LokiSinkOptions.DefaultBatchSizeLimit
+          QueueLimit = LokiSinkOptions.DefaultQueueLimit
+          Period = TimeSpan.FromSeconds 1.0
           EagerlyEmitFirstEvent = true
-          RetryTimeLimit        = TimeSpan.FromMinutes 10.0
-          TextFormatter         = Unchecked.defaultof<ITextFormatter>
-          ExceptionFormatter    = Unchecked.defaultof<ILokiExceptionFormatter>
-          HttpClient            = Unchecked.defaultof<HttpClient>
-          HttpMessageHandler    = Unchecked.defaultof<Net.Http.HttpMessageHandler> }
+          RetryTimeLimit = TimeSpan.FromMinutes 10.0
+          TextFormatter = Unchecked.defaultof<ITextFormatter>
+          ExceptionFormatter = Unchecked.defaultof<ILokiExceptionFormatter>
+          HttpClient = Unchecked.defaultof<HttpClient>
+          HttpMessageHandler = Unchecked.defaultof<HttpMessageHandler> }
