@@ -86,12 +86,13 @@ type LoggerConfigurationLokiExtensions =
         // ── Batching ──────────────────────────────────────────────────────────
         [<Optional; DefaultParameterValue(1_000)>] batchSizeLimit: int,
         [<Optional; DefaultParameterValue(50_000)>] queueLimit: int,
-        // String type so Serilog.Settings.Configuration can bind "00:00:01" from appsettings.json.
-        // [<Optional>] TimeSpan compiles with default=Missing which breaks Settings.Configuration.
-        // Null/empty = use default (1 s). Format: "hh:mm:ss" e.g. "00:00:02".
+        // String type is required: F# [<Optional>] TimeSpan and Nullable<TimeSpan> both compile with
+        // default=Missing.Value which Serilog.Settings.Configuration cannot use when building the
+        // reflection call. C# TimeSpan?=null emits default=null but F# cannot replicate this.
+        // Null/empty = use sink default. Format: "hh:mm:ss" e.g. "00:00:02".
         [<Optional; DefaultParameterValue(null: string)>] period: string,
         [<Optional; DefaultParameterValue(true)>] eagerlyEmitFirstEvent: bool,
-        // Null/empty = use default (10 min). Format: "hh:mm:ss" e.g. "00:10:00".
+        // Null/empty = use sink default (10 min).
         [<Optional; DefaultParameterValue(null: string)>] retryTimeLimit: string,
         // ── Extension points ──────────────────────────────────────────────────
         [<Optional; DefaultParameterValue(null: ITextFormatter)>] textFormatter: ITextFormatter,
