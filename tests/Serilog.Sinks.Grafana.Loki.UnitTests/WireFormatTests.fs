@@ -652,7 +652,7 @@ type private ErrorHttpHandler(statusCode: HttpStatusCode) =
     inherit HttpMessageHandler()
 
     override _.SendAsync(_, _) =
-        Threading.Tasks.Task.FromResult(new HttpResponseMessage(statusCode))
+        Task.FromResult(new HttpResponseMessage(statusCode))
 
 [<Fact>]
 let ``http error: non-success response causes EmitBatchAsync to throw`` () : Task =
