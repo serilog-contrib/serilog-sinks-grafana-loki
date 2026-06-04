@@ -648,25 +648,25 @@ let ``body: custom ITextFormatter goes through Utf8TextWriter path`` () : Task =
 
 // ── HTTP error response path ──────────────────────────────────────────────────
 
+type private ErrorHttpHandler(statusCode: HttpStatusCode) =
+    inherit HttpMessageHandler()
+
+    override _.SendAsync(_, _) =
+        Threading.Tasks.Task.FromResult(new HttpResponseMessage(statusCode))
+
 [<Fact>]
-let ``http error: non-success response causes EnsureSuccessStatusCode to throw`` () : Task =
+let ``http error: non-success response causes EmitBatchAsync to throw`` () : Task =
     task {
-        // Override handler to return 500
-        let handler = new FakeHttpHandler()
-        let client = new HttpClient(handler)
-        // Patch: need a handler that returns 500
-        // Use a custom inline handler
         let options =
             { LokiSinkOptions.Defaults with
                 Uri = "http://localhost:3100"
-                HttpClient = client }
+                HttpClient = new HttpClient(new ErrorHttpHandler(HttpStatusCode.InternalServerError)) }
 
         use sink = new LokiSink(options)
-        // We can't easily make FakeHttpHandler return 500 in the current API,
-        // so this test verifies the path via a custom handler returning InternalServerError.
-        // The actual EnsureSuccessStatusCode path is exercised by integration tests.
-        // Here we assert the sink correctly handles the NoContent happy path.
-        do! (sink :> IBatchedLogEventSink).EmitBatchAsync(Array.ofList [ mkInfo [] ])
-        test <@ handler.Count = 1 @>
-        test <@ handler.Last.RequestUri.AbsolutePath = "/loki/api/v1/push" @>
+
+        let! ex =
+            Assert.ThrowsAsync<HttpRequestException>(fun () ->
+                (sink :> IBatchedLogEventSink).EmitBatchAsync(Array.ofList [ mkInfo [] ]))
+
+        test <@ not (isNull ex) @>
     }

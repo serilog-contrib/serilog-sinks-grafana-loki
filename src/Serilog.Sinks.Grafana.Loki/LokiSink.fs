@@ -14,6 +14,7 @@ open System
 open System.Collections.Generic
 open System.Net.Http
 open System.Net.Http.Headers
+open System.Runtime.ExceptionServices
 open System.Text
 open Serilog.Core
 open Serilog.Debugging
@@ -120,7 +121,8 @@ type internal LokiSink(options: LokiSinkOptions) =
                         ex
                     )
 
-                    raise ex
+                    // reraise() is not legal inside task { }; ExceptionDispatchInfo preserves the original stack trace.
+                    ExceptionDispatchInfo.Capture(ex).Throw()
 
                 use content = new LokiPushContent(mainBuffer)
                 use! response = httpClient.PostAsync(pushUri, content)
