@@ -15,8 +15,10 @@ open Serilog.Formatting
 open Serilog.Sinks.PeriodicBatching
 
 /// Registers the Grafana Loki sink with a LoggerConfiguration.
-[<Extension>]
-type LoggerConfigurationLokiExtensions private () =
+/// AbstractClass + Sealed produces the same IL as a C# static class (IsAbstract=true, IsSealed=true),
+/// which is required for Serilog.Settings.Configuration to discover the extension method.
+[<AbstractClass; Sealed; Extension>]
+type LoggerConfigurationLokiExtensions =
 
     static let validateUri (uri: string) =
         if String.IsNullOrWhiteSpace uri then
@@ -84,9 +86,13 @@ type LoggerConfigurationLokiExtensions private () =
         // ── Batching ──────────────────────────────────────────────────────────
         [<Optional; DefaultParameterValue(1_000)>] batchSizeLimit: int,
         [<Optional; DefaultParameterValue(50_000)>] queueLimit: int,
-        [<Optional>] period: Nullable<TimeSpan>,
+        // String type so Serilog.Settings.Configuration can bind "00:00:01" from appsettings.json.
+        // [<Optional>] TimeSpan compiles with default=Missing which breaks Settings.Configuration.
+        // Null/empty = use default (1 s). Format: "hh:mm:ss" e.g. "00:00:02".
+        [<Optional; DefaultParameterValue(null: string)>] period: string,
         [<Optional; DefaultParameterValue(true)>] eagerlyEmitFirstEvent: bool,
-        [<Optional>] retryTimeLimit: Nullable<TimeSpan>,
+        // Null/empty = use default (10 min). Format: "hh:mm:ss" e.g. "00:10:00".
+        [<Optional; DefaultParameterValue(null: string)>] retryTimeLimit: string,
         // ── Extension points ──────────────────────────────────────────────────
         [<Optional; DefaultParameterValue(null: ITextFormatter)>] textFormatter: ITextFormatter,
         [<Optional; DefaultParameterValue(null: ILokiExceptionFormatter)>] exceptionFormatter: ILokiExceptionFormatter,
@@ -111,9 +117,9 @@ type LoggerConfigurationLokiExtensions private () =
               EnrichSpanId          = enrichSpanId
               BatchSizeLimit        = batchSizeLimit
               QueueLimit            = queueLimit
-              Period                = if period.HasValue then period.Value else TimeSpan.FromSeconds 1.0
+              Period                = if String.IsNullOrEmpty period then TimeSpan.FromSeconds 1.0 else TimeSpan.Parse(period)
               EagerlyEmitFirstEvent = eagerlyEmitFirstEvent
-              RetryTimeLimit        = if retryTimeLimit.HasValue then retryTimeLimit.Value else TimeSpan.FromMinutes 10.0
+              RetryTimeLimit        = if String.IsNullOrEmpty retryTimeLimit then TimeSpan.FromMinutes 10.0 else TimeSpan.Parse(retryTimeLimit)
               TextFormatter         = textFormatter
               ExceptionFormatter    = exceptionFormatter
               HttpClient            = httpClient
