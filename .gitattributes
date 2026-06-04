@@ -1,0 +1,9 @@
+# Normalise all text files to LF in the repository and on checkout.
+# Eliminates the "LF will be replaced by CRLF" warning on Windows.
+* text=auto eol=lf
+
+# Explicitly mark binary assets so git never attempts line-ending conversion.
+*.snk  binary
+*.png  binary
+*.dll  binary
+*.exe  binary
