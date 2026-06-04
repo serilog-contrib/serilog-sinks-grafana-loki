@@ -161,3 +161,18 @@ type LoggerConfigurationLokiExtensions =
               HttpMessageHandler = httpMessageHandler }
 
         wire sinkConfig options restrictedToMinimumLevel
+
+    /// <summary>
+    /// Writes log events to Grafana Loki using a pre-built <see cref="LokiSinkOptions"/>.
+    /// </summary>
+    /// <param name="sinkConfig">The logger sink configuration.</param>
+    /// <param name="options">Fully configured options. <see cref="LokiSinkOptions.Defaults"/> provides default values.</param>
+    /// <param name="restrictedToMinimumLevel">Minimum log level (default: Verbose).</param>
+    [<Extension>]
+    static member GrafanaLoki
+        (
+            sinkConfig: LoggerSinkConfiguration,
+            options: LokiSinkOptions,
+            [<Optional; DefaultParameterValue(LevelAlias.Minimum)>] restrictedToMinimumLevel: LogEventLevel
+        ) =
+        wire sinkConfig options restrictedToMinimumLevel
