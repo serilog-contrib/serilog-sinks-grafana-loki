@@ -39,7 +39,8 @@ module internal Serialization =
         =
 
         match textFormatter with
-        | :? LokiJsonTextFormatter as fmt -> fmt.FormatToBuffer(event, bodyBuffer)
+        | :? LokiJsonTextFormatter as fmt when fmt.GetType() = typeof<LokiJsonTextFormatter> ->
+            fmt.FormatToBuffer(event, bodyBuffer)
         | _ ->
             use textWriter = new Utf8TextWriter(bodyBuffer)
             textFormatter.Format(event, textWriter)

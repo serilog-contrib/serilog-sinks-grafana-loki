@@ -68,7 +68,7 @@ type internal LokiSink(options: LokiSinkOptions) =
 
                 client.DefaultRequestHeaders.Authorization <- AuthenticationHeaderValue("Basic", token)
 
-        if not (String.IsNullOrEmpty options.Tenant) then
+        if ownsClient && not (String.IsNullOrEmpty options.Tenant) then
             if not (client.DefaultRequestHeaders.TryAddWithoutValidation("X-Scope-OrgID", options.Tenant)) then
                 SelfLog.WriteLine(
                     "Serilog.Sinks.GrafanaLoki: X-Scope-OrgID header could not be set for tenant '{0}'. The value may contain invalid characters.",
@@ -119,7 +119,7 @@ type internal LokiSink(options: LokiSinkOptions) =
                     raise ex
 
                 use content = new LokiPushContent(mainBuffer)
-                let! response = httpClient.PostAsync(pushUri, content)
+                use! response = httpClient.PostAsync(pushUri, content)
 
                 if not response.IsSuccessStatusCode then
                     let! body =
