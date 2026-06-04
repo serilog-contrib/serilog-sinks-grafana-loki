@@ -2,7 +2,7 @@ root = true
 
 [*]
 end_of_line = lf
-insert_final_newline = true
+insert_final_newline = false
 
 [*.cs]
 # ── StyleCop.Analyzers.Unstable — rule severity ───────────────────────────────
@@ -40,6 +40,9 @@ dotnet_diagnostic.SA1401.severity = none
 # SA1412/SA1413 — file encoding / trailing comma (flexible)
 dotnet_diagnostic.SA1412.severity = none
 dotnet_diagnostic.SA1413.severity = none
+
+# SA1518 — no trailing newline requirement
+dotnet_diagnostic.SA1518.severity = none
 
 # SA1506/SA1514 — blank line rules (flexible)
 dotnet_diagnostic.SA1506.severity = none
