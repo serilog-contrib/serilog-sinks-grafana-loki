@@ -5,18 +5,25 @@
         </PropertyGroup>
     </Target>
 
-    <!-- Auto-install Husky git hooks on restore so contributors get them without
-         any manual step. Set HUSKY=0 to skip — use this in CI pipelines to avoid
-         unnecessary hook installation (add HUSKY=0 to the workflow env section).
-         ContinueOnError: hooks are already installed on subsequent restores — not a real error. -->
-    <Target Name="HuskyInstall" AfterTargets="Restore" Condition="'$(HUSKY)' != '0'">
+    <!--
+      Auto-install Husky git hooks before restore so contributors get them without
+      any manual step. Runs only inside a git repository (Exists('.git')) so Docker
+      builds and similar non-git contexts are skipped with zero configuration.
+      Set HUSKY=0 to opt out explicitly (ci.yaml already does this).
+      IgnoreExitCode: re-runs after hooks are already installed are not errors.
+      StandardErrorImportance=High: errors remain visible for debugging despite IgnoreExitCode.
+    -->
+    <Target Name="HuskyInstall"
+            BeforeTargets="Restore;CollectPackageReferences"
+            Condition="Exists('$(MSBuildThisFileDirectory).git') AND '$(HUSKY)' != '0'">
         <Exec Command="dotnet tool restore"
-              WorkingDirectory="$(MSBuildThisFileDirectory)"
               StandardOutputImportance="Low"
-              ContinueOnError="true" />
+              StandardErrorImportance="High"
+              IgnoreExitCode="true" />
         <Exec Command="dotnet husky install"
               WorkingDirectory="$(MSBuildThisFileDirectory)"
               StandardOutputImportance="Low"
-              ContinueOnError="true" />
+              StandardErrorImportance="High"
+              IgnoreExitCode="true" />
     </Target>
 </Project>
