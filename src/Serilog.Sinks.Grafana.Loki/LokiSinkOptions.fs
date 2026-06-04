@@ -71,6 +71,11 @@ type LokiSinkOptions = {
     /// Non-null → the sink never disposes the client; lifecycle is the caller's responsibility.
     HttpClient: HttpClient
 
+    /// Optional HttpMessageHandler for the sink's internally-created HttpClient.
+    /// Use this to inject retry handlers, compression, or test fakes while keeping the
+    /// sink responsible for auth and client lifetime. Ignored when HttpClient is non-null.
+    HttpMessageHandler: Net.Http.HttpMessageHandler
+
     /// Clock abstraction. Null → TimeProvider.System.
     TimeProvider: TimeProvider
 }
@@ -102,5 +107,6 @@ module LokiSinkOptionsDefaults =
             TextFormatter         = Unchecked.defaultof<ITextFormatter>
             ExceptionFormatter    = Unchecked.defaultof<ILokiExceptionFormatter>
             HttpClient            = Unchecked.defaultof<HttpClient>
+            HttpMessageHandler    = Unchecked.defaultof<Net.Http.HttpMessageHandler>
             TimeProvider          = Unchecked.defaultof<TimeProvider>
         }

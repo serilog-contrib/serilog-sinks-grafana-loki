@@ -37,7 +37,10 @@ type internal LokiSink(options: LokiSinkOptions) =
 
     let httpClient: HttpClient =
         let client =
-            if ownsClient then new HttpClient()
+            if ownsClient then
+                if isNull options.HttpMessageHandler
+                then new HttpClient()
+                else new HttpClient(options.HttpMessageHandler)
             else options.HttpClient
 
         // Apply Basic Auth only to a client we created — injected clients are pre-configured.

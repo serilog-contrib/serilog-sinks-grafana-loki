@@ -29,6 +29,7 @@
     <Compile Include="LabelsTests.fs" />
     <Compile Include="GroupingTests.fs" />
     <Compile Include="LokiExceptionFormatterTests.fs" />
+    <Compile Include="WireFormatTests.fs" />
   </ItemGroup>
 
 </Project>
