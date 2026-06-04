@@ -7,6 +7,7 @@
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See LICENSE file in the project root for full license information.
+
 module Serilog.Sinks.Grafana.Loki.AssemblyInfo
 
 [<assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Serilog.Sinks.Grafana.Loki.UnitTests")>]
