@@ -1,4 +1,4 @@
-﻿// Copyright 2020-2026 Mykhailo Shevchuk & Contributors
+// Copyright 2020-2026 Mykhailo Shevchuk & Contributors
 //
 // Licensed under the MIT license;
 // you may not use this file except in compliance with the License.
@@ -6,10 +6,12 @@
 namespace Serilog.Sinks.Grafana.Loki
 
 open System
+open System.Net.Http
 open System.Runtime.CompilerServices
 open System.Runtime.InteropServices
 open Serilog.Configuration
 open Serilog.Events
+open Serilog.Formatting
 open Serilog.Sinks.PeriodicBatching
 
 /// Registers the Grafana Loki sink with a LoggerConfiguration.
@@ -26,47 +28,96 @@ type LoggerConfigurationLokiExtensions private () =
             invalidArg "uri" $"Loki URI scheme must be http or https, got '{u.Scheme}'."
         | _ -> ()
 
-    static let buildBatchingOptions (options: LokiSinkOptions) =
-        PeriodicBatchingSinkOptions(
-            BatchSizeLimit = options.BatchSizeLimit,
-            Period = options.Period,
-            EagerlyEmitFirstEvent = options.EagerlyEmitFirstEvent,
-            QueueLimit = Nullable options.QueueLimit
-        )
-
     static let wire (sinkConfig: LoggerSinkConfiguration) (options: LokiSinkOptions) (level: LogEventLevel) =
-
         validateUri options.Uri
 
-        let sink = new LokiSink(options)
-        let batched = new PeriodicBatchingSink(sink, buildBatchingOptions options)
+        let batchingOpts =
+            PeriodicBatchingSinkOptions(
+                BatchSizeLimit        = options.BatchSizeLimit,
+                Period                = options.Period,
+                EagerlyEmitFirstEvent = options.EagerlyEmitFirstEvent,
+                QueueLimit            = Nullable options.QueueLimit)
+
+        let sink    = new LokiSink(options)
+        let batched = new PeriodicBatchingSink(sink, batchingOpts)
         sinkConfig.Sink(batched, level)
 
-    // ── Primary overload — full options object ────────────────────────────────
-
-    /// Writes log events to Grafana Loki using the provided options.
+    /// <summary>
+    /// Writes log events to Grafana Loki.
+    /// </summary>
+    /// <param name="sinkConfig">The logger sink configuration.</param>
+    /// <param name="uri">Loki base URI, e.g. "http://localhost:3100". Required.</param>
+    /// <param name="labels">Static labels attached to every stream.</param>
+    /// <param name="propertiesAsLabels">Property names to promote to stream labels.</param>
+    /// <param name="handleLogLevelAsLabel">Add a 'level' stream label (default: true).</param>
+    /// <param name="credentialsLogin">Basic-auth login. Pair with credentialsPassword.</param>
+    /// <param name="credentialsPassword">Basic-auth password.</param>
+    /// <param name="tenant">X-Scope-OrgID multi-tenancy header value.</param>
+    /// <param name="enrichTraceId">Write ActivityTraceId to the log body (default: false).</param>
+    /// <param name="enrichSpanId">Write ActivitySpanId to the log body (default: false).</param>
+    /// <param name="batchSizeLimit">Maximum events per HTTP POST (default: 1 000).</param>
+    /// <param name="queueLimit">Maximum in-memory queue size before dropping (default: 50 000).</param>
+    /// <param name="period">Flush interval (default: 1 s).</param>
+    /// <param name="eagerlyEmitFirstEvent">Flush immediately on the first event (default: true).</param>
+    /// <param name="retryTimeLimit">Stop retrying a failed batch after this duration (default: 10 min).</param>
+    /// <param name="textFormatter">Per-event body formatter (default: LokiJsonTextFormatter).</param>
+    /// <param name="exceptionFormatter">Exception serializer (default: LokiExceptionFormatter).</param>
+    /// <param name="httpClient">Pre-built HttpClient. The sink never disposes an injected client.</param>
+    /// <param name="httpMessageHandler">Handler for the sink's own HttpClient (compression, retry, etc.).</param>
+    /// <param name="timeProvider">Clock abstraction for testability (default: TimeProvider.System).</param>
+    /// <param name="restrictedToMinimumLevel">Minimum log level (default: Verbose).</param>
     [<Extension>]
-    static member GrafanaLoki
-        (
-            sinkConfig: LoggerSinkConfiguration,
-            options: LokiSinkOptions,
-            [<Optional; DefaultParameterValue(LevelAlias.Minimum)>] restrictedToMinimumLevel: LogEventLevel
-        ) =
+    static member GrafanaLoki(
+        sinkConfig: LoggerSinkConfiguration,
+        uri: string,
+        // ── Labels ────────────────────────────────────────────────────────────
+        [<Optional; DefaultParameterValue(null: LokiLabel[])>] labels: LokiLabel[],
+        [<Optional; DefaultParameterValue(null: string[])>] propertiesAsLabels: string[],
+        [<Optional; DefaultParameterValue(true)>] handleLogLevelAsLabel: bool,
+        // ── Auth / routing ────────────────────────────────────────────────────
+        [<Optional; DefaultParameterValue(null: string)>] credentialsLogin: string,
+        [<Optional; DefaultParameterValue(null: string)>] credentialsPassword: string,
+        [<Optional; DefaultParameterValue(null: string)>] tenant: string,
+        // ── OpenTelemetry ─────────────────────────────────────────────────────
+        [<Optional; DefaultParameterValue(false)>] enrichTraceId: bool,
+        [<Optional; DefaultParameterValue(false)>] enrichSpanId: bool,
+        // ── Batching ──────────────────────────────────────────────────────────
+        [<Optional; DefaultParameterValue(1_000)>] batchSizeLimit: int,
+        [<Optional; DefaultParameterValue(50_000)>] queueLimit: int,
+        [<Optional>] period: Nullable<TimeSpan>,
+        [<Optional; DefaultParameterValue(true)>] eagerlyEmitFirstEvent: bool,
+        [<Optional>] retryTimeLimit: Nullable<TimeSpan>,
+        // ── Extension points ──────────────────────────────────────────────────
+        [<Optional; DefaultParameterValue(null: ITextFormatter)>] textFormatter: ITextFormatter,
+        [<Optional; DefaultParameterValue(null: ILokiExceptionFormatter)>] exceptionFormatter: ILokiExceptionFormatter,
+        [<Optional; DefaultParameterValue(null: HttpClient)>] httpClient: HttpClient,
+        [<Optional; DefaultParameterValue(null: Net.Http.HttpMessageHandler)>] httpMessageHandler: Net.Http.HttpMessageHandler,
+        [<Optional; DefaultParameterValue(null: TimeProvider)>] timeProvider: TimeProvider,
+        // ── Level ─────────────────────────────────────────────────────────────
+        [<Optional; DefaultParameterValue(LevelAlias.Minimum)>] restrictedToMinimumLevel: LogEventLevel) =
+
+        let credentials =
+            if String.IsNullOrEmpty credentialsLogin then Unchecked.defaultof<LokiCredentials>
+            else { Login = credentialsLogin; Password = credentialsPassword }
+
+        let options =
+            { Uri                   = uri
+              Labels                = if isNull labels then [||] else labels
+              PropertiesAsLabels    = if isNull propertiesAsLabels then [||] else propertiesAsLabels
+              HandleLogLevelAsLabel = handleLogLevelAsLabel
+              Credentials           = credentials
+              Tenant                = tenant
+              EnrichTraceId         = enrichTraceId
+              EnrichSpanId          = enrichSpanId
+              BatchSizeLimit        = batchSizeLimit
+              QueueLimit            = queueLimit
+              Period                = if period.HasValue then period.Value else TimeSpan.FromSeconds 1.0
+              EagerlyEmitFirstEvent = eagerlyEmitFirstEvent
+              RetryTimeLimit        = if retryTimeLimit.HasValue then retryTimeLimit.Value else TimeSpan.FromMinutes 10.0
+              TextFormatter         = textFormatter
+              ExceptionFormatter    = exceptionFormatter
+              HttpClient            = httpClient
+              HttpMessageHandler    = httpMessageHandler
+              TimeProvider          = timeProvider }
+
         wire sinkConfig options restrictedToMinimumLevel
-
-    // ── Convenience overload — URI only ───────────────────────────────────────
-
-    /// Writes log events to Grafana Loki at the given URI using default options.
-    /// All other settings can be tuned via the options object overload.
-    [<Extension>]
-    static member GrafanaLoki
-        (
-            sinkConfig: LoggerSinkConfiguration,
-            uri: string,
-            [<Optional; DefaultParameterValue(LevelAlias.Minimum)>] restrictedToMinimumLevel: LogEventLevel
-        ) =
-        wire
-            sinkConfig
-            { LokiSinkOptions.Defaults with
-                Uri = uri }
-            restrictedToMinimumLevel
