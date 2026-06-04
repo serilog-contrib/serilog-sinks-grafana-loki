@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master, v9]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  build:
+    name: Build & Unit Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0  # MinVer needs full history for version calculation
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: |
+            8.x
+            9.x
+            10.x
+
+      - name: Restore
+        run: dotnet restore src/Serilog.Sinks.Grafana.Loki/Serilog.Sinks.Grafana.Loki.fsproj
+
+      - name: Build
+        run: dotnet build src/Serilog.Sinks.Grafana.Loki/Serilog.Sinks.Grafana.Loki.fsproj -c Release --no-restore --nologo
+
+      - name: Unit tests
+        run: dotnet test tests/Serilog.Sinks.Grafana.Loki.UnitTests/Serilog.Sinks.Grafana.Loki.UnitTests.fsproj -c Release --no-build --nologo
+
+      - name: Pack
+        run: dotnet pack src/Serilog.Sinks.Grafana.Loki/Serilog.Sinks.Grafana.Loki.fsproj -c Release --no-build --nologo -o artifacts
+
+      - name: Upload NuGet artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-package
+          path: artifacts/*.nupkg
+
+  integration:
+    name: Integration Tests (Docker)
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.x
+
+      - name: Integration tests
+        run: dotnet test tests/Serilog.Sinks.Grafana.Loki.IntegrationTests/Serilog.Sinks.Grafana.Loki.IntegrationTests.fsproj -c Release --nologo
