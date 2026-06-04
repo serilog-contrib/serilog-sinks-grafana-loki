@@ -6,7 +6,7 @@
         <RootNamespace>Serilog.Sinks.Grafana.Loki</RootNamespace>
         <Description>A Serilog sink that writes log events to Grafana Loki</Description>
         <PackageTags>serilog;loki;grafana;logging;sink</PackageTags>
-        <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <PackageProjectUrl>https://github.com/serilog-contrib/serilog-sinks-grafana-loki</PackageProjectUrl>
         <PackageIcon>icon.png</PackageIcon>
         <PackageReadmeFile>README.md</PackageReadmeFile>
