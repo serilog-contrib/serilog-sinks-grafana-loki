@@ -71,7 +71,6 @@ module internal Serialization =
         for stream in streams do
             jsonWriter.WriteStartObject()
 
-            // Stream labels
             jsonWriter.WritePropertyName(jStream)
             jsonWriter.WriteStartObject()
 
@@ -80,7 +79,6 @@ module internal Serialization =
 
             jsonWriter.WriteEndObject()
 
-            // Values array
             jsonWriter.WritePropertyName(jValues)
             jsonWriter.WriteStartArray()
 
@@ -96,4 +94,3 @@ module internal Serialization =
 
         jsonWriter.WriteEndArray()
         jsonWriter.WriteEndObject()
-// Utf8JsonWriter.Dispose() calls Flush(), so `use` above handles it.

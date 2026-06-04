@@ -88,7 +88,6 @@ type internal LokiSink(options: LokiSinkOptions) =
 
     // ── IBatchedLogEventSink ──────────────────────────────────────────────────
 
-    // Serilog.Core.IBatchedLogEventSink takes IReadOnlyCollection (not IEnumerable).
     interface IBatchedLogEventSink with
 
         member _.EmitBatchAsync(batch: IReadOnlyCollection<LogEvent>) =

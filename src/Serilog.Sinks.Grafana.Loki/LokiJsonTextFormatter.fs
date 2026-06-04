@@ -134,7 +134,6 @@ type LokiJsonTextFormatter(exceptionFormatter: ILokiExceptionFormatter, enrichTr
             writeValue jsonWriter kvp.Value
 
         jsonWriter.WriteEndObject()
-    // Utf8JsonWriter.Dispose() (called by `use`) flushes the writer.
 
     // ── Virtualizable public surface ──────────────────────────────────────────
 
@@ -150,8 +149,6 @@ type LokiJsonTextFormatter(exceptionFormatter: ILokiExceptionFormatter, enrichTr
     default self.Format(logEvent: LogEvent, output: IO.TextWriter) =
         use buffer = new PooledByteBufferWriter(256)
         self.FormatToBuffer(logEvent, buffer)
-        // ITextFormatter contract requires a TextWriter.
-        // Serialization.fs uses FormatToBuffer directly and bypasses this conversion.
         output.Write(Text.Encoding.UTF8.GetString(buffer.WrittenSpan))
 
     interface ITextFormatter with
