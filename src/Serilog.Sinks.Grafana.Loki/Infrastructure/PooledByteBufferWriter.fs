@@ -14,6 +14,7 @@ type internal PooledByteBufferWriter(initialCapacity: int) =
     let ensureCapacity (sizeHint: int) =
         let hint = max sizeHint 1
         let remaining = buffer.Length - writtenCount
+
         if remaining < hint then
             let newSize = max (writtenCount + hint) (buffer.Length * 2)
             let newBuffer = ArrayPool<byte>.Shared.Rent(newSize)
@@ -22,7 +23,7 @@ type internal PooledByteBufferWriter(initialCapacity: int) =
             buffer <- newBuffer
 
     member _.WrittenMemory = ReadOnlyMemory<byte>(buffer, 0, writtenCount)
-    member _.WrittenSpan  = ReadOnlySpan<byte>(buffer, 0, writtenCount)
+    member _.WrittenSpan = ReadOnlySpan<byte>(buffer, 0, writtenCount)
     member _.WrittenCount = writtenCount
 
     member _.Clear() = writtenCount <- 0
@@ -31,6 +32,7 @@ type internal PooledByteBufferWriter(initialCapacity: int) =
         member _.Advance(count: int) =
             if count < 0 then
                 raise (ArgumentOutOfRangeException(nameof count, "Count must be non-negative."))
+
             writtenCount <- writtenCount + count
 
         member _.GetMemory(sizeHint: int) =

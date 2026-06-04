@@ -17,18 +17,21 @@ module internal Labels =
     /// Loki requires label keys to start with a letter or underscore.
     /// Positional message template tokens like {0} produce numeric keys — prefix them.
     let inline sanitizeLabelKey (key: string) =
-        if key.Length > 0 && Char.IsDigit(key[0]) then "param" + key else key
+        if key.Length > 0 && Char.IsDigit(key[0]) then
+            "param" + key
+        else
+            key
 
     /// Maps Serilog levels to Grafana log-level vocabulary.
     let inline logLevelToLabel (level: LogEventLevel) =
         match level with
-        | LogEventLevel.Verbose     -> "trace"
-        | LogEventLevel.Debug       -> "debug"
+        | LogEventLevel.Verbose -> "trace"
+        | LogEventLevel.Debug -> "debug"
         | LogEventLevel.Information -> "info"
-        | LogEventLevel.Warning     -> "warning"
-        | LogEventLevel.Error       -> "error"
-        | LogEventLevel.Fatal       -> "fatal"
-        | _                         -> "unknown"
+        | LogEventLevel.Warning -> "warning"
+        | LogEventLevel.Error -> "error"
+        | LogEventLevel.Fatal -> "fatal"
+        | _ -> "unknown"
 
     /// Renders a property value to a plain string suitable for a label value.
     /// Scalars are rendered directly; compound values fall back to Serilog's default
@@ -82,14 +85,18 @@ module internal Labels =
 
         // Fold property-as-label entries on top, skipping reserved keys.
         propertiesAsLabels
-        |> Array.fold (fun acc propName ->
-            match event.Properties.TryGetValue(propName) with
-            | true, value ->
-                let key = sanitizeLabelKey propName
-                if Set.contains key reservedKeys then acc
-                else Map.add key (renderLabelValue value) acc
-            | _ -> acc
-        ) base'
+        |> Array.fold
+            (fun acc propName ->
+                match event.Properties.TryGetValue(propName) with
+                | true, value ->
+                    let key = sanitizeLabelKey propName
+
+                    if Set.contains key reservedKeys then
+                        acc
+                    else
+                        Map.add key (renderLabelValue value) acc
+                | _ -> acc)
+            base'
 
     // ── Test shim ─────────────────────────────────────────────────────────────
     // toUnixNanoseconds needs a direct precision test but is inline (can't be

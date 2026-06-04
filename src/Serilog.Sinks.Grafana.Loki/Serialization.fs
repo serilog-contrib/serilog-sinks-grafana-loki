@@ -12,8 +12,8 @@ module internal Serialization =
 
     // Pre-encoded JSON property names — allocated once, reused for every batch.
     let private jStreams = JsonEncodedText.Encode "streams"
-    let private jStream  = JsonEncodedText.Encode "stream"
-    let private jValues  = JsonEncodedText.Encode "values"
+    let private jStream = JsonEncodedText.Encode "stream"
+    let private jValues = JsonEncodedText.Encode "values"
 
     /// Formats a single log event's body into bodyBuffer, then writes
     /// the UTF-8 bytes as a JSON string value into the open jsonWriter.
@@ -25,11 +25,11 @@ module internal Serialization =
         (textFormatter: ITextFormatter)
         (jsonWriter: Utf8JsonWriter)
         (bodyBuffer: PooledByteBufferWriter)
-        (event: LogEvent) =
+        (event: LogEvent)
+        =
 
         match textFormatter with
-        | :? LokiJsonTextFormatter as fmt ->
-            fmt.FormatToBuffer(event, bodyBuffer)
+        | :? LokiJsonTextFormatter as fmt -> fmt.FormatToBuffer(event, bodyBuffer)
         | _ ->
             use textWriter = new Utf8TextWriter(bodyBuffer)
             textFormatter.Format(event, textWriter)
@@ -48,7 +48,8 @@ module internal Serialization =
         (labelOf: LogEvent -> LabelSet)
         (mainBuffer: PooledByteBufferWriter)
         (bodyBuffer: PooledByteBufferWriter)
-        (batch: LogEvent seq) =
+        (batch: LogEvent seq)
+        =
 
         let streams = groupIntoStreams labelOf batch
 
@@ -64,22 +65,26 @@ module internal Serialization =
             // Stream labels
             jsonWriter.WritePropertyName(jStream)
             jsonWriter.WriteStartObject()
+
             for kvp in stream.Labels do
                 jsonWriter.WriteString(kvp.Key, kvp.Value)
+
             jsonWriter.WriteEndObject()
 
             // Values array
             jsonWriter.WritePropertyName(jValues)
             jsonWriter.WriteStartArray()
+
             for event in stream.Events do
                 jsonWriter.WriteStartArray()
                 jsonWriter.WriteStringValue(string (toUnixNanoseconds event.Timestamp))
                 writeBody textFormatter jsonWriter bodyBuffer event
                 jsonWriter.WriteEndArray()
+
             jsonWriter.WriteEndArray()
 
             jsonWriter.WriteEndObject()
 
         jsonWriter.WriteEndArray()
         jsonWriter.WriteEndObject()
-        // Utf8JsonWriter.Dispose() calls Flush(), so `use` above handles it.
+// Utf8JsonWriter.Dispose() calls Flush(), so `use` above handles it.

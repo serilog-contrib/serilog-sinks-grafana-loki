@@ -57,5 +57,4 @@ type internal Utf8TextWriter(bufferWriter: PooledByteBufferWriter) =
         self.Write(value)
         self.Write('\n')
 
-    override self.WriteLine() =
-        self.Write('\n')
+    override self.WriteLine() = self.Write('\n')

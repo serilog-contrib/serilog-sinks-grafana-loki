@@ -1,35 +1,35 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
-    <IsPackable>false</IsPackable>
-    <IsTestProject>true</IsTestProject>
-    <!-- Hedgehog's netstandard2.1 target pulls in FSharp.Core 8.x via NuGet,
-         conflicting with the SDK's framework reference (10.x). At runtime the SDK
-         version always wins on net8+; suppress the false-positive MSBuild warning. -->
-    <MSBuildWarningsAsMessages>MSB3277</MSBuildWarningsAsMessages>
-  </PropertyGroup>
+    <PropertyGroup>
+        <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+        <IsPackable>false</IsPackable>
+        <IsTestProject>true</IsTestProject>
+        <!-- Hedgehog's netstandard2.1 target pulls in FSharp.Core 8.x via NuGet,
+             conflicting with the SDK's framework reference (10.x). At runtime the SDK
+             version always wins on net8+; suppress the false-positive MSBuild warning. -->
+        <MSBuildWarningsAsMessages>MSB3277</MSBuildWarningsAsMessages>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\src\Serilog.Sinks.Grafana.Loki\Serilog.Sinks.Grafana.Loki.fsproj" />
-  </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\..\src\Serilog.Sinks.Grafana.Loki\Serilog.Sinks.Grafana.Loki.fsproj"/>
+    </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" />
-    <PackageReference Include="Unquote" />
-    <PackageReference Include="Hedgehog" />
-    <PackageReference Include="Hedgehog.Xunit" />
-    <PackageReference Include="xunit" />
-    <PackageReference Include="xunit.runner.visualstudio" />
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Microsoft.NET.Test.Sdk"/>
+        <PackageReference Include="Unquote"/>
+        <PackageReference Include="Hedgehog"/>
+        <PackageReference Include="Hedgehog.Xunit"/>
+        <PackageReference Include="xunit"/>
+        <PackageReference Include="xunit.runner.visualstudio"/>
+    </ItemGroup>
 
-  <ItemGroup>
-    <!-- Compilation order: helpers first, then tests by layer -->
-    <Compile Include="Helpers.fs" />
-    <Compile Include="LabelsTests.fs" />
-    <Compile Include="GroupingTests.fs" />
-    <Compile Include="LokiExceptionFormatterTests.fs" />
-    <Compile Include="WireFormatTests.fs" />
-  </ItemGroup>
+    <ItemGroup>
+        <!-- Compilation order: helpers first, then tests by layer -->
+        <Compile Include="Helpers.fs"/>
+        <Compile Include="LabelsTests.fs"/>
+        <Compile Include="GroupingTests.fs"/>
+        <Compile Include="LokiExceptionFormatterTests.fs"/>
+        <Compile Include="WireFormatTests.fs"/>
+    </ItemGroup>
 
 </Project>

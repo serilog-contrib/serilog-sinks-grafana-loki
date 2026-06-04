@@ -2,7 +2,6 @@ module Serilog.Sinks.Grafana.Loki.Tests.Helpers
 
 open System
 open System.Buffers
-open System.Text
 open System.Text.Json
 open Serilog.Events
 open Serilog.Parsing
@@ -18,6 +17,7 @@ let mkEvent (level: LogEventLevel) (props: (string * obj) list) =
     let properties =
         props
         |> List.map (fun (k, v) -> LogEventProperty(k, ScalarValue(v) :> LogEventPropertyValue))
+
     LogEvent(DateTimeOffset.UtcNow, level, null, parser.Parse(""), properties)
 
 /// Creates a LogEvent at Information level.
@@ -28,6 +28,7 @@ let mkEventAt (ts: DateTimeOffset) level props =
     let properties =
         props
         |> List.map (fun (k, v) -> LogEventProperty(k, ScalarValue(v) :> LogEventPropertyValue))
+
     LogEvent(ts, level, null, parser.Parse(""), properties)
 
 // ── JSON assertion helpers ────────────────────────────────────────────────────

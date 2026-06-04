@@ -10,24 +10,22 @@ open Serilog.Sinks.Grafana.Loki.Infrastructure
 /// Formats log events as a JSON object written to the Loki log entry body.
 /// Subclass and override Format or SanitizePropertyName to customise output.
 /// Exception serialisation is delegated to ILokiExceptionFormatter.
-type LokiJsonTextFormatter
-    (exceptionFormatter: ILokiExceptionFormatter,
-     enrichTraceId: bool,
-     enrichSpanId: bool) =
+type LokiJsonTextFormatter(exceptionFormatter: ILokiExceptionFormatter, enrichTraceId: bool, enrichSpanId: bool) =
 
     // ── Statics — must precede constructors and member definitions in F# ──────
 
-    static let pMessage         = JsonEncodedText.Encode "Message"
+    static let pMessage = JsonEncodedText.Encode "Message"
     static let pMessageTemplate = JsonEncodedText.Encode "MessageTemplate"
-    static let pException       = JsonEncodedText.Encode "Exception"
-    static let pTraceId         = JsonEncodedText.Encode "TraceId"
-    static let pSpanId          = JsonEncodedText.Encode "SpanId"
+    static let pException = JsonEncodedText.Encode "Exception"
+    static let pTraceId = JsonEncodedText.Encode "TraceId"
+    static let pSpanId = JsonEncodedText.Encode "SpanId"
 
     // Names that collide with top-level JSON keys; prefixed with '_' when seen as properties.
     static let reserved =
         Collections.Generic.HashSet<string>(
             [| "Message"; "MessageTemplate"; "Exception"; "TraceId"; "SpanId" |],
-            StringComparer.Ordinal)
+            StringComparer.Ordinal
+        )
 
     // Recursive value renderer — not inline because it calls itself.
     // Uses direct isinst + cast (`:? T as x`) which compiles to allocation-free IL.
@@ -39,44 +37,59 @@ type LokiJsonTextFormatter
         | :? ScalarValue as sv ->
             match sv.Value with
             | null -> writer.WriteNullValue()
-            | :? bool    as b -> writer.WriteBooleanValue(b)
-            | :? byte    as n -> writer.WriteNumberValue(int n)
-            | :? int16   as n -> writer.WriteNumberValue(int n)
-            | :? int     as n -> writer.WriteNumberValue(n)
-            | :? int64   as n -> writer.WriteNumberValue(n)
-            | :? uint16  as n -> writer.WriteNumberValue(int n)
-            | :? uint32  as n -> writer.WriteNumberValue(n)
-            | :? uint64  as n -> writer.WriteNumberValue(n)
+            | :? bool as b -> writer.WriteBooleanValue(b)
+            | :? byte as n -> writer.WriteNumberValue(int n)
+            | :? int16 as n -> writer.WriteNumberValue(int n)
+            | :? int as n -> writer.WriteNumberValue(n)
+            | :? int64 as n -> writer.WriteNumberValue(n)
+            | :? uint16 as n -> writer.WriteNumberValue(int n)
+            | :? uint32 as n -> writer.WriteNumberValue(n)
+            | :? uint64 as n -> writer.WriteNumberValue(n)
             | :? float32 as f -> writer.WriteNumberValue(float f)
-            | :? float   as f ->
-                if Double.IsFinite f then writer.WriteNumberValue(f)
-                else writer.WriteStringValue(f.ToString())
+            | :? float as f ->
+                if Double.IsFinite f then
+                    writer.WriteNumberValue(f)
+                else
+                    writer.WriteStringValue(f.ToString())
             | :? decimal as d -> writer.WriteNumberValue(d)
             | v -> writer.WriteStringValue(v.ToString())
         | :? SequenceValue as sv ->
             writer.WriteStartArray()
-            for elem in sv.Elements do writeValue writer elem
+
+            for elem in sv.Elements do
+                writeValue writer elem
+
             writer.WriteEndArray()
         | :? StructureValue as sv ->
             writer.WriteStartObject()
-            if not (isNull sv.TypeTag) then writer.WriteString("$type", sv.TypeTag)
+
+            if not (isNull sv.TypeTag) then
+                writer.WriteString("$type", sv.TypeTag)
+
             for prop in sv.Properties do
                 writer.WritePropertyName(prop.Name)
                 writeValue writer prop.Value
+
             writer.WriteEndObject()
         | :? DictionaryValue as dv ->
             writer.WriteStartObject()
+
             for kvp in dv.Elements do
-                let key = if isNull kvp.Key.Value then "null" else kvp.Key.Value.ToString()
+                let key =
+                    if isNull kvp.Key.Value then
+                        "null"
+                    else
+                        kvp.Key.Value.ToString()
+
                 writer.WritePropertyName(key)
                 writeValue writer kvp.Value
+
             writer.WriteEndObject()
         | _ -> writer.WriteStringValue(value.ToString())
 
     // ── Additional constructors ───────────────────────────────────────────────
 
-    new(exceptionFormatter: ILokiExceptionFormatter) =
-        LokiJsonTextFormatter(exceptionFormatter, false, false)
+    new(exceptionFormatter: ILokiExceptionFormatter) = LokiJsonTextFormatter(exceptionFormatter, false, false)
 
     new() = LokiJsonTextFormatter(LokiExceptionFormatter(), false, false)
 
@@ -97,28 +110,34 @@ type LokiJsonTextFormatter
 
         if enrichTraceId then
             let t = logEvent.TraceId
-            if t.HasValue then jsonWriter.WriteString(pTraceId, t.Value.ToHexString())
+
+            if t.HasValue then
+                jsonWriter.WriteString(pTraceId, t.Value.ToHexString())
 
         if enrichSpanId then
             let s = logEvent.SpanId
-            if s.HasValue then jsonWriter.WriteString(pSpanId, s.Value.ToHexString())
+
+            if s.HasValue then
+                jsonWriter.WriteString(pSpanId, s.Value.ToHexString())
 
         for kvp in logEvent.Properties do
             jsonWriter.WritePropertyName(self.SanitizePropertyName(kvp.Key))
             writeValue jsonWriter kvp.Value
 
         jsonWriter.WriteEndObject()
-        // Utf8JsonWriter.Dispose() (called by `use`) flushes the writer.
+    // Utf8JsonWriter.Dispose() (called by `use`) flushes the writer.
 
     // ── Virtualizable public surface ──────────────────────────────────────────
 
     /// Returns a JSON-safe property name. Reserved names are prefixed with '_'.
     abstract member SanitizePropertyName: name: string -> string
+
     default _.SanitizePropertyName(name: string) =
         if reserved.Contains name then "_" + name else name
 
     /// Formats logEvent as a JSON object into output.
     abstract member Format: logEvent: LogEvent * output: IO.TextWriter -> unit
+
     default self.Format(logEvent: LogEvent, output: IO.TextWriter) =
         use buffer = new PooledByteBufferWriter(256)
         self.FormatToBuffer(logEvent, buffer)

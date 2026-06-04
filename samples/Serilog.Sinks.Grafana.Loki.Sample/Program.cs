@@ -36,4 +36,4 @@ catch (Exception ex)
 
 Log.CloseAndFlush();
 
-record Person(string Name, int Age);
+internal record Person(string Name, int Age);

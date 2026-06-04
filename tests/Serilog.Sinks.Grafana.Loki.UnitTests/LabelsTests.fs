@@ -8,8 +8,8 @@ open Serilog.Sinks.Grafana.Loki
 open Serilog.Sinks.Grafana.Loki.Tests.Helpers
 
 // Shared fixtures used throughout
-let private noGlobals  = Map.empty<string, string>
-let private noProps    = [||]
+let private noGlobals = Map.empty<string, string>
+let private noProps = [||]
 
 // ── sanitizeLabelKey (via buildLabelSet — inline helper, tested through behaviour) ──
 
@@ -20,16 +20,16 @@ let private noProps    = [||]
 [<Fact>]
 let ``sanitizeLabelKey via buildLabelSet: numeric property name gets param prefix`` () =
     let reserved = buildReservedKeys noGlobals false
-    let event    = mkInfo [ "0", box "v" ]
-    let labels   = buildLabelSet noGlobals reserved [| "0" |] false event
+    let event = mkInfo [ "0", box "v" ]
+    let labels = buildLabelSet noGlobals reserved [| "0" |] false event
     test <@ Map.containsKey "param0" labels @>
     test <@ not (Map.containsKey "0" labels) @>
 
 [<Fact>]
 let ``sanitizeLabelKey via buildLabelSet: non-numeric key unchanged`` () =
     let reserved = buildReservedKeys noGlobals false
-    let event    = mkInfo [ "app", box "svc" ]
-    let labels   = buildLabelSet noGlobals reserved [| "app" |] false event
+    let event = mkInfo [ "app", box "svc" ]
+    let labels = buildLabelSet noGlobals reserved [| "app" |] false event
     test <@ Map.containsKey "app" labels @>
 
 // ── logLevelToLabel (via buildLabelSet) ───────────────────────────────────────
@@ -38,18 +38,20 @@ let ``sanitizeLabelKey via buildLabelSet: non-numeric key unchanged`` () =
 // with handleLevel=true — the "level" label value must match Grafana vocabulary.
 
 [<Theory>]
-[<InlineData(0, "trace")>]      // Verbose
-[<InlineData(1, "debug")>]      // Debug
-[<InlineData(2, "info")>]       // Information
-[<InlineData(3, "warning")>]    // Warning
-[<InlineData(4, "error")>]      // Error
-[<InlineData(5, "fatal")>]      // Fatal — V9 change from V8's "critical"
+[<InlineData(0, "trace")>] // Verbose
+[<InlineData(1, "debug")>] // Debug
+[<InlineData(2, "info")>] // Information
+[<InlineData(3, "warning")>] // Warning
+[<InlineData(4, "error")>] // Error
+[<InlineData(5, "fatal")>] // Fatal — V9 change from V8's "critical"
 let ``logLevelToLabel via buildLabelSet: all Serilog levels map to Grafana vocabulary``
-    (levelInt: int) (expected: string) =
-    let level    = enum<LogEventLevel> levelInt
+    (levelInt: int)
+    (expected: string)
+    =
+    let level = enum<LogEventLevel> levelInt
     let reserved = buildReservedKeys noGlobals true
-    let event    = mkEvent level []
-    let labels   = buildLabelSet noGlobals reserved noProps true event
+    let event = mkEvent level []
+    let labels = buildLabelSet noGlobals reserved noProps true event
     test <@ labels["level"] = expected @>
 
 // ── toUnixNanoseconds (via timestampToNs shim) ────────────────────────────────
@@ -81,10 +83,10 @@ let ``toUnixNanoseconds: known timestamp matches expected nanoseconds`` () =
 
 [<Fact>]
 let ``buildLabelSet: global labels always appear in result`` () =
-    let globals  = Map.ofList [ "app", "my-service"; "env", "prod" ]
+    let globals = Map.ofList [ "app", "my-service"; "env", "prod" ]
     let reserved = buildReservedKeys globals false
-    let event    = mkInfo []
-    let labels   = buildLabelSet globals reserved noProps false event
+    let event = mkInfo []
+    let labels = buildLabelSet globals reserved noProps false event
     test <@ Map.containsKey "app" labels @>
     test <@ Map.containsKey "env" labels @>
     test <@ labels["app"] = "my-service" @>
@@ -93,64 +95,64 @@ let ``buildLabelSet: global labels always appear in result`` () =
 [<Fact>]
 let ``buildLabelSet: level label added when handleLevel is true`` () =
     let reserved = buildReservedKeys noGlobals true
-    let event    = mkEvent LogEventLevel.Warning []
-    let labels   = buildLabelSet noGlobals reserved noProps true event
+    let event = mkEvent LogEventLevel.Warning []
+    let labels = buildLabelSet noGlobals reserved noProps true event
     test <@ Map.containsKey "level" labels @>
     test <@ labels["level"] = "warning" @>
 
 [<Fact>]
 let ``buildLabelSet: level label absent when handleLevel is false`` () =
     let reserved = buildReservedKeys noGlobals false
-    let event    = mkInfo []
-    let labels   = buildLabelSet noGlobals reserved noProps false event
+    let event = mkInfo []
+    let labels = buildLabelSet noGlobals reserved noProps false event
     test <@ not (Map.containsKey "level" labels) @>
 
 [<Fact>]
 let ``buildLabelSet: property promoted to label when in propertiesAsLabels`` () =
-    let reserved   = buildReservedKeys noGlobals false
-    let event      = mkInfo [ "RequestPath", box "/health" ]
-    let labels     = buildLabelSet noGlobals reserved [| "RequestPath" |] false event
+    let reserved = buildReservedKeys noGlobals false
+    let event = mkInfo [ "RequestPath", box "/health" ]
+    let labels = buildLabelSet noGlobals reserved [| "RequestPath" |] false event
     test <@ Map.containsKey "RequestPath" labels @>
     test <@ labels["RequestPath"] = "/health" @>
 
 [<Fact>]
 let ``buildLabelSet: global label wins over matching property`` () =
-    let globals  = Map.ofList [ "app", "global-value" ]
+    let globals = Map.ofList [ "app", "global-value" ]
     let reserved = buildReservedKeys globals false
-    let event    = mkInfo [ "app", box "property-value" ]
-    let labels   = buildLabelSet globals reserved [| "app" |] false event
+    let event = mkInfo [ "app", box "property-value" ]
+    let labels = buildLabelSet globals reserved [| "app" |] false event
     test <@ labels["app"] = "global-value" @>
 
 [<Fact>]
 let ``buildLabelSet: level label wins over property named level`` () =
     let reserved = buildReservedKeys noGlobals true
-    let event    = mkEvent LogEventLevel.Error [ "level", box "custom" ]
-    let labels   = buildLabelSet noGlobals reserved [| "level" |] true event
+    let event = mkEvent LogEventLevel.Error [ "level", box "custom" ]
+    let labels = buildLabelSet noGlobals reserved [| "level" |] true event
     // The synthetic level label ("error") must win, not the property value ("custom")
     test <@ labels["level"] = "error" @>
 
 [<Fact>]
 let ``buildLabelSet: numeric property name gets param prefix`` () =
     let reserved = buildReservedKeys noGlobals false
-    let event    = mkInfo [ "0", box "value" ]
-    let labels   = buildLabelSet noGlobals reserved [| "0" |] false event
+    let event = mkInfo [ "0", box "value" ]
+    let labels = buildLabelSet noGlobals reserved [| "0" |] false event
     test <@ Map.containsKey "param0" labels @>
     test <@ not (Map.containsKey "0" labels) @>
 
 [<Fact>]
 let ``buildLabelSet: missing property produces no label`` () =
     let reserved = buildReservedKeys noGlobals false
-    let event    = mkInfo []  // no properties at all
-    let labels   = buildLabelSet noGlobals reserved [| "MissingProp" |] false event
+    let event = mkInfo [] // no properties at all
+    let labels = buildLabelSet noGlobals reserved [| "MissingProp" |] false event
     test <@ not (Map.containsKey "MissingProp" labels) @>
 
 [<Fact>]
 let ``buildLabelSet: result contains exactly globals + level + promoted properties`` () =
-    let globals  = Map.ofList [ "env", "prod" ]
+    let globals = Map.ofList [ "env", "prod" ]
     let reserved = buildReservedKeys globals true
-    let event    = mkEvent LogEventLevel.Debug [ "service", box "api"; "ignored", box "x" ]
-    let labels   = buildLabelSet globals reserved [| "service" |] true event
-    test <@ Map.count labels = 3 @>  // env + level + service
+    let event = mkEvent LogEventLevel.Debug [ "service", box "api"; "ignored", box "x" ]
+    let labels = buildLabelSet globals reserved [| "service" |] true event
+    test <@ Map.count labels = 3 @> // env + level + service
     test <@ labels["env"] = "prod" @>
     test <@ labels["level"] = "debug" @>
     test <@ labels["service"] = "api" @>
@@ -178,7 +180,7 @@ let ``buildGlobalLabelMap: last writer wins on duplicate keys`` () =
 
 [<Fact>]
 let ``buildReservedKeys: contains all global label keys`` () =
-    let globals  = Map.ofList [ "app", "v"; "env", "v" ]
+    let globals = Map.ofList [ "app", "v"; "env", "v" ]
     let reserved = buildReservedKeys globals false
     test <@ Set.contains "app" reserved @>
     test <@ Set.contains "env" reserved @>
