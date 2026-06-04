@@ -12,6 +12,7 @@ namespace Serilog.Sinks.Grafana.Loki
 
 open System
 open System.Net.Http
+open System.Globalization
 open System.Runtime.CompilerServices
 open System.Runtime.InteropServices
 open Serilog.Configuration
@@ -137,13 +138,23 @@ type LoggerConfigurationLokiExtensions =
                 if String.IsNullOrEmpty period then
                     TimeSpan.FromSeconds 1.0
                 else
-                    TimeSpan.Parse(period)
+                    match TimeSpan.TryParse(period, CultureInfo.InvariantCulture) with
+                    | true, ts -> ts
+                    | false, _ ->
+                        invalidArg
+                            "period"
+                            $"'{period}' is not a valid TimeSpan. Expected format: hh:mm:ss (e.g. \"00:00:02\")."
               EagerlyEmitFirstEvent = eagerlyEmitFirstEvent
               RetryTimeLimit =
                 if String.IsNullOrEmpty retryTimeLimit then
                     TimeSpan.FromMinutes 10.0
                 else
-                    TimeSpan.Parse(retryTimeLimit)
+                    match TimeSpan.TryParse(retryTimeLimit, CultureInfo.InvariantCulture) with
+                    | true, ts -> ts
+                    | false, _ ->
+                        invalidArg
+                            "retryTimeLimit"
+                            $"'{retryTimeLimit}' is not a valid TimeSpan. Expected format: hh:mm:ss (e.g. \"00:10:00\")."
               TextFormatter = textFormatter
               ExceptionFormatter = exceptionFormatter
               HttpClient = httpClient

@@ -69,18 +69,29 @@ type internal LokiSink(options: LokiSinkOptions) =
                 client.DefaultRequestHeaders.Authorization <- AuthenticationHeaderValue("Basic", token)
 
         if not (String.IsNullOrEmpty options.Tenant) then
-            client.DefaultRequestHeaders.TryAddWithoutValidation("X-Scope-OrgID", options.Tenant)
-            |> ignore
+            if not (client.DefaultRequestHeaders.TryAddWithoutValidation("X-Scope-OrgID", options.Tenant)) then
+                SelfLog.WriteLine(
+                    "Serilog.Sinks.GrafanaLoki: X-Scope-OrgID header could not be set for tenant '{0}'. The value may contain invalid characters.",
+                    options.Tenant
+                )
 
         client
 
     // ── Label pipeline — precomputed once at construction ─────────────────────
 
-    let globalLabels = buildGlobalLabelMap options.Labels
+    let globalLabels =
+        buildGlobalLabelMap (if isNull options.Labels then [||] else options.Labels)
+
     let reservedKeys = buildReservedKeys globalLabels options.HandleLogLevelAsLabel
 
+    let propertiesAsLabels =
+        if isNull options.PropertiesAsLabels then
+            [||]
+        else
+            options.PropertiesAsLabels
+
     let labelOf (event: LogEvent) =
-        buildLabelSet globalLabels reservedKeys options.PropertiesAsLabels options.HandleLogLevelAsLabel event
+        buildLabelSet globalLabels reservedKeys propertiesAsLabels options.HandleLogLevelAsLabel event
 
     // ── Reusable per-tick buffers ─────────────────────────────────────────────
 
@@ -96,16 +107,29 @@ type internal LokiSink(options: LokiSinkOptions) =
                 mainBuffer.Clear()
                 bodyBuffer.Clear()
 
-                Serialization.serialize textFormatter labelOf mainBuffer bodyBuffer batch
+                try
+                    Serialization.serialize textFormatter labelOf mainBuffer bodyBuffer batch
+                with ex ->
+                    SelfLog.WriteLine(
+                        "Serilog.Sinks.GrafanaLoki: serialization failed for batch of {0} events: {1}",
+                        batch.Count,
+                        ex
+                    )
+
+                    raise ex
 
                 use content = new LokiPushContent(mainBuffer)
                 let! response = httpClient.PostAsync(pushUri, content)
 
                 if not response.IsSuccessStatusCode then
-                    let! body = response.Content.ReadAsStringAsync()
+                    let! body =
+                        if isNull response.Content then
+                            Threading.Tasks.Task.FromResult("<no response body>")
+                        else
+                            response.Content.ReadAsStringAsync()
 
                     SelfLog.WriteLine(
-                        "Received failed result {0} when posting events to Loki: {1}",
+                        "Serilog.Sinks.GrafanaLoki: received {0} from Loki; body: {1}",
                         response.StatusCode,
                         body
                     )

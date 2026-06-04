@@ -11,6 +11,7 @@
 namespace Serilog.Sinks.Grafana.Loki
 
 open System
+open System.Globalization
 open Serilog.Events
 
 /// Internal label-derivation pipeline.
@@ -48,7 +49,12 @@ module internal Labels =
     /// rendering with surrounding quotes stripped.
     let inline renderLabelValue (value: LogEventPropertyValue) =
         match value with
-        | :? ScalarValue as sv when not (isNull sv.Value) -> sv.Value.ToString()
+        | :? ScalarValue as sv when not (isNull sv.Value) ->
+            // Use InvariantCulture so float/DateTime labels are locale-independent
+            // and stream keys are deterministic across machines.
+            match sv.Value with
+            | :? IFormattable as f -> f.ToString(null, CultureInfo.InvariantCulture)
+            | v -> v.ToString()
         | _ -> value.ToString().Trim('"')
 
     /// Unix epoch timestamp in nanoseconds as required by the Loki push API.
@@ -68,7 +74,10 @@ module internal Labels =
     /// Converts the LokiLabel array into an immutable Map, preserving last-write-wins
     /// when duplicate keys are present in the configuration.
     let buildGlobalLabelMap (labels: LokiLabel[]) : Map<string, string> =
-        labels |> Array.fold (fun acc l -> Map.add l.Key l.Value acc) Map.empty
+        // Apply sanitizeLabelKey so global labels follow the same key rules as
+        // property-derived labels (numeric-starting keys get "param" prefix).
+        labels
+        |> Array.fold (fun acc l -> Map.add (sanitizeLabelKey l.Key) l.Value acc) Map.empty
 
     /// Derives the LabelSet for a single log event.
     ///

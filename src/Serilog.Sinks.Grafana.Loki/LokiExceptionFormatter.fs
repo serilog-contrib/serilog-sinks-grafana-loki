@@ -25,7 +25,9 @@ type LokiExceptionFormatter() =
     static let pInnerException = JsonEncodedText.Encode "InnerException"
     static let pInnerExceptions = JsonEncodedText.Encode "InnerExceptions"
 
-    static member private Write(writer: Utf8JsonWriter, ex: exn) =
+    // depth guards against cyclic InnerException chains (possible with custom exceptions)
+    // which would otherwise cause an unbounded recursion and StackOverflowException.
+    static member private Write(writer: Utf8JsonWriter, ex: exn, depth: int) =
         writer.WriteStartObject()
         writer.WriteString(pType, ex.GetType().FullName)
         writer.WriteString(pMessage, ex.Message)
@@ -36,22 +38,23 @@ type LokiExceptionFormatter() =
         if not (String.IsNullOrEmpty ex.StackTrace) then
             writer.WriteString(pStackTrace, ex.StackTrace)
 
-        match ex with
-        | :? AggregateException as agg when agg.InnerExceptions.Count > 0 ->
-            writer.WritePropertyName(pInnerExceptions)
-            writer.WriteStartArray()
+        if depth < 20 then
+            match ex with
+            | :? AggregateException as agg when agg.InnerExceptions.Count > 0 ->
+                writer.WritePropertyName(pInnerExceptions)
+                writer.WriteStartArray()
 
-            for inner in agg.InnerExceptions do
-                LokiExceptionFormatter.Write(writer, inner)
+                for inner in agg.InnerExceptions do
+                    LokiExceptionFormatter.Write(writer, inner, depth + 1)
 
-            writer.WriteEndArray()
-        | _ when not (isNull ex.InnerException) ->
-            writer.WritePropertyName(pInnerException)
-            LokiExceptionFormatter.Write(writer, ex.InnerException)
-        | _ -> ()
+                writer.WriteEndArray()
+            | _ when not (isNull ex.InnerException) ->
+                writer.WritePropertyName(pInnerException)
+                LokiExceptionFormatter.Write(writer, ex.InnerException, depth + 1)
+            | _ -> ()
 
         writer.WriteEndObject()
 
     interface ILokiExceptionFormatter with
         member _.Format(writer, ex) =
-            LokiExceptionFormatter.Write(writer, ex)
+            LokiExceptionFormatter.Write(writer, ex, 0)

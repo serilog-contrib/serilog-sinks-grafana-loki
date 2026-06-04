@@ -97,6 +97,10 @@ type LokiJsonTextFormatter(exceptionFormatter: ILokiExceptionFormatter, enrichTr
             writer.WriteEndObject()
         | _ -> writer.WriteStringValue(value.ToString())
 
+    do
+        if isNull exceptionFormatter then
+            nullArg "exceptionFormatter"
+
     // ── Additional constructors ───────────────────────────────────────────────
 
     new(exceptionFormatter: ILokiExceptionFormatter) = LokiJsonTextFormatter(exceptionFormatter, false, false)
