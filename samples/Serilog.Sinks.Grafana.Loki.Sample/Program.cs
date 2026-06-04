@@ -14,8 +14,7 @@ Log.Logger = new LoggerConfiguration()
     .WriteTo.Console(outputTemplate: outputTemplate)
     .WriteTo.GrafanaLoki(
         uri: "http://localhost:3100",
-        labels: [new LokiLabel { Key = "app", Value = "console" }],
-        propertiesAsLabels: ["ThreadId"])
+        labels: [new LokiLabel { Key = "app", Value = "console" }])
     .CreateLogger();
 
 Log.Debug("This is a debug message");
