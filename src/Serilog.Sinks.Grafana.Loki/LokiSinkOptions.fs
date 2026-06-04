@@ -1,4 +1,4 @@
-﻿// Copyright 2020-2026 Mykhailo Shevchuk & Contributors
+// Copyright 2020-2026 Mykhailo Shevchuk & Contributors
 //
 // Licensed under the MIT license;
 // you may not use this file except in compliance with the License.
@@ -10,13 +10,20 @@ open System.Net.Http
 open Serilog.Formatting
 
 /// Configuration for the Grafana Loki sink.
-/// Use LokiSinkOptions.Defaults for a fully-defaulted starting point,
-/// then copy-update only the fields you need:
+///
+/// F# usage — copy-update from Defaults:
 ///   { LokiSinkOptions.Defaults with Uri = "http://localhost:3100" }
+///
+/// C# usage — start from Defaults and mutate:
+///   var opts = LokiSinkOptions.Defaults;
+///   opts.Uri = "http://localhost:3100";
+///   opts.BatchSizeLimit = 500;
+///
+/// Do NOT use `new LokiSinkOptions { ... }` from C# — unset fields will be
+/// zero-initialised (BatchSizeLimit=0, Period=0s, etc.) which will cause errors.
 [<CLIMutable>]
 type LokiSinkOptions =
     {
-
         // ── Required ──────────────────────────────────────────────────────────────
         /// Loki base URI, e.g. "http://localhost:3100".
         Uri: string
@@ -86,35 +93,37 @@ type LokiSinkOptions =
         TimeProvider: TimeProvider
     }
 
-[<AutoOpen>]
-module LokiSinkOptionsDefaults =
+    // ── Defaults — intrinsic member so it is visible to C# consumers ─────────────
+    // Placed inline in the type body (not in a separate module extension) so that
+    // C# can call LokiSinkOptions.Defaults directly.
 
-    /// Returns a fully-defaulted LokiSinkOptions with an empty Uri.
-    /// Typical usage:
-    ///   { LokiSinkOptions.Defaults with Uri = "http://localhost:3100" }
-    [<Literal>]
-    let DefaultBatchSizeLimit = 1_000
+    /// Default batch size limit (1 000 events per POST).
+    static member DefaultBatchSizeLimit = 1_000
 
-    [<Literal>]
-    let DefaultQueueLimit = 50_000
+    /// Default queue limit (50 000 events in memory before dropping).
+    static member DefaultQueueLimit = 50_000
 
-    type LokiSinkOptions with
-        static member Defaults =
-            { Uri = ""
-              Labels = [||]
-              PropertiesAsLabels = [||]
-              HandleLogLevelAsLabel = true
-              Credentials = Unchecked.defaultof<LokiCredentials>
-              Tenant = null
-              EnrichTraceId = false
-              EnrichSpanId = false
-              BatchSizeLimit = DefaultBatchSizeLimit
-              QueueLimit = DefaultQueueLimit
-              Period = TimeSpan.FromSeconds 1.0
-              EagerlyEmitFirstEvent = true
-              RetryTimeLimit = TimeSpan.FromMinutes 10.0
-              TextFormatter = Unchecked.defaultof<ITextFormatter>
-              ExceptionFormatter = Unchecked.defaultof<ILokiExceptionFormatter>
-              HttpClient = Unchecked.defaultof<HttpClient>
-              HttpMessageHandler = Unchecked.defaultof<Net.Http.HttpMessageHandler>
-              TimeProvider = Unchecked.defaultof<TimeProvider> }
+    /// Returns a fully-defaulted LokiSinkOptions instance with an empty Uri.
+    ///
+    /// This is the correct starting point when building options:
+    ///   F#: { LokiSinkOptions.Defaults with Uri = "http://localhost:3100" }
+    ///   C#: var opts = LokiSinkOptions.Defaults; opts.Uri = "http://localhost:3100";
+    static member Defaults =
+        { Uri                   = ""
+          Labels                = [||]
+          PropertiesAsLabels    = [||]
+          HandleLogLevelAsLabel = true
+          Credentials           = Unchecked.defaultof<LokiCredentials>
+          Tenant                = null
+          EnrichTraceId         = false
+          EnrichSpanId          = false
+          BatchSizeLimit        = LokiSinkOptions.DefaultBatchSizeLimit
+          QueueLimit            = LokiSinkOptions.DefaultQueueLimit
+          Period                = TimeSpan.FromSeconds 1.0
+          EagerlyEmitFirstEvent = true
+          RetryTimeLimit        = TimeSpan.FromMinutes 10.0
+          TextFormatter         = Unchecked.defaultof<ITextFormatter>
+          ExceptionFormatter    = Unchecked.defaultof<ILokiExceptionFormatter>
+          HttpClient            = Unchecked.defaultof<HttpClient>
+          HttpMessageHandler    = Unchecked.defaultof<Net.Http.HttpMessageHandler>
+          TimeProvider          = Unchecked.defaultof<TimeProvider> }

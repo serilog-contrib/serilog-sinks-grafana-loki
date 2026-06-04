@@ -7,17 +7,20 @@ const string outputTemplate =
 
 SelfLog.Enable(Console.Error);
 
+// C# must start from LokiSinkOptions.Defaults — [<CLIMutable>] F# records
+// zero-initialise unset fields when constructed with `new`, so BatchSizeLimit
+// etc. would be 0. Mutate the defaults instance to override only what you need.
+var lokiOpts = LokiSinkOptions.Defaults;
+lokiOpts.Uri = "http://localhost:3100";
+lokiOpts.Labels = [new LokiLabel { Key = "app", Value = "console" }];
+lokiOpts.PropertiesAsLabels = ["ThreadId"];
+
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Debug()
     .Enrich.WithThreadId()
     .Enrich.WithProperty("meaning_of_life", 42)
     .WriteTo.Console(outputTemplate: outputTemplate)
-    .WriteTo.GrafanaLoki(new LokiSinkOptions
-    {
-        Uri = "http://localhost:3100",
-        Labels = [new LokiLabel { Key = "app", Value = "console" }],
-        PropertiesAsLabels = ["ThreadId"]
-    })
+    .WriteTo.GrafanaLoki(lokiOpts)
     .CreateLogger();
 
 Log.Debug("This is a debug message");
