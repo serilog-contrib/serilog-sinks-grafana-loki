@@ -438,6 +438,24 @@ let ``http: request targets /loki/api/v1/push`` () : Task =
     }
 
 [<Fact>]
+let ``http: base URI with path prefix and no trailing slash resolves push endpoint correctly`` () : Task =
+    // RFC 3986 §5.2.2 strips everything right of the last '/' in the base path.
+    // Without the trailing-slash fix, "http://proxy/gateway" resolves "loki/api/v1/push"
+    // to "http://proxy/loki/api/v1/push" instead of the correct "http://proxy/gateway/loki/api/v1/push".
+    task {
+        let handler = new FakeHttpHandler()
+
+        let options =
+            { LokiSinkOptions.Defaults with
+                Uri = "http://proxy/gateway"
+                HttpMessageHandler = handler }
+
+        use sink = new LokiSink(options)
+        do! flush sink [ mkInfo [] ]
+        test <@ handler.Last.RequestUri.AbsolutePath = "/gateway/loki/api/v1/push" @>
+    }
+
+[<Fact>]
 let ``http auth: Authorization header set when credentials provided`` () : Task =
     task {
         let creds = { Login = "user"; Password = "pass" }

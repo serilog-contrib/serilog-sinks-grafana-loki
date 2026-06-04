@@ -30,7 +30,11 @@ type internal LokiSink(options: LokiSinkOptions) =
     // ── Resolved dependencies ─────────────────────────────────────────────────
 
     let pushUri =
-        let base' = Uri(options.Uri)
+        // RFC 3986 §5.2.2: relative resolution strips everything right of the last '/'
+        // in the base path. Ensure the base always ends with '/' so "loki/api/v1/push"
+        // appends correctly even when the user omits the trailing slash on a path prefix.
+        let raw = options.Uri
+        let base' = Uri(if raw.EndsWith('/') then raw else raw + "/")
         Uri(base', "loki/api/v1/push")
 
     let textFormatter: ITextFormatter =
