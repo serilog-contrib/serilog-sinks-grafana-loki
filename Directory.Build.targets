@@ -6,9 +6,10 @@
     </Target>
 
     <!-- Auto-install Husky git hooks on restore so contributors get them without
-         any manual step. Set HUSKY=0 or CI=true to skip (e.g. in CI pipelines).
+         any manual step. Set HUSKY=0 to skip — use this in CI pipelines to avoid
+         unnecessary hook installation (add HUSKY=0 to the workflow env section).
          ContinueOnError: hooks are already installed on subsequent restores — not a real error. -->
-    <Target Name="HuskyInstall" AfterTargets="Restore" Condition="'$(HUSKY)' != '0' AND '$(CI)' == ''">
+    <Target Name="HuskyInstall" AfterTargets="Restore" Condition="'$(HUSKY)' != '0'">
         <Exec Command="dotnet tool restore"
               WorkingDirectory="$(MSBuildThisFileDirectory)"
               StandardOutputImportance="Low"
