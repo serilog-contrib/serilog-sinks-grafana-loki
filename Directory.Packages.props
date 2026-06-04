@@ -13,6 +13,10 @@
     <PackageVersion Include="MinVer" Version="7.0.0" />
   </ItemGroup>
 
+  <ItemGroup Label="Analyzers">
+    <PackageVersion Include="StyleCop.Analyzers.Unstable" Version="1.2.0.556" />
+  </ItemGroup>
+
   <ItemGroup Label="Samples">
     <PackageVersion Include="Serilog.AspNetCore" Version="10.0.0" />
     <PackageVersion Include="Serilog.Enrichers.Thread" Version="4.0.0" />

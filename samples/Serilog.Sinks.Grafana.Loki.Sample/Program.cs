@@ -35,5 +35,3 @@ catch (Exception ex)
 }
 
 Log.CloseAndFlush();
-
-internal record Person(string Name, int Age);
