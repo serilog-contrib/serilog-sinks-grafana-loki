@@ -14,9 +14,9 @@ open System.Net.Http
 open System.Runtime.CompilerServices
 open System.Runtime.InteropServices
 open Serilog.Configuration
+open Serilog.Core
 open Serilog.Events
 open Serilog.Formatting
-open Serilog.Sinks.PeriodicBatching
 
 /// Registers the Grafana Loki sink with a LoggerConfiguration.
 /// AbstractClass + Sealed produces the same IL as a C# static class (IsAbstract=true, IsSealed=true),
@@ -37,16 +37,17 @@ type LoggerConfigurationLokiExtensions =
     static let wire (sinkConfig: LoggerSinkConfiguration) (options: LokiSinkOptions) (level: LogEventLevel) =
         validateUri options.Uri
 
+        // Serilog 4.x native batching — BatchingOptions has RetryTimeLimit, PeriodicBatchingSinkOptions does not.
         let batchingOpts =
-            PeriodicBatchingSinkOptions(
+            BatchingOptions(
                 BatchSizeLimit        = options.BatchSizeLimit,
-                Period                = options.Period,
+                BufferingTimeLimit    = options.Period,
                 EagerlyEmitFirstEvent = options.EagerlyEmitFirstEvent,
-                QueueLimit            = Nullable options.QueueLimit)
+                QueueLimit            = Nullable options.QueueLimit,
+                RetryTimeLimit        = options.RetryTimeLimit)
 
-        let sink    = new LokiSink(options)
-        let batched = new PeriodicBatchingSink(sink, batchingOpts)
-        sinkConfig.Sink(batched, level)
+        let sink = new LokiSink(options)
+        sinkConfig.Sink(sink, batchingOpts, level, Unchecked.defaultof<LoggingLevelSwitch>)
 
     /// <summary>
     /// Writes log events to Grafana Loki.
@@ -70,7 +71,6 @@ type LoggerConfigurationLokiExtensions =
     /// <param name="exceptionFormatter">Exception serializer (default: LokiExceptionFormatter).</param>
     /// <param name="httpClient">Pre-built HttpClient. The sink never disposes an injected client.</param>
     /// <param name="httpMessageHandler">Handler for the sink's own HttpClient (compression, retry, etc.).</param>
-    /// <param name="timeProvider">Clock abstraction for testability (default: TimeProvider.System).</param>
     /// <param name="restrictedToMinimumLevel">Minimum log level (default: Verbose).</param>
     [<Extension>]
     static member GrafanaLoki(
@@ -103,7 +103,6 @@ type LoggerConfigurationLokiExtensions =
         [<Optional; DefaultParameterValue(null: ILokiExceptionFormatter)>] exceptionFormatter: ILokiExceptionFormatter,
         [<Optional; DefaultParameterValue(null: HttpClient)>] httpClient: HttpClient,
         [<Optional; DefaultParameterValue(null: Net.Http.HttpMessageHandler)>] httpMessageHandler: Net.Http.HttpMessageHandler,
-        [<Optional; DefaultParameterValue(null: TimeProvider)>] timeProvider: TimeProvider,
         // ── Level ─────────────────────────────────────────────────────────────
         [<Optional; DefaultParameterValue(LevelAlias.Minimum)>] restrictedToMinimumLevel: LogEventLevel) =
 
@@ -128,7 +127,6 @@ type LoggerConfigurationLokiExtensions =
               TextFormatter         = textFormatter
               ExceptionFormatter    = exceptionFormatter
               HttpClient            = httpClient
-              HttpMessageHandler    = httpMessageHandler
-              TimeProvider          = timeProvider }
+              HttpMessageHandler    = httpMessageHandler }
 
         wire sinkConfig options restrictedToMinimumLevel

@@ -12,7 +12,7 @@ open Swensen.Unquote
 open Xunit
 open Serilog.Events
 open Serilog.Parsing
-open Serilog.Sinks.PeriodicBatching
+open Serilog.Core
 open Serilog.Sinks.Grafana.Loki
 open Serilog.Sinks.Grafana.Loki.Tests.Helpers
 
@@ -110,7 +110,8 @@ let private makeSinkWithHandler (configure: LokiSinkOptions -> LokiSinkOptions) 
     handler, sink
 
 let private flush (sink: LokiSink) (events: LogEvent list) =
-    task { do! (sink :> IBatchedLogEventSink).EmitBatchAsync(events) }
+    // Serilog.Core.IBatchedLogEventSink.EmitBatchAsync takes IReadOnlyCollection; Array.ofList satisfies that.
+    task { do! (sink :> IBatchedLogEventSink).EmitBatchAsync(Array.ofList events) }
 
 // JSON navigation — all return plain values so they're safe inside test <@ ... @>
 let private streamCount (doc: JsonDocument) =

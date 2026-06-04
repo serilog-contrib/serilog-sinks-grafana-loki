@@ -8,7 +8,7 @@ open Swensen.Unquote
 open Xunit
 open Serilog.Events
 open Serilog.Parsing
-open Serilog.Sinks.PeriodicBatching
+open Serilog.Core
 open Serilog.Sinks.Grafana.Loki
 open LokiContainerFixture
 open LokiQueryClient
@@ -34,7 +34,7 @@ let private writeThenFlush (lokiUri: string) (configure: LokiSinkOptions -> Loki
             LokiSinkOptions.Defaults |> (fun o -> { o with Uri = lokiUri }) |> configure
 
         use sink = new LokiSink(options)
-        do! (sink :> IBatchedLogEventSink).EmitBatchAsync(events)
+        do! (sink :> IBatchedLogEventSink).EmitBatchAsync(Array.ofList events)
     }
 
 // ── Integration tests (require Docker) ───────────────────────────────────────
@@ -275,7 +275,7 @@ type LokiIntegrationTests(loki: LokiFixture) =
             let labels   = testLabel "multi-batch"
 
             // Three sequential flushes simulate what batchSizeLimit=4 would produce
-            // when a queue of 12 events drains across multiple PeriodicBatching ticks.
+            // when a queue of 12 events drains across multiple batching ticks.
             for batch in 1..3 do
                 let events =
                     [ for i in 1..4 -> mkEvent LogEventLevel.Information $"b{batch} e{i}" [] ]

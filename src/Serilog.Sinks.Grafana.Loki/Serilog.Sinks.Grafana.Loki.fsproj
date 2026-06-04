@@ -22,7 +22,6 @@
     <ItemGroup>
         <PackageReference Include="FSharp.Core"/>
         <PackageReference Include="Serilog"/>
-        <PackageReference Include="Serilog.Sinks.PeriodicBatching"/>
     </ItemGroup>
 
 

@@ -5,7 +5,6 @@
 
   <ItemGroup Label="Library">
     <PackageVersion Include="Serilog" Version="4.3.1" />
-    <PackageVersion Include="Serilog.Sinks.PeriodicBatching" Version="5.0.0" />
   </ItemGroup>
 
   <ItemGroup Label="Build tooling">

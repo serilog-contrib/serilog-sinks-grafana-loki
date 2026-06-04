@@ -14,15 +14,15 @@ open System.Collections.Generic
 open System.Net.Http
 open System.Net.Http.Headers
 open System.Text
+open Serilog.Core
 open Serilog.Debugging
 open Serilog.Events
 open Serilog.Formatting
-open Serilog.Sinks.PeriodicBatching
 open Serilog.Sinks.Grafana.Loki.Infrastructure
 
 /// IBatchedLogEventSink implementation.
 /// Batching, queue management, back-pressure and retry are all delegated to
-/// Serilog's PeriodicBatchingSink (wired in LoggerConfigurationExtensions).
+/// Serilog's native batching infrastructure (wired in LoggerConfigurationExtensions).
 [<Sealed>]
 type internal LokiSink(options: LokiSinkOptions) =
 
@@ -88,9 +88,10 @@ type internal LokiSink(options: LokiSinkOptions) =
 
     // ── IBatchedLogEventSink ──────────────────────────────────────────────────
 
+    // Serilog.Core.IBatchedLogEventSink takes IReadOnlyCollection (not IEnumerable).
     interface IBatchedLogEventSink with
 
-        member _.EmitBatchAsync(batch: IEnumerable<LogEvent>) =
+        member _.EmitBatchAsync(batch: IReadOnlyCollection<LogEvent>) =
             task {
                 mainBuffer.Clear()
                 bodyBuffer.Clear()

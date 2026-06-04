@@ -92,9 +92,6 @@ type LokiSinkOptions =
         /// Use this to inject retry handlers, compression, or test fakes while keeping the
         /// sink responsible for auth and client lifetime. Ignored when HttpClient is non-null.
         HttpMessageHandler: Net.Http.HttpMessageHandler
-
-        /// Clock abstraction. Null → TimeProvider.System.
-        TimeProvider: TimeProvider
     }
 
     // ── Defaults — intrinsic member so it is visible to C# consumers ─────────────
@@ -129,5 +126,4 @@ type LokiSinkOptions =
           TextFormatter         = Unchecked.defaultof<ITextFormatter>
           ExceptionFormatter    = Unchecked.defaultof<ILokiExceptionFormatter>
           HttpClient            = Unchecked.defaultof<HttpClient>
-          HttpMessageHandler    = Unchecked.defaultof<Net.Http.HttpMessageHandler>
-          TimeProvider          = Unchecked.defaultof<TimeProvider> }
+          HttpMessageHandler    = Unchecked.defaultof<Net.Http.HttpMessageHandler> }
