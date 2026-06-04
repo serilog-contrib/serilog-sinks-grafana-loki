@@ -131,37 +131,52 @@ found [here](https://github.com/mishamyte/serilog-sinks-grafana-loki/wiki/Applic
 
 ### Custom HTTP Client
 
-Serilog.Loki.Grafana.Loki exposes `ILokiHttpClient` interface with the main operations, required for sending logs.
-In order to use a custom HttpClient you can extend of default implementations:
-
-- `Serilog.Sinks.Grafana.Loki.HttpClients.BaseLokiHttpClient` (implements creation of internal `HttpClient` and setting
-  credentials)
-- `Serilog.Sinks.Grafana.Loki.HttpClients.LokiHttpClient` (default client which sends logs via HTTP)
-- `Serilog.Sinks.Grafana.Loki.HttpClients.LokiGzipHttpClient` (default client which sends logs via HTTP with gzip
-  compression)
-
-or create one implementing `Serilog.Sinks.Grafana.Loki.ILokiHttpClient`.
+V9 accepts a standard `HttpClient` or `HttpMessageHandler` directly. Inject your own to add gzip
+compression, retries, mTLS, or any other cross-cutting behaviour:
 
 ```csharp
-// CustomHttpClient.cs
+// GzipHandler.cs
+using System.IO.Compression;
+using System.Net.Http;
+using System.Net.Http.Headers;
 
-public class CustomHttpClient : BaseLokiHttpClient
+public class GzipHandler : DelegatingHandler
 {
-    public override Task<HttpResponseMessage> PostAsync(string requestUri, Stream contentStream)
+    public GzipHandler() : base(new HttpClientHandler()) { }
+
+    protected override async Task<HttpResponseMessage> SendAsync(
+        HttpRequestMessage request, CancellationToken ct)
     {
-        return base.PostAsync(requestUri, contentStream);
+        if (request.Content is not null)
+        {
+            var bytes = await request.Content.ReadAsByteArrayAsync(ct);
+            using var ms = new MemoryStream();
+            using (var gz = new GZipStream(ms, CompressionLevel.Fastest, leaveOpen: true))
+                await gz.WriteAsync(bytes, ct);
+            request.Content = new ByteArrayContent(ms.ToArray());
+            request.Content.Headers.ContentType =
+                new MediaTypeHeaderValue("application/json") { CharSet = "utf-8" };
+            request.Content.Headers.ContentEncoding.Add("gzip");
+        }
+        return await base.SendAsync(request, ct);
     }
 }
 ```
 
 ```csharp
-// Usage
-
+// Usage — inject via httpMessageHandler (sink creates and owns the HttpClient)
 Log.Logger = new LoggerConfiguration()
     .WriteTo.GrafanaLoki(
-         "http://localhost:3100",
-         httpClient: new CustomHttpClient()
-    )
+        "http://localhost:3100",
+        httpMessageHandler: new GzipHandler())
+    .CreateLogger();
+
+// Or inject a pre-built HttpClient (e.g. from IHttpClientFactory — sink never disposes it)
+var httpClient = httpClientFactory.CreateClient("loki");
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.GrafanaLoki(
+        "http://localhost:3100",
+        httpClient: httpClient)
     .CreateLogger();
 ```
 
