@@ -240,7 +240,7 @@ let ``body: Exception field present when event has exception`` () : Task =
         let handler, sink = makeSink id
         use _ = sink
         let ex = InvalidOperationException("boom")
-        
+
         let event =
             let template = MessageTemplateParser().Parse("")
             LogEvent(DateTimeOffset.UtcNow, LogEventLevel.Error, ex, template, [])

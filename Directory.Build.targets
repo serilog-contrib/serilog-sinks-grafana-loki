@@ -1,7 +1,21 @@
-﻿<Project>
+<Project>
     <Target Name="SetAssemblyVersion" AfterTargets="MinVer">
         <PropertyGroup>
             <AssemblyVersion>$(MinVerMajor).$(MinVerMinor).$(MinVerPatch).0</AssemblyVersion>
         </PropertyGroup>
+    </Target>
+
+    <!-- Auto-install Husky git hooks on restore so contributors get them without
+         any manual step. Set HUSKY=0 or CI=true to skip (e.g. in CI pipelines).
+         ContinueOnError: hooks are already installed on subsequent restores — not a real error. -->
+    <Target Name="HuskyInstall" AfterTargets="Restore" Condition="'$(HUSKY)' != '0' AND '$(CI)' == ''">
+        <Exec Command="dotnet tool restore"
+              WorkingDirectory="$(MSBuildThisFileDirectory)"
+              StandardOutputImportance="Low"
+              ContinueOnError="true" />
+        <Exec Command="dotnet husky install"
+              WorkingDirectory="$(MSBuildThisFileDirectory)"
+              StandardOutputImportance="Low"
+              ContinueOnError="true" />
     </Target>
 </Project>

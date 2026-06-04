@@ -116,7 +116,7 @@ let ``groupIntoStreams: stream labels match the computed label set`` () =
 
 [<Fact>]
 let ``groupIntoStreams: three distinct label sets produce three streams`` () =
-    
+
     let events =
         [ mkInfo [] // label i=0
           mkInfo [] // label i=1

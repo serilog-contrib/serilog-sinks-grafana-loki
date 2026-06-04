@@ -1,0 +1,16 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+# Collect staged F# / F# script files under src/, tests/, and build.fsx at root.
+STAGED=$(git diff --cached --name-only --diff-filter=ACMR \
+    | grep -E '\.(fs|fsx)$' \
+    | grep -E '^(src/|tests/|build\.fsx$)' \
+    || true)
+
+if [ -z "$STAGED" ]; then
+    exit 0
+fi
+
+echo "Formatting staged F# files..."
+printf '%s\n' "$STAGED" | xargs dotnet fantomas
+printf '%s\n' "$STAGED" | xargs git add
