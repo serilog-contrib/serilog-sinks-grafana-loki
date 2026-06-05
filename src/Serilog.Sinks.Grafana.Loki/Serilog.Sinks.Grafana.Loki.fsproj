@@ -14,7 +14,7 @@
         <PackageTags>serilog;loki;grafana;logging;sink</PackageTags>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <PackageProjectUrl>https://github.com/serilog-contrib/serilog-sinks-grafana-loki</PackageProjectUrl>
-        <PackageIcon>icon.png</PackageIcon>
+        <PackageIcon>serilog-sink-nuget.png</PackageIcon>
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
     </PropertyGroup>
@@ -26,7 +26,7 @@
 
 
     <ItemGroup>
-        <None Include="..\..\assets\icon.png" Pack="true" Visible="false" PackagePath="/"/>
+        <None Include="..\..\assets\serilog-sink-nuget.png" Pack="true" Visible="false" PackagePath="/"/>
         <None Include="..\..\README.md" Pack="true" Visible="false" PackagePath="/"/>
     </ItemGroup>
 
