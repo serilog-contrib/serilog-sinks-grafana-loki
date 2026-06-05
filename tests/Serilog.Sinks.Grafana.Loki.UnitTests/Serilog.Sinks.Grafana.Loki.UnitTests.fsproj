@@ -33,6 +33,7 @@
         <Compile Include="LokiExceptionFormatterTests.fs"/>
         <Compile Include="WireFormatTests.fs"/>
         <Compile Include="AppSettingsBindingTests.fs"/>
+        <Compile Include="ExtensionDefaultsTests.fs"/>
     </ItemGroup>
 
 </Project>

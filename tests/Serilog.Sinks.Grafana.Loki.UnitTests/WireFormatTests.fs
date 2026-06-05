@@ -458,7 +458,7 @@ let ``http: base URI with path prefix and no trailing slash resolves push endpoi
 [<Fact>]
 let ``http auth: Authorization header set when credentials provided`` () : Task =
     task {
-        let creds = { Login = "user"; Password = "pass" }
+        let creds = LokiCredentials(Login = "user", Password = "pass")
         let handler, sink = makeSinkWithHandler (fun o -> { o with Credentials = creds })
         use _ = sink
         do! flush sink [ mkInfo [] ]

@@ -164,8 +164,7 @@ All options are passed as named arguments to `WriteTo.GrafanaLoki(...)`. Only `u
 | `labels` | `LokiLabel[]` | `[]` | Static labels attached to every stream. |
 | `propertiesAsLabels` | `string[]` | `[]` | Log-event property names to promote to stream labels. |
 | `handleLogLevelAsLabel` | `bool` | `true` | Add a `level` label using Grafana's level vocabulary. |
-| `credentialsLogin` | `string` | `null` | Basic-auth username. Pair with `credentialsPassword`. |
-| `credentialsPassword` | `string` | `null` | Basic-auth password. |
+| `credentials` | `LokiCredentials` | `null` | Basic-auth credentials. From `appsettings.json`, an object with `login`/`password`. |
 | `tenant` | `string` | `null` | Value for the `X-Scope-OrgID` multi-tenancy header. |
 | `enrichTraceId` | `bool` | `false` | Write the event's `TraceId` as a field in the JSON body. |
 | `enrichSpanId` | `bool` | `false` | Write the event's `SpanId` as a field in the JSON body. |
@@ -192,8 +191,7 @@ Log.Logger = new LoggerConfiguration()
         "http://localhost:3100",
         labels: [new LokiLabel { Key = "app", Value = "my-service" }],
         propertiesAsLabels: ["RequestPath"],
-        credentialsLogin: "user",
-        credentialsPassword: "pass",
+        credentials: new LokiCredentials { Login = "user", Password = "pass" },
         tenant: "my-tenant",
         enrichTraceId: true,
         queueLimit: 100_000,
@@ -228,13 +226,12 @@ Other rules:
 
 ## <a id="authentication-and-multi-tenancy"></a>Authentication and multi-tenancy
 
-**Basic authentication** is configured with `credentialsLogin` / `credentialsPassword`:
+**Basic authentication** is configured with a `credentials` object:
 
 ```csharp
 .WriteTo.GrafanaLoki(
     "http://localhost:3100",
-    credentialsLogin: "user",
-    credentialsPassword: "pass")
+    credentials: new LokiCredentials { Login = "user", Password = "pass" })
 ```
 
 > Basic auth is applied only to a client the sink creates. If you inject your own `httpClient`, configure its
@@ -413,7 +410,6 @@ V9 is a major release with breaking changes. The highlights:
 | Target frameworks | `netstandard2.0`, `net5.0`–`net8.0` | `net8.0`, `net9.0`, `net10.0` |
 | Serilog | 2.x / 3.x | **4.3.1+** (native batching) |
 | HTTP client | `ILokiHttpClient` / `LokiGzipHttpClient` subclasses | Inject `httpClient` / `httpMessageHandler`; gzip via `DelegatingHandler` |
-| Credentials | `credentials: LokiCredentials` | `credentialsLogin` / `credentialsPassword` |
 | Level label | always injected, collisions renamed | `handleLogLevelAsLabel` (default `true`); `Fatal` → `fatal` (was `critical`) |
 | Property → label | removed the property from the body | property is **kept** in the body |
 | Reserved-property renaming | `IReservedPropertyRenamingStrategy` | removed — pipeline is immutable; reserved body keys are prefixed with `_` |

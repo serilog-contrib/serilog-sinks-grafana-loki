@@ -77,7 +77,7 @@ let private configFromJson (json: string) : IConfiguration =
     ConfigurationBuilder().AddJsonStream(new MemoryStream(Encoding.UTF8.GetBytes json)).Build()
 
 [<Fact>]
-let ``appsettings: flat GrafanaLoki args are discovered, bound, and the sink delivers`` () : Task =
+let ``appsettings: GrafanaLoki args (incl. credentials object) are discovered, bound, delivered`` () : Task =
     task {
         let port, capture = startCaptureServer ()
 
@@ -97,7 +97,8 @@ let ``appsettings: flat GrafanaLoki args are discovered, bound, and the sink del
           "propertiesAsLabels": [ "RequestPath" ],
           "handleLogLevelAsLabel": true,
           "batchSizeLimit": 10,
-          "period": "00:00:01"
+          "period": "00:00:01",
+          "credentials": { "login": "binder", "password": "secret" }
         }
       }
     ]
@@ -117,4 +118,10 @@ let ``appsettings: flat GrafanaLoki args are discovered, bound, and the sink del
         test <@ body.Contains("\"app\":\"binding-test\"") @> // labels[] bound from JSON array of objects
         test <@ body.Contains("\"RequestPath\":\"/health\"") @> // propertiesAsLabels[] bound from JSON string array
         test <@ body.Contains("\"level\":\"info\"") @> // handleLogLevelAsLabel bound (bool)
+
+        // credentials bound from a JSON object -> the sink applies Basic auth
+        let expectedAuth =
+            "Basic " + Convert.ToBase64String(Encoding.UTF8.GetBytes("binder:secret"))
+
+        test <@ body.Contains(expectedAuth) @>
     }

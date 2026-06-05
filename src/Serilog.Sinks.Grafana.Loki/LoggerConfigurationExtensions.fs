@@ -59,8 +59,7 @@ type LoggerConfigurationLokiExtensions =
     /// <param name="labels">Static labels attached to every stream.</param>
     /// <param name="propertiesAsLabels">Property names to promote to stream labels.</param>
     /// <param name="handleLogLevelAsLabel">Add a 'level' stream label (default: true).</param>
-    /// <param name="credentialsLogin">Basic-auth login. Pair with credentialsPassword.</param>
-    /// <param name="credentialsPassword">Basic-auth password.</param>
+    /// <param name="credentials">Basic-auth credentials. From appsettings.json, an object with login/password.</param>
     /// <param name="tenant">X-Scope-OrgID multi-tenancy header value.</param>
     /// <param name="enrichTraceId">Write ActivityTraceId to the log body (default: false).</param>
     /// <param name="enrichSpanId">Write ActivitySpanId to the log body (default: false).</param>
@@ -84,8 +83,7 @@ type LoggerConfigurationLokiExtensions =
             [<Optional; DefaultParameterValue(null: string[])>] propertiesAsLabels: string[],
             [<Optional; DefaultParameterValue(true)>] handleLogLevelAsLabel: bool,
             // ── Auth / routing ────────────────────────────────────────────────────
-            [<Optional; DefaultParameterValue(null: string)>] credentialsLogin: string,
-            [<Optional; DefaultParameterValue(null: string)>] credentialsPassword: string,
+            [<Optional; DefaultParameterValue(null: LokiCredentials)>] credentials: LokiCredentials,
             [<Optional; DefaultParameterValue(null: string)>] tenant: string,
             // ── OpenTelemetry ─────────────────────────────────────────────────────
             [<Optional; DefaultParameterValue(false)>] enrichTraceId: bool,
@@ -110,13 +108,6 @@ type LoggerConfigurationLokiExtensions =
             // ── Level ─────────────────────────────────────────────────────────────
             [<Optional; DefaultParameterValue(LevelAlias.Minimum)>] restrictedToMinimumLevel: LogEventLevel
         ) =
-
-        let credentials =
-            if String.IsNullOrEmpty credentialsLogin then
-                Unchecked.defaultof<LokiCredentials>
-            else
-                { Login = credentialsLogin
-                  Password = credentialsPassword }
 
         let options =
             { Uri = uri
