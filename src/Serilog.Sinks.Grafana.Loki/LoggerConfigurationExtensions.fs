@@ -12,7 +12,6 @@ namespace Serilog.Sinks.Grafana.Loki
 
 open System
 open System.Net.Http
-open System.Globalization
 open System.Runtime.CompilerServices
 open System.Runtime.InteropServices
 open Serilog.Configuration
@@ -35,20 +34,6 @@ type LoggerConfigurationLokiExtensions =
         | true, u when u.Scheme <> "http" && u.Scheme <> "https" ->
             invalidArg "uri" $"Loki URI scheme must be http or https, got '{u.Scheme}'."
         | _ -> ()
-
-    // Optional TimeSpan parameters arrive as strings (see the period/retryTimeLimit
-    // comments below). Null/empty falls back to the supplied default; anything else
-    // must parse as "hh:mm:ss" or the configuration is rejected.
-    static let parseTimeSpan (paramName: string) (value: string) (fallback: TimeSpan) =
-        if String.IsNullOrEmpty value then
-            fallback
-        else
-            match TimeSpan.TryParse(value, CultureInfo.InvariantCulture) with
-            | true, ts -> ts
-            | false, _ ->
-                invalidArg
-                    paramName
-                    $"'{value}' is not a valid TimeSpan. Expected format: hh:mm:ss (e.g. \"00:00:02\")."
 
     static let wire (sinkConfig: LoggerSinkConfiguration) (options: LokiSinkOptions) (level: LogEventLevel) =
         validateUri options.Uri
@@ -108,14 +93,14 @@ type LoggerConfigurationLokiExtensions =
             // ── Batching ──────────────────────────────────────────────────────────
             [<Optional; DefaultParameterValue(1_000)>] batchSizeLimit: int,
             [<Optional; DefaultParameterValue(50_000)>] queueLimit: int,
-            // String type is required: F# [<Optional>] TimeSpan and Nullable<TimeSpan> both compile with
-            // default=Missing.Value which Serilog.Settings.Configuration cannot use when building the
-            // reflection call. C# TimeSpan?=null emits default=null but F# cannot replicate this.
-            // Null/empty = use sink default. Format: "hh:mm:ss" e.g. "00:00:02".
-            [<Optional; DefaultParameterValue(null: string)>] period: string,
+            // Nullable<TimeSpan> + a struct-default DefaultParameterValue emits the same
+            // [opt]+HasDefault(nullref) metadata as C#'s `TimeSpan? = null`, so
+            // Serilog.Settings.Configuration binds it: omitted -> null -> sink default;
+            // a supplied "hh:mm:ss" string is converted to TimeSpan by the settings binder.
+            [<Optional; DefaultParameterValue(Nullable<TimeSpan>())>] period: Nullable<TimeSpan>,
             [<Optional; DefaultParameterValue(true)>] eagerlyEmitFirstEvent: bool,
-            // Null/empty = use sink default (10 min).
-            [<Optional; DefaultParameterValue(null: string)>] retryTimeLimit: string,
+            // Omitted -> sink default (10 min).
+            [<Optional; DefaultParameterValue(Nullable<TimeSpan>())>] retryTimeLimit: Nullable<TimeSpan>,
             // ── Extension points ──────────────────────────────────────────────────
             [<Optional; DefaultParameterValue(null: ITextFormatter)>] textFormatter: ITextFormatter,
             [<Optional; DefaultParameterValue(null: ILokiExceptionFormatter)>] exceptionFormatter:
@@ -148,9 +133,17 @@ type LoggerConfigurationLokiExtensions =
               EnrichSpanId = enrichSpanId
               BatchSizeLimit = batchSizeLimit
               QueueLimit = queueLimit
-              Period = parseTimeSpan "period" period LokiSinkOptions.Defaults.Period
+              Period =
+                if period.HasValue then
+                    period.Value
+                else
+                    LokiSinkOptions.Defaults.Period
               EagerlyEmitFirstEvent = eagerlyEmitFirstEvent
-              RetryTimeLimit = parseTimeSpan "retryTimeLimit" retryTimeLimit LokiSinkOptions.Defaults.RetryTimeLimit
+              RetryTimeLimit =
+                if retryTimeLimit.HasValue then
+                    retryTimeLimit.Value
+                else
+                    LokiSinkOptions.Defaults.RetryTimeLimit
               TextFormatter = textFormatter
               ExceptionFormatter = exceptionFormatter
               HttpClient = httpClient

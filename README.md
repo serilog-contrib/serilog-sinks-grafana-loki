@@ -171,18 +171,18 @@ All options are passed as named arguments to `WriteTo.GrafanaLoki(...)`. Only `u
 | `enrichSpanId` | `bool` | `false` | Write the event's `SpanId` as a field in the JSON body. |
 | `batchSizeLimit` | `int` | `1000` | Maximum events per HTTP POST. |
 | `queueLimit` | `int` | `50000` | Maximum events buffered in memory before new events are dropped. |
-| `period` | `string` | `"00:00:01"` | Flush interval, formatted as `hh:mm:ss`. |
+| `period` | `TimeSpan?` | `1 s` | Flush interval. From `appsettings.json`, written as an `"hh:mm:ss"` string. |
 | `eagerlyEmitFirstEvent` | `bool` | `true` | Flush immediately on the first event (surfaces misconfiguration early). |
-| `retryTimeLimit` | `string` | `"00:10:00"` | Stop retrying a failed batch after this duration, formatted as `hh:mm:ss`. |
+| `retryTimeLimit` | `TimeSpan?` | `10 min` | Stop retrying a failed batch after this duration. From `appsettings.json`, an `"hh:mm:ss"` string. |
 | `textFormatter` | `ITextFormatter` | `LokiJsonTextFormatter` | Per-event body formatter. |
 | `exceptionFormatter` | `ILokiExceptionFormatter` | `LokiExceptionFormatter` | Exception serializer. |
 | `httpClient` | `HttpClient` | `null` | Pre-built client (e.g. from `IHttpClientFactory`). The sink never disposes an injected client. |
 | `httpMessageHandler` | `HttpMessageHandler` | `null` | Handler for the sink's own client (gzip, retries, …). Ignored when `httpClient` is set. |
 | `restrictedToMinimumLevel` | `LogEventLevel` | `Verbose` | Minimum level handled by this sink. |
 
-> **Note on `period` / `retryTimeLimit`:** these are `string` parameters (format `hh:mm:ss`, e.g. `"00:00:05"`) rather
-> than `TimeSpan`, so the same call signature binds cleanly from `appsettings.json` via `Serilog.Settings.Configuration`.
-> Leave them unset to use the defaults.
+> **Note on `period` / `retryTimeLimit`:** in C# these are `TimeSpan?` (e.g. `period: TimeSpan.FromSeconds(5)`); leave
+> them unset to use the defaults. In `appsettings.json` they are written as `"hh:mm:ss"` strings (e.g. `"00:00:05"`),
+> which `Serilog.Settings.Configuration` converts to `TimeSpan`.
 
 A more complete C# example:
 
@@ -197,7 +197,7 @@ Log.Logger = new LoggerConfiguration()
         tenant: "my-tenant",
         enrichTraceId: true,
         queueLimit: 100_000,
-        period: "00:00:02")
+        period: TimeSpan.FromSeconds(2))
     .CreateLogger();
 ```
 
