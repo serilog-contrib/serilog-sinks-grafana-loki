@@ -21,6 +21,8 @@
         <PackageReference Include="Hedgehog.Xunit"/>
         <PackageReference Include="xunit"/>
         <PackageReference Include="xunit.runner.visualstudio"/>
+        <PackageReference Include="Serilog.Settings.Configuration"/>
+        <PackageReference Include="Microsoft.Extensions.Configuration.Json"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -30,6 +32,7 @@
         <Compile Include="GroupingTests.fs"/>
         <Compile Include="LokiExceptionFormatterTests.fs"/>
         <Compile Include="WireFormatTests.fs"/>
+        <Compile Include="AppSettingsBindingTests.fs"/>
     </ItemGroup>
 
 </Project>
