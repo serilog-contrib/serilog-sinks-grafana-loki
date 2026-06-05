@@ -117,6 +117,46 @@ module internal Labels =
                 | _ -> acc)
             base'
 
+    // ── Structured metadata (per-line, not part of stream grouping) ───────────
+
+    /// Builds the per-event structured-metadata set: TraceId / SpanId when their
+    /// mode is StructuredMetadata, plus any PropertiesAsStructuredMetadata the event
+    /// carries. Returns an empty map when nothing applies — the serializer then omits
+    /// the per-entry metadata object entirely, keeping default output byte-identical
+    /// and compatible with pre-3.0 Loki.
+    ///
+    /// Keys follow the label rules (TraceId / SpanId verbatim; property names via
+    /// sanitizeLabelKey); values via renderLabelValue. Last-write-wins on duplicates.
+    let buildStructuredMetadata
+        (traceIdMode: LokiFieldDestination)
+        (spanIdMode: LokiFieldDestination)
+        (propertiesAsStructuredMetadata: string[])
+        (event: LogEvent)
+        : Map<string, string> =
+
+        let withTraceId (acc: Map<string, string>) =
+            if traceIdMode = LokiFieldDestination.StructuredMetadata && event.TraceId.HasValue then
+                Map.add "TraceId" (event.TraceId.Value.ToHexString()) acc
+            else
+                acc
+
+        let withSpanId (acc: Map<string, string>) =
+            if spanIdMode = LokiFieldDestination.StructuredMetadata && event.SpanId.HasValue then
+                Map.add "SpanId" (event.SpanId.Value.ToHexString()) acc
+            else
+                acc
+
+        let withProperties (acc: Map<string, string>) =
+            propertiesAsStructuredMetadata
+            |> Array.fold
+                (fun acc propName ->
+                    match event.Properties.TryGetValue(propName) with
+                    | true, value -> Map.add (sanitizeLabelKey propName) (renderLabelValue value) acc
+                    | _ -> acc)
+                acc
+
+        Map.empty |> withTraceId |> withSpanId |> withProperties
+
     // ── Test shim ─────────────────────────────────────────────────────────────
     // toUnixNanoseconds needs a direct precision test but is inline (can't be
     // called across assembly boundaries even with InternalsVisibleTo).

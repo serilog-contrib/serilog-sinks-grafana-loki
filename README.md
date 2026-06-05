@@ -30,7 +30,8 @@ Glory to Ukraine! 🇺🇦
 - [Labels](#labels)
 - [Authentication and multi-tenancy](#authentication-and-multi-tenancy)
 - [Custom HttpClient](#custom-http-client)
-- [Trace and span enrichment](#trace-and-span-enrichment)
+- [Trace and span context](#trace-and-span-enrichment)
+- [Structured metadata](#structured-metadata)
 - [JSON formatting and custom formatters](#json-formatting)
 - [Batching and delivery](#batching-and-delivery)
 - [Migrating from V8](#migrating-from-v8)
@@ -60,8 +61,8 @@ rewrite fixes a class of long-standing structural bugs and modernizes the delive
   no intermediate object graph and no intermediate strings.
 - **Bring-your-own `HttpClient` / `HttpMessageHandler.`** The old `ILokiHttpClient`/`LokiGzipHttpClient` hierarchy is
   replaced by direct injection; gzip, retries, mTLS and bearer auth are now standard `DelegatingHandler` concerns.
-- **New features:** pluggable exception formatter (`ILokiExceptionFormatter`), `TraceId`/`SpanId` enrichment, startup
-  URI validation, and the log level exposed as a label using Grafana's vocabulary.
+- **New features:** pluggable exception formatter (`ILokiExceptionFormatter`), `TraceId`/`SpanId` routing to the body or
+  **Loki structured metadata**, startup URI validation, and the log level exposed as a label using Grafana's vocabulary.
 
 See [Migrating from V8](#migrating-from-v8) for the full list of breaking changes.
 
@@ -80,7 +81,9 @@ See [Migrating from V8](#migrating-from-v8) for the full list of breaking change
 - Log level exposed as a label using Grafana's level vocabulary (optional)
 - Basic authentication and multi-tenancy (`X-Scope-OrgID`) support
 - Bring-your-own `HttpClient` / `HttpMessageHandler` — gzip, retries, mTLS and bearer auth via `DelegatingHandler`
-- `TraceId` / `SpanId` enrichment from the ambient `Activity` (OpenTelemetry)
+- `TraceId` / `SpanId` from the ambient `Activity` (OpenTelemetry) — written to the log body or as structured metadata
+- Loki **structured metadata**: per-line, non-indexed key/value pairs, queryable without a parser and without label
+  cardinality cost (Loki 3.0+)
 - Pluggable exception formatter and text formatter
 - First-class `Serilog.Settings.Configuration` (appsettings.json) support
 - No dependency on any other Serilog sink
@@ -163,11 +166,12 @@ All options are passed as named arguments to `WriteTo.GrafanaLoki(...)`. Only `u
 | `uri` | `string` | — (required) | Loki base URI, e.g. `http://localhost:3100`. Validated at startup; must be an absolute `http`/`https` URI. |
 | `labels` | `LokiLabel[]` | `[]` | Static labels attached to every stream. |
 | `propertiesAsLabels` | `string[]` | `[]` | Log-event property names to promote to stream labels. |
+| `propertiesAsStructuredMetadata` | `string[]` | `[]` | Property names to attach as per-line [structured metadata](#structured-metadata) (non-indexed; Loki 3.0+). |
 | `handleLogLevelAsLabel` | `bool` | `true` | Add a `level` label using Grafana's level vocabulary. |
 | `credentials` | `LokiCredentials` | `null` | Basic-auth credentials. From `appsettings.json`, an object with `login`/`password`. |
 | `tenant` | `string` | `null` | Value for the `X-Scope-OrgID` multi-tenancy header. |
-| `enrichTraceId` | `bool` | `false` | Write the event's `TraceId` as a field in the JSON body. |
-| `enrichSpanId` | `bool` | `false` | Write the event's `SpanId` as a field in the JSON body. |
+| `traceIdMode` | `LokiFieldDestination` | `None` | Where to write the event's `TraceId`: `None`, `Body`, or `StructuredMetadata`. |
+| `spanIdMode` | `LokiFieldDestination` | `None` | Where to write the event's `SpanId`: `None`, `Body`, or `StructuredMetadata`. |
 | `batchSizeLimit` | `int` | `1000` | Maximum events per HTTP POST. |
 | `queueLimit` | `int` | `50000` | Maximum events buffered in memory before new events are dropped. |
 | `period` | `TimeSpan?` | `1 s` | Flush interval. From `appsettings.json`, written as an `"hh:mm:ss"` string. |
@@ -193,7 +197,7 @@ Log.Logger = new LoggerConfiguration()
         propertiesAsLabels: ["RequestPath"],
         credentials: new LokiCredentials { Login = "user", Password = "pass" },
         tenant: "my-tenant",
-        enrichTraceId: true,
+        traceIdMode: LokiFieldDestination.StructuredMetadata,
         queueLimit: 100_000,
         period: TimeSpan.FromSeconds(2))
     .CreateLogger();
@@ -298,20 +302,67 @@ Log.Logger = new LoggerConfiguration()
     .CreateLogger();
 ```
 
-## <a id="trace-and-span-enrichment"></a>Trace and span enrichment
+## <a id="trace-and-span-enrichment"></a>Trace and span context
 
-When `enrichTraceId` / `enrichSpanId` are enabled, the event's `TraceId` and `SpanId` (populated by Serilog 4.x from the
-ambient `Activity`) are written as `TraceId` / `SpanId` fields in the JSON body:
+`traceIdMode` and `spanIdMode` control where the event's `TraceId` / `SpanId` (populated by Serilog 4.x from the ambient
+`Activity`) are written. Each takes a `LokiFieldDestination`:
+
+| Value | Effect |
+|---|---|
+| `None` (default) | Not emitted. |
+| `Body` | Written as a `TraceId` / `SpanId` field in the JSON log body. |
+| `StructuredMetadata` | Attached as Loki [structured metadata](#structured-metadata) — recommended for trace IDs. |
 
 ```csharp
 .WriteTo.GrafanaLoki(
     "http://localhost:3100",
-    enrichTraceId: true,
-    enrichSpanId: true)
+    traceIdMode: LokiFieldDestination.StructuredMetadata,
+    spanIdMode: LokiFieldDestination.StructuredMetadata)
 ```
 
-Both default to `false`. Trace context is typically populated for you by `Serilog.AspNetCore` /
-`Serilog.Extensions.Logging`; outside those, an active `Activity` must be present for the fields to be emitted.
+From `appsettings.json` the mode binds from its name: `"traceIdMode": "StructuredMetadata"`.
+
+Trace context is typically populated for you by `Serilog.AspNetCore` / `Serilog.Extensions.Logging`; outside those, an
+active `Activity` must be present for the IDs to be emitted.
+
+## <a id="structured-metadata"></a>Structured metadata
+
+[Structured metadata](https://grafana.com/docs/loki/latest/get-started/labels/structured-metadata/) attaches per-line
+key/value pairs to a log entry **without indexing them as labels**. Unlike `propertiesAsLabels` it does not create new
+streams (no cardinality cost), and unlike a body field it is queryable **without a parser stage**:
+
+```logql
+{app="web_app"} | RequestId="abc-123"         # structured metadata — no parser needed
+{app="web_app"} | json | RequestId="abc-123"   # the equivalent for a body field
+```
+
+That makes it the right home for high-cardinality identifiers such as request, user, or trace IDs. Two sources feed it:
+
+- **`propertiesAsStructuredMetadata`** — property names to attach as metadata (the property is also kept in the body).
+- **`traceIdMode` / `spanIdMode` set to `StructuredMetadata`** — routes `TraceId` / `SpanId` there instead of the body.
+
+```csharp
+.WriteTo.GrafanaLoki(
+    "http://localhost:3100",
+    propertiesAsStructuredMetadata: ["RequestId", "UserId"],
+    traceIdMode: LokiFieldDestination.StructuredMetadata)
+```
+
+It is emitted as the optional third element of each push entry:
+
+```json
+"values": [
+  [ "1700000000000000000", "{\"Message\":\"...\"}", { "RequestId": "abc-123", "TraceId": "..." } ]
+]
+```
+
+> **Requires Loki 3.0+** (or 2.9 with `allow_structured_metadata` enabled on a TSDB v13 schema). Against an older Loki,
+> or one with structured metadata disabled, such a push is rejected — leave these options unset (the default) to stay
+> compatible.
+
+For the full picture — the three-tier model (labels vs structured metadata vs body), querying, and Loki configuration —
+see [Structured metadata](https://github.com/serilog-contrib/serilog-sinks-grafana-loki/wiki/Structured-metadata) in the
+wiki.
 
 ## <a id="json-formatting"></a>JSON formatting and custom formatters
 
@@ -334,9 +385,9 @@ The resulting push payload looks like:
 }
 ```
 
-Each body object contains `Message`, `MessageTemplate`, an optional `Exception`, the optional `TraceId` / `SpanId`
-fields, and every event property. Property names that collide with these reserved keys (`Message`, `MessageTemplate`,
-`Exception`, `TraceId`, `SpanId`) are prefixed with `_`.
+Each body object contains `Message`, `MessageTemplate`, an optional `Exception`, the `TraceId` / `SpanId` fields (when
+their mode is `Body`), and every event property. Property names that collide with these reserved keys (`Message`,
+`MessageTemplate`, `Exception`, `TraceId`, `SpanId`) are prefixed with `_`.
 
 **Custom text formatter.** Implement `Serilog.Formatting.ITextFormatter`, or subclass `LokiJsonTextFormatter` and
 override `Format` or `SanitizePropertyName`, then pass it via `textFormatter`:
@@ -417,7 +468,7 @@ V9 is a major release with breaking changes. The highlights:
 | `useInternalTimestamp` | flag | removed |
 | Queue | unbounded by default | **bounded** at `queueLimit` (default 50 000) |
 | Exception formatting | hardcoded | pluggable `ILokiExceptionFormatter` |
-| Trace context | not supported | `enrichTraceId` / `enrichSpanId` |
+| Trace context | not supported | `traceIdMode` / `spanIdMode` (body or structured metadata) |
 | URI validation | on first request | at logger configuration time |
 
 `FSharp.Core` becomes a transitive dependency of all consumers.

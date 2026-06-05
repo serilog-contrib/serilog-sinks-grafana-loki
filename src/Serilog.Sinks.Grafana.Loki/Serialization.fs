@@ -50,13 +50,16 @@ module internal Serialization =
 
     /// Serializes a complete batch of log events into mainBuffer as a Loki push payload:
     ///
-    ///   { "streams": [ { "stream": { labels }, "values": [ [ "ts_ns", "body" ], ... ] } ] }
+    ///   { "streams": [ { "stream": { labels }, "values": [ [ "ts_ns", "body", { meta }? ], ... ] } ] }
     ///
     /// Events are grouped into streams by their label set; within each stream they are
-    /// ordered by timestamp.  Both buffers are cleared by the caller between ticks.
+    /// ordered by timestamp. Each entry carries an optional 3rd element of structured
+    /// metadata (per-line, not part of grouping), written only when non-empty.
+    /// Both buffers are cleared by the caller between ticks.
     let serialize
         (textFormatter: ITextFormatter)
         (labelOf: LogEvent -> LabelSet)
+        (metadataOf: LogEvent -> Map<string, string>)
         (mainBuffer: PooledByteBufferWriter)
         (bodyBuffer: PooledByteBufferWriter)
         (batch: LogEvent seq)
@@ -88,6 +91,19 @@ module internal Serialization =
                 jsonWriter.WriteStartArray()
                 jsonWriter.WriteStringValue(string (toUnixNanoseconds event.Timestamp))
                 writeBody textFormatter jsonWriter bodyBuffer event
+
+                // Optional 3rd element: per-line structured metadata. Omitted when empty
+                // so default output stays a 2-element [ ts, body ] entry.
+                let metadata = metadataOf event
+
+                if not metadata.IsEmpty then
+                    jsonWriter.WriteStartObject()
+
+                    for kvp in metadata do
+                        jsonWriter.WriteString(kvp.Key, kvp.Value)
+
+                    jsonWriter.WriteEndObject()
+
                 jsonWriter.WriteEndArray()
 
             jsonWriter.WriteEndArray()

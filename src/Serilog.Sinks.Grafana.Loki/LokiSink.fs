@@ -47,7 +47,13 @@ type internal LokiSink(options: LokiSinkOptions) =
                 else
                     options.ExceptionFormatter
 
-            LokiJsonTextFormatter(exFmt, options.EnrichTraceId, options.EnrichSpanId)
+            // The formatter only writes the JSON body, so it receives plain "write to body?"
+            // flags; structured-metadata routing is handled separately in metadataOf below.
+            LokiJsonTextFormatter(
+                exFmt,
+                options.TraceIdMode = LokiFieldDestination.Body,
+                options.SpanIdMode = LokiFieldDestination.Body
+            )
         else
             options.TextFormatter
 
@@ -103,6 +109,15 @@ type internal LokiSink(options: LokiSinkOptions) =
     let labelOf (event: LogEvent) =
         buildLabelSet globalLabels reservedKeys propertiesAsLabels options.HandleLogLevelAsLabel event
 
+    let propertiesAsStructuredMetadata =
+        if isNull options.PropertiesAsStructuredMetadata then
+            [||]
+        else
+            options.PropertiesAsStructuredMetadata
+
+    let metadataOf (event: LogEvent) =
+        buildStructuredMetadata options.TraceIdMode options.SpanIdMode propertiesAsStructuredMetadata event
+
     // ── Reusable per-tick buffers ─────────────────────────────────────────────
 
     let mainBuffer = new PooledByteBufferWriter(4096)
@@ -118,7 +133,7 @@ type internal LokiSink(options: LokiSinkOptions) =
                 bodyBuffer.Clear()
 
                 try
-                    Serialization.serialize textFormatter labelOf mainBuffer bodyBuffer batch
+                    Serialization.serialize textFormatter labelOf metadataOf mainBuffer bodyBuffer batch
                 with ex ->
                     SelfLog.WriteLine(
                         "Serilog.Sinks.GrafanaLoki: serialization failed for batch of {0} events: {1}",

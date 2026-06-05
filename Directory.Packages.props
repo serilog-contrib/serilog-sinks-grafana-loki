@@ -33,6 +33,10 @@
         <PackageVersion Include="Testcontainers" Version="4.12.0"/>
     </ItemGroup>
 
+    <ItemGroup Label="Benchmarks">
+        <PackageVersion Include="BenchmarkDotNet" Version="0.15.8"/>
+    </ItemGroup>
+
     <ItemGroup Label="Tests">
         <PackageVersion Include="Hedgehog" Version="2.0.3"/>
         <PackageVersion Include="Hedgehog.Xunit" Version="0.7.1"/>
@@ -40,6 +44,6 @@
         <PackageVersion Include="Unquote" Version="7.0.1"/>
         <PackageVersion Include="xunit" Version="2.9.3"/>
         <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5"/>
-        <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="10.0.0"/>
+        <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="10.0.8"/>
     </ItemGroup>
 </Project>

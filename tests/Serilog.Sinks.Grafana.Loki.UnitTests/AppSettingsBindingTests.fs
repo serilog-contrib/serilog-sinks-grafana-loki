@@ -1,10 +1,12 @@
 module Serilog.Sinks.Grafana.Loki.Tests.AppSettingsBindingTests
 
 open System
+open System.Diagnostics
 open System.IO
 open System.Net
 open System.Net.Sockets
 open System.Text
+open System.Text.Json
 open System.Threading.Tasks
 open Microsoft.Extensions.Configuration
 open Serilog
@@ -76,6 +78,12 @@ let private startCaptureServer () : int * Task<string> =
 let private configFromJson (json: string) : IConfiguration =
     ConfigurationBuilder().AddJsonStream(new MemoryStream(Encoding.UTF8.GetBytes json)).Build()
 
+/// Extracts and parses the JSON push body from a captured raw HTTP request
+/// (status line + headers + body). The body starts at the first '{' — HTTP headers
+/// contain no braces.
+let private parsePushBody (raw: string) : JsonDocument =
+    JsonDocument.Parse(raw.Substring(raw.IndexOf('{')))
+
 [<Fact>]
 let ``appsettings: GrafanaLoki args (incl. credentials object) are discovered, bound, delivered`` () : Task =
     task {
@@ -124,4 +132,65 @@ let ``appsettings: GrafanaLoki args (incl. credentials object) are discovered, b
             "Basic " + Convert.ToBase64String(Encoding.UTF8.GetBytes("binder:secret"))
 
         test <@ body.Contains(expectedAuth) @>
+    }
+
+[<Fact>]
+let ``appsettings: traceIdMode enum binds from its string name and emits structured metadata`` () : Task =
+    task {
+        let port, capture = startCaptureServer ()
+
+        let json =
+            sprintf
+                """
+{
+  "Serilog": {
+    "Using": [ "Serilog.Sinks.Grafana.Loki" ],
+    "MinimumLevel": { "Default": "Information" },
+    "WriteTo": [
+      {
+        "Name": "GrafanaLoki",
+        "Args": {
+          "uri": "http://127.0.0.1:%d",
+          "labels": [ { "key": "app", "value": "md-test" } ],
+          "traceIdMode": "StructuredMetadata",
+          "propertiesAsStructuredMetadata": [ "OrderId" ]
+        }
+      }
+    ]
+  }
+}"""
+                port
+
+        let logger =
+            LoggerConfiguration().ReadFrom.Configuration(configFromJson json).CreateLogger()
+
+        // A W3C activity so the emitted LogEvent carries a TraceId for the sink to route.
+        use activity = (new Activity("appsettings-md")).SetIdFormat(ActivityIdFormat.W3C)
+        activity.Start() |> ignore
+        let expectedTrace = activity.TraceId.ToHexString()
+
+        logger.Information("processing {OrderId}", 4242)
+        activity.Stop()
+        (logger :> IDisposable).Dispose() // flushes the batched sink
+
+        let! raw = capture.WaitAsync(TimeSpan.FromSeconds 10.0)
+
+        use doc = parsePushBody raw
+        let streams = doc.RootElement.GetProperty("streams")
+        let values = streams[0].GetProperty("values")
+        let firstEntry = values[0]
+
+        // Extract plain values up-front — JsonElement is a struct and cannot be
+        // addressed inside an Unquote quotation.
+        let elementCount = firstEntry.GetArrayLength()
+        // [ ts, body, { metadata } ] — the 3rd element proves structured metadata was emitted
+        test <@ elementCount = 3 @>
+
+        let metadata = firstEntry[2]
+        let mdTrace = metadata.GetProperty("TraceId").GetString()
+        let mdOrder = metadata.GetProperty("OrderId").GetString()
+
+        // traceIdMode bound from the string "StructuredMetadata"; OrderId from the array
+        test <@ mdTrace = expectedTrace @>
+        test <@ mdOrder = "4242" @>
     }

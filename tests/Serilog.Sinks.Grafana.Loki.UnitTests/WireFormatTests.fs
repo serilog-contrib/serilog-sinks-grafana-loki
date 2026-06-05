@@ -22,7 +22,7 @@ open Serilog.Sinks.Grafana.Loki.Tests.Helpers
 let private traceParser = MessageTemplateParser()
 
 /// Creates a LogEvent with an explicit non-default TraceId and SpanId
-/// so that EnrichTraceId / EnrichSpanId can be unit-tested without a
+/// so that TraceIdMode / SpanIdMode routing can be unit-tested without a
 /// running Activity (ActivitySource + listener setup is not required).
 let private mkEventWithTrace () =
     let traceId = ActivityTraceId.CreateRandom()
@@ -164,6 +164,22 @@ let private propKindOf (key: string) (doc: JsonDocument) =
     match doc.RootElement.TryGetProperty(key) with
     | true, v -> v.ValueKind
     | _ -> JsonValueKind.Undefined
+
+// Number of elements in a values entry: 2 ([ts, body]) or 3 ([ts, body, metadata]).
+let private entryElementCount (stream: JsonElement) (i: int) =
+    let entry = stream.GetProperty("values")[i]
+    entry.GetArrayLength()
+
+// Reads a key from the optional 3rd (structured-metadata) element of a values entry.
+let private metadataProp (key: string) (stream: JsonElement) (i: int) =
+    let e = stream.GetProperty("values")[i]
+
+    if e.GetArrayLength() < 3 then
+        None
+    else
+        match e[2].TryGetProperty(key) with
+        | true, v -> Some(v.GetString())
+        | _ -> None
 
 // ── JSON structure ────────────────────────────────────────────────────────────
 
@@ -489,56 +505,160 @@ let ``http tenant: X-Scope-OrgID header set when Tenant configured`` () : Task =
         test <@ tenant = Some "my-tenant" @>
     }
 
-// ── TraceId / SpanId enrichment ───────────────────────────────────────────────
+// ── TraceId / SpanId routing (Body vs StructuredMetadata) ─────────────────────
 
 [<Fact>]
-let ``body: TraceId written when EnrichTraceId=true and event carries a TraceId`` () : Task =
+let ``trace: TraceId written to body when TraceIdMode=Body`` () : Task =
     task {
-        let handler, sink = makeSinkWithHandler (fun o -> { o with EnrichTraceId = true })
+        let handler, sink =
+            makeSinkWithHandler (fun o ->
+                { o with
+                    TraceIdMode = LokiFieldDestination.Body })
+
         use _ = sink
         let traceId, _, event = mkEventWithTrace ()
         let expectedTrace = traceId.ToHexString() // extract before quotation — struct capture not allowed in quotations
         do! flush sink [ event ]
         use doc = handler.LastBodyJson
-        let bodyTr = bodyProp "TraceId" (streamAt 0 doc) 0
-        test <@ bodyTr = Some expectedTrace @>
+        let s = streamAt 0 doc
+        let bodyTr = bodyProp "TraceId" s 0
+        let inMeta = metadataProp "TraceId" s 0
+        test <@ bodyTr = Some expectedTrace && inMeta = None @>
     }
 
 [<Fact>]
-let ``body: SpanId written when EnrichSpanId=true and event carries a SpanId`` () : Task =
+let ``trace: SpanId written to body when SpanIdMode=Body`` () : Task =
     task {
-        let handler, sink = makeSinkWithHandler (fun o -> { o with EnrichSpanId = true })
+        let handler, sink =
+            makeSinkWithHandler (fun o ->
+                { o with
+                    SpanIdMode = LokiFieldDestination.Body })
+
         use _ = sink
         let _, spanId, event = mkEventWithTrace ()
         let expectedSpan = spanId.ToHexString()
         do! flush sink [ event ]
         use doc = handler.LastBodyJson
-        let bodySp = bodyProp "SpanId" (streamAt 0 doc) 0
-        test <@ bodySp = Some expectedSpan @>
+        let s = streamAt 0 doc
+        let bodySp = bodyProp "SpanId" s 0
+        let inMeta = metadataProp "SpanId" s 0
+        test <@ bodySp = Some expectedSpan && inMeta = None @>
     }
 
 [<Fact>]
-let ``body: TraceId absent when EnrichTraceId=false (default)`` () : Task =
+let ``trace: TraceId in structured metadata (not body) when TraceIdMode=StructuredMetadata`` () : Task =
     task {
-        let handler, sink = makeSinkWithHandler id // EnrichTraceId defaults to false
+        let handler, sink =
+            makeSinkWithHandler (fun o ->
+                { o with
+                    TraceIdMode = LokiFieldDestination.StructuredMetadata })
+
         use _ = sink
-        let _, _, event = mkEventWithTrace () // event has a TraceId but sink won't write it
+        let traceId, _, event = mkEventWithTrace ()
+        let expectedTrace = traceId.ToHexString()
         do! flush sink [ event ]
         use doc = handler.LastBodyJson
-        let hasTrace = hasBodyProp "TraceId" (streamAt 0 doc) 0
-        test <@ not hasTrace @>
+        let s = streamAt 0 doc
+        let metaTr = metadataProp "TraceId" s 0
+        let inBody = hasBodyProp "TraceId" s 0
+        test <@ metaTr = Some expectedTrace && not inBody @>
     }
 
 [<Fact>]
-let ``body: SpanId absent when EnrichSpanId=false (default)`` () : Task =
+let ``trace: SpanId in structured metadata (not body) when SpanIdMode=StructuredMetadata`` () : Task =
     task {
-        let handler, sink = makeSinkWithHandler id // EnrichSpanId defaults to false
+        let handler, sink =
+            makeSinkWithHandler (fun o ->
+                { o with
+                    SpanIdMode = LokiFieldDestination.StructuredMetadata })
+
         use _ = sink
-        let _, _, event = mkEventWithTrace ()
+        let _, spanId, event = mkEventWithTrace ()
+        let expectedSpan = spanId.ToHexString()
         do! flush sink [ event ]
         use doc = handler.LastBodyJson
-        let hasSpan = hasBodyProp "SpanId" (streamAt 0 doc) 0
-        test <@ not hasSpan @>
+        let s = streamAt 0 doc
+        let metaSp = metadataProp "SpanId" s 0
+        let inBody = hasBodyProp "SpanId" s 0
+        test <@ metaSp = Some expectedSpan && not inBody @>
+    }
+
+[<Fact>]
+let ``trace: TraceId/SpanId absent from body and metadata when mode=None (default)`` () : Task =
+    task {
+        let handler, sink = makeSinkWithHandler id // both modes default to None
+        use _ = sink
+        let _, _, event = mkEventWithTrace () // event carries both ids but the sink writes neither
+        do! flush sink [ event ]
+        use doc = handler.LastBodyJson
+        let s = streamAt 0 doc
+        let traceInBody = hasBodyProp "TraceId" s 0
+        let spanInBody = hasBodyProp "SpanId" s 0
+        let elems = entryElementCount s 0
+        test <@ not traceInBody && not spanInBody && elems = 2 @>
+    }
+
+// ── Structured metadata from properties ───────────────────────────────────────
+
+[<Fact>]
+let ``metadata: no 3rd element by default (nothing configured)`` () : Task =
+    task {
+        let handler, sink = makeSink id
+        use _ = sink
+        do! flush sink [ mkInfo [] ]
+        use doc = handler.LastBodyJson
+        let count = entryElementCount (streamAt 0 doc) 0
+        test <@ count = 2 @>
+    }
+
+[<Fact>]
+let ``metadata: property attached as structured metadata and retained in body`` () : Task =
+    task {
+        let handler, sink =
+            makeSink (fun o ->
+                { o with
+                    PropertiesAsStructuredMetadata = [| "RequestId" |] })
+
+        use _ = sink
+        do! flush sink [ mkInfo [ "RequestId", box "abc-123" ] ]
+        use doc = handler.LastBodyJson
+        let s = streamAt 0 doc
+        let inMeta = metadataProp "RequestId" s 0
+        let inBody = hasBodyProp "RequestId" s 0
+        test <@ inMeta = Some "abc-123" && inBody @>
+    }
+
+[<Fact>]
+let ``metadata: numeric property key gets param prefix`` () : Task =
+    task {
+        let handler, sink =
+            makeSink (fun o ->
+                { o with
+                    PropertiesAsStructuredMetadata = [| "0" |] })
+
+        use _ = sink
+        do! flush sink [ mkInfo [ "0", box "v" ] ]
+        use doc = handler.LastBodyJson
+        let s = streamAt 0 doc
+        let raw = metadataProp "0" s 0
+        let prefixed = metadataProp "param0" s 0
+        test <@ raw = None && prefixed = Some "v" @>
+    }
+
+[<Fact>]
+let ``metadata: differing metadata values do NOT split streams (unlike labels)`` () : Task =
+    task {
+        let handler, sink =
+            makeSink (fun o ->
+                { o with
+                    PropertiesAsStructuredMetadata = [| "RequestId" |] })
+
+        use _ = sink
+        do! flush sink [ mkInfo [ "RequestId", box "a" ]; mkInfo [ "RequestId", box "b" ] ]
+        use doc = handler.LastBodyJson
+        // metadata is per-line, not part of grouping → both events stay in ONE stream
+        let count = streamCount doc
+        test <@ count = 1 @>
     }
 
 // ── validateUri ───────────────────────────────────────────────────────────────

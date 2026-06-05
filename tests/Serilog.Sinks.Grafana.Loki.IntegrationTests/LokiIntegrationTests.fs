@@ -289,6 +289,33 @@ type LokiIntegrationTests(loki: LokiFixture) =
             test <@ entries.Length = 12 @>
         }
 
+    // ── 11. Structured metadata queryable via metadata filter ────────────────
+
+    [<Fact>]
+    member _.``structured metadata: property attached as metadata is queryable via | key filter``() : Task =
+        task {
+            let startNs = nowNs ()
+            let mdValue = $"req-{runId}"
+
+            // `| RequestId="..."` matches structured metadata (and labels) only — a plain
+            // body field would require `| json | RequestId=...`. A match therefore proves the
+            // value was accepted as structured metadata by Loki and is queryable without a parser.
+            let selector =
+                $"{{testrun=\"{runId}\",test=\"structured-metadata\"}} | RequestId=\"{mdValue}\""
+
+            do!
+                writeThenFlush
+                    loki.Uri
+                    (fun o ->
+                        { o with
+                            Labels = testLabel "structured-metadata"
+                            PropertiesAsStructuredMetadata = [| "RequestId" |] })
+                    [ mkEvent LogEventLevel.Information "metadata test" [ "RequestId", mdValue ] ]
+
+            let! entries = waitForLogs loki.Uri selector startNs
+            test <@ entries.Length = 1 @>
+        }
+
 // ── NoTypeFormatter — test helper ────────────────────────────────────────────
 // Writes only the exception Message, no Type or StackTrace, so we can verify
 // the custom ExceptionFormatter is used end-to-end via the Loki roundtrip.

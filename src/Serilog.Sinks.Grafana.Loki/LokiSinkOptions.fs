@@ -41,6 +41,12 @@ type LokiSinkOptions =
         /// Log event property names to promote to stream labels.
         PropertiesAsLabels: string[]
 
+        /// Log event property names to attach as Loki structured metadata: per-line,
+        /// non-indexed key/value pairs. Unlike PropertiesAsLabels these do NOT create
+        /// new streams (no cardinality cost) and the property is also retained in the
+        /// JSON body. Requires Loki 3.0+.
+        PropertiesAsStructuredMetadata: string[]
+
         /// When true (default), adds a 'level' label using Grafana log-level vocabulary.
         HandleLogLevelAsLabel: bool
 
@@ -53,11 +59,13 @@ type LokiSinkOptions =
         Tenant: string
 
         // ── OpenTelemetry ─────────────────────────────────────────────────────────
-        /// Write the log event's ActivityTraceId as a 'TraceId' field in the JSON body.
-        EnrichTraceId: bool
+        /// Where to write the log event's ActivityTraceId (rendered as 'TraceId'):
+        /// None (default, omitted), the JSON body, or Loki structured metadata.
+        TraceIdMode: LokiFieldDestination
 
-        /// Write the log event's ActivitySpanId as a 'SpanId' field in the JSON body.
-        EnrichSpanId: bool
+        /// Where to write the log event's ActivitySpanId (rendered as 'SpanId'):
+        /// None (default, omitted), the JSON body, or Loki structured metadata.
+        SpanIdMode: LokiFieldDestination
 
         // ── Batching ──────────────────────────────────────────────────────────────
         /// Maximum events per HTTP POST. Maps to BatchingOptions.BatchSizeLimit.
@@ -78,7 +86,7 @@ type LokiSinkOptions =
 
         // ── Extension points ──────────────────────────────────────────────────────
         /// Per-event log body formatter. Defaults to LokiJsonTextFormatter.
-        /// Null → use LokiJsonTextFormatter with EnrichTraceId/EnrichSpanId applied.
+        /// Null → use LokiJsonTextFormatter with TraceIdMode/SpanIdMode (Body) applied.
         TextFormatter: ITextFormatter
 
         /// Exception serializer. Null → use LokiExceptionFormatter.
@@ -114,11 +122,12 @@ type LokiSinkOptions =
         { Uri = ""
           Labels = [||]
           PropertiesAsLabels = [||]
+          PropertiesAsStructuredMetadata = [||]
           HandleLogLevelAsLabel = true
           Credentials = Unchecked.defaultof<LokiCredentials>
           Tenant = null
-          EnrichTraceId = false
-          EnrichSpanId = false
+          TraceIdMode = LokiFieldDestination.None
+          SpanIdMode = LokiFieldDestination.None
           BatchSizeLimit = LokiSinkOptions.DefaultBatchSizeLimit
           QueueLimit = LokiSinkOptions.DefaultQueueLimit
           Period = TimeSpan.FromSeconds 1.0

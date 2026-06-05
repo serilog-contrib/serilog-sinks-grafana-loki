@@ -41,6 +41,7 @@
         <!-- Public contract types -->
         <Compile Include="LokiLabel.fs"/>
         <Compile Include="LokiCredentials.fs"/>
+        <Compile Include="LokiFieldDestination.fs"/>
         <Compile Include="ILokiExceptionFormatter.fs"/>
         <Compile Include="LokiExceptionFormatter.fs"/>
         <Compile Include="LokiJsonTextFormatter.fs"/>

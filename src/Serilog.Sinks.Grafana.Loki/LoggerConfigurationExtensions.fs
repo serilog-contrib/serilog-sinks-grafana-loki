@@ -58,11 +58,12 @@ type LoggerConfigurationLokiExtensions =
     /// <param name="uri">Loki base URI, e.g. "http://localhost:3100". Required.</param>
     /// <param name="labels">Static labels attached to every stream.</param>
     /// <param name="propertiesAsLabels">Property names to promote to stream labels.</param>
+    /// <param name="propertiesAsStructuredMetadata">Property names to attach as per-line Loki structured metadata (non-indexed; requires Loki 3.0+).</param>
     /// <param name="handleLogLevelAsLabel">Add a 'level' stream label (default: true).</param>
     /// <param name="credentials">Basic-auth credentials. From appsettings.json, an object with login/password.</param>
     /// <param name="tenant">X-Scope-OrgID multi-tenancy header value.</param>
-    /// <param name="enrichTraceId">Write ActivityTraceId to the log body (default: false).</param>
-    /// <param name="enrichSpanId">Write ActivitySpanId to the log body (default: false).</param>
+    /// <param name="traceIdMode">Where to write ActivityTraceId: None (default), Body, or StructuredMetadata.</param>
+    /// <param name="spanIdMode">Where to write ActivitySpanId: None (default), Body, or StructuredMetadata.</param>
     /// <param name="batchSizeLimit">Maximum events per HTTP POST (default: 1 000).</param>
     /// <param name="queueLimit">Maximum in-memory queue size before dropping (default: 50 000).</param>
     /// <param name="period">Flush interval (default: 1 s).</param>
@@ -81,13 +82,14 @@ type LoggerConfigurationLokiExtensions =
             // ── Labels ────────────────────────────────────────────────────────────
             [<Optional; DefaultParameterValue(null: LokiLabel[])>] labels: LokiLabel[],
             [<Optional; DefaultParameterValue(null: string[])>] propertiesAsLabels: string[],
+            [<Optional; DefaultParameterValue(null: string[])>] propertiesAsStructuredMetadata: string[],
             [<Optional; DefaultParameterValue(true)>] handleLogLevelAsLabel: bool,
             // ── Auth / routing ────────────────────────────────────────────────────
             [<Optional; DefaultParameterValue(null: LokiCredentials)>] credentials: LokiCredentials,
             [<Optional; DefaultParameterValue(null: string)>] tenant: string,
             // ── OpenTelemetry ─────────────────────────────────────────────────────
-            [<Optional; DefaultParameterValue(false)>] enrichTraceId: bool,
-            [<Optional; DefaultParameterValue(false)>] enrichSpanId: bool,
+            [<Optional; DefaultParameterValue(LokiFieldDestination.None)>] traceIdMode: LokiFieldDestination,
+            [<Optional; DefaultParameterValue(LokiFieldDestination.None)>] spanIdMode: LokiFieldDestination,
             // ── Batching ──────────────────────────────────────────────────────────
             [<Optional; DefaultParameterValue(1_000)>] batchSizeLimit: int,
             [<Optional; DefaultParameterValue(50_000)>] queueLimit: int,
@@ -117,11 +119,16 @@ type LoggerConfigurationLokiExtensions =
                     [||]
                 else
                     propertiesAsLabels
+              PropertiesAsStructuredMetadata =
+                if isNull propertiesAsStructuredMetadata then
+                    [||]
+                else
+                    propertiesAsStructuredMetadata
               HandleLogLevelAsLabel = handleLogLevelAsLabel
               Credentials = credentials
               Tenant = tenant
-              EnrichTraceId = enrichTraceId
-              EnrichSpanId = enrichSpanId
+              TraceIdMode = traceIdMode
+              SpanIdMode = spanIdMode
               BatchSizeLimit = batchSizeLimit
               QueueLimit = queueLimit
               Period =
