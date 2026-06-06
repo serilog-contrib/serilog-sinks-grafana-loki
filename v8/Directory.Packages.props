@@ -1,6 +1,0 @@
-<Project>
-  <!-- V8 reference code — opt out of root-level Central Package Management -->
-  <PropertyGroup>
-    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
-  </PropertyGroup>
-</Project>
