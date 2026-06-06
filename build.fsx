@@ -112,17 +112,16 @@ Target.create "Push" (fun _ ->
 
     !! $"{Artifacts}/*.nupkg"
     |> Seq.iter (fun pkg ->
-        let result =
-            DotNet.exec
-                (fun o ->
-                    { o with
-                        Verbosity = Some DotNet.Verbosity.Minimal
-                    })
-                "nuget"
-                $"push \"{pkg}\" -s https://api.nuget.org/v3/index.json -k {key}"
+        // No DotNet.exec Verbosity here: `dotnet nuget push` is not an MSBuild command and
+        // has no --verbosity option — passing one fails argument parsing before any upload.
+        // --skip-duplicate makes re-runs of a (partially) failed release idempotent.
+        let args =
+            $"push \"{pkg}\" -s https://api.nuget.org/v3/index.json -k {key} --skip-duplicate"
+
+        let result = DotNet.exec id "nuget" args
 
         if not result.OK then
-            failwithf $"nuget push failed: %A{result.Errors}"))
+            failwithf $"nuget push failed for %s{pkg} with exit code %d{result.ExitCode}"))
 
 // Run the BenchmarkDotNet suites (V9 + V8 + YetAnother). Standalone — deliberately NOT in
 // the Default chain (slow, and pulls the V8 NuGet closure). Cross-platform via dotnet fsi:
