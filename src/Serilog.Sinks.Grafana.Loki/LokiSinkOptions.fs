@@ -1,4 +1,4 @@
-﻿// Copyright 2020-2026 Mykhailo Shevchuk & Contributors
+// Copyright 2020-2026 Mykhailo Shevchuk & Contributors
 //
 // Licensed under the MIT license;
 // you may not use this file except in compliance with the License.
@@ -119,21 +119,23 @@ type LokiSinkOptions =
     ///   F#: { LokiSinkOptions.Defaults with Uri = "http://localhost:3100" }
     ///   C#: var opts = LokiSinkOptions.Defaults; opts.Uri = "http://localhost:3100";
     static member Defaults =
-        { Uri = ""
-          Labels = [||]
-          PropertiesAsLabels = [||]
-          PropertiesAsStructuredMetadata = [||]
-          HandleLogLevelAsLabel = true
-          Credentials = Unchecked.defaultof<LokiCredentials>
-          Tenant = null
-          TraceIdMode = LokiFieldDestination.None
-          SpanIdMode = LokiFieldDestination.None
-          BatchSizeLimit = LokiSinkOptions.DefaultBatchSizeLimit
-          QueueLimit = LokiSinkOptions.DefaultQueueLimit
-          Period = TimeSpan.FromSeconds 1.0
-          EagerlyEmitFirstEvent = true
-          RetryTimeLimit = TimeSpan.FromMinutes 10.0
-          TextFormatter = Unchecked.defaultof<ITextFormatter>
-          ExceptionFormatter = Unchecked.defaultof<ILokiExceptionFormatter>
-          HttpClient = Unchecked.defaultof<HttpClient>
-          HttpMessageHandler = Unchecked.defaultof<HttpMessageHandler> }
+        {
+            Uri = ""
+            Labels = [||]
+            PropertiesAsLabels = [||]
+            PropertiesAsStructuredMetadata = [||]
+            HandleLogLevelAsLabel = true
+            Credentials = Unchecked.defaultof<LokiCredentials>
+            Tenant = null
+            TraceIdMode = LokiFieldDestination.None
+            SpanIdMode = LokiFieldDestination.None
+            BatchSizeLimit = LokiSinkOptions.DefaultBatchSizeLimit
+            QueueLimit = LokiSinkOptions.DefaultQueueLimit
+            Period = TimeSpan.FromSeconds 1.0
+            EagerlyEmitFirstEvent = true
+            RetryTimeLimit = TimeSpan.FromMinutes 10.0
+            TextFormatter = Unchecked.defaultof<ITextFormatter>
+            ExceptionFormatter = Unchecked.defaultof<ILokiExceptionFormatter>
+            HttpClient = Unchecked.defaultof<HttpClient>
+            HttpMessageHandler = Unchecked.defaultof<HttpMessageHandler>
+        }

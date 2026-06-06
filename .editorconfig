@@ -1,8 +1,29 @@
 root = true
 
 [*]
+charset = utf-8
 end_of_line = lf
+indent_style = space
+indent_size = 4
 insert_final_newline = false
+trim_trailing_whitespace = true
+
+# YAML conventionally uses 2-space indentation
+[*.{yml,yaml}]
+indent_size = 2
+
+# Markdown: a trailing double-space is a hard line break
+[*.md]
+trim_trailing_whitespace = false
+
+# ── F# — Fantomas ──────────────────────────────────────────────────────────────
+# Read by the Fantomas CLI, the Husky pre-commit hook, and Rider's F# formatter.
+# max_line_length pins the Fantomas default; aligned brackets (dotnet/fsharp
+# compiler style) and the blank-line cap are deliberate choices.
+[*.{fs,fsx}]
+max_line_length = 120
+fsharp_multiline_bracket_style = aligned
+fsharp_keep_max_number_of_blank_lines = 1
 
 [*.cs]
 # ── StyleCop.Analyzers.Unstable — rule severity ───────────────────────────────

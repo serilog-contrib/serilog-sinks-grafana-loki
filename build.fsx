@@ -37,9 +37,11 @@ let intTests =
 // Benchmark executables live outside the solution (each pins a different Serilog closure),
 // so they are listed explicitly and driven with `dotnet run` rather than via the solution.
 let benchmarks =
-    [ "benchmarks/Serilog.Sinks.Grafana.Loki.Benchmarks.V9/Serilog.Sinks.Grafana.Loki.Benchmarks.V9.fsproj"
-      "benchmarks/Serilog.Sinks.Grafana.Loki.Benchmarks.V8/Serilog.Sinks.Grafana.Loki.Benchmarks.V8.fsproj"
-      "benchmarks/Serilog.Sinks.Grafana.Loki.Benchmarks.YetAnother/Serilog.Sinks.Grafana.Loki.Benchmarks.YetAnother.fsproj" ]
+    [
+        "benchmarks/Serilog.Sinks.Grafana.Loki.Benchmarks.V9/Serilog.Sinks.Grafana.Loki.Benchmarks.V9.fsproj"
+        "benchmarks/Serilog.Sinks.Grafana.Loki.Benchmarks.V8/Serilog.Sinks.Grafana.Loki.Benchmarks.V8.fsproj"
+        "benchmarks/Serilog.Sinks.Grafana.Loki.Benchmarks.YetAnother/Serilog.Sinks.Grafana.Loki.Benchmarks.YetAnother.fsproj"
+    ]
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -58,7 +60,8 @@ Target.create "Restore" (fun _ ->
     DotNet.restore
         (fun o ->
             { o with
-                MSBuildParams = noBinLog o.MSBuildParams })
+                MSBuildParams = noBinLog o.MSBuildParams
+            })
         solution)
 
 Target.create "Build" (fun _ ->
@@ -69,7 +72,8 @@ Target.create "Build" (fun _ ->
             { o with
                 Configuration = releaseCfg
                 NoRestore = true
-                MSBuildParams = noBinLog o.MSBuildParams })
+                MSBuildParams = noBinLog o.MSBuildParams
+            })
         solution)
 
 Target.create "Test" (fun _ ->
@@ -78,7 +82,8 @@ Target.create "Test" (fun _ ->
             { o with
                 Configuration = releaseCfg
                 NoBuild = true
-                MSBuildParams = noBinLog o.MSBuildParams })
+                MSBuildParams = noBinLog o.MSBuildParams
+            })
         unitTests)
 
 Target.create "IntegrationTest" (fun _ ->
@@ -87,7 +92,8 @@ Target.create "IntegrationTest" (fun _ ->
             { o with
                 Configuration = releaseCfg
                 NoBuild = true
-                MSBuildParams = noBinLog o.MSBuildParams })
+                MSBuildParams = noBinLog o.MSBuildParams
+            })
         intTests)
 
 Target.create "Pack" (fun _ ->
@@ -97,7 +103,8 @@ Target.create "Pack" (fun _ ->
                 Configuration = releaseCfg
                 NoBuild = true
                 OutputPath = Some Artifacts
-                MSBuildParams = noBinLog o.MSBuildParams })
+                MSBuildParams = noBinLog o.MSBuildParams
+            })
         library)
 
 Target.create "Push" (fun _ ->
@@ -109,7 +116,8 @@ Target.create "Push" (fun _ ->
             DotNet.exec
                 (fun o ->
                     { o with
-                        Verbosity = Some DotNet.Verbosity.Minimal })
+                        Verbosity = Some DotNet.Verbosity.Minimal
+                    })
                 "nuget"
                 $"push \"{pkg}\" -s https://api.nuget.org/v3/index.json -k {key}"
 

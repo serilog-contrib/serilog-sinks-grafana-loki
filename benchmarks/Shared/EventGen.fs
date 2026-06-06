@@ -32,12 +32,14 @@ let buildSimple (n: int) : LogEvent[] =
 
     Array.init n (fun i ->
         let props =
-            [ scalar "UserId" (1000 + i)
-              scalar "Action" (if i % 2 = 0 then "login" else "logout")
-              scalar "ResourceId" (sprintf "resource-%d" (i % 64))
-              scalar "Elapsed" (0.25 * float i)
-              scalar "Success" (i % 7 <> 0)
-              scalar "CorrelationId" (Guid("00000000-0000-0000-0000-" + i.ToString("D12"))) ]
+            [
+                scalar "UserId" (1000 + i)
+                scalar "Action" (if i % 2 = 0 then "login" else "logout")
+                scalar "ResourceId" (sprintf "resource-%d" (i % 64))
+                scalar "Elapsed" (0.25 * float i)
+                scalar "Success" (i % 7 <> 0)
+                scalar "CorrelationId" (Guid("00000000-0000-0000-0000-" + i.ToString("D12")))
+            ]
 
         LogEvent(DateTimeOffset.UnixEpoch.AddMilliseconds(float i), LogEventLevel.Information, null, template, props))
 
@@ -65,8 +67,10 @@ let buildWithException (n: int) : LogEvent[] =
         let ex = capture (sprintf "outer failure %d" i) inner
 
         let props =
-            [ scalar "OperationId" i
-              scalar "Service" "billing"
-              scalar "Retryable" (i % 2 = 0) ]
+            [
+                scalar "OperationId" i
+                scalar "Service" "billing"
+                scalar "Retryable" (i % 2 = 0)
+            ]
 
         LogEvent(DateTimeOffset.UnixEpoch.AddMilliseconds(float i), LogEventLevel.Error, ex, template, props))

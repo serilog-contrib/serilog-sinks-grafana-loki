@@ -37,11 +37,13 @@ let private mkEventWithTrace () =
 /// Captured snapshot of a single HTTP request — all values extracted up-front
 /// so the HttpRequestMessage can be safely disposed after SendAsync returns.
 type CapturedRequest =
-    { BodyBytes: byte[]
-      AuthScheme: string option
-      AuthParameter: string option
-      TenantId: string option
-      RequestUri: Uri }
+    {
+        BodyBytes: byte[]
+        AuthScheme: string option
+        AuthParameter: string option
+        TenantId: string option
+        RequestUri: Uri
+    }
 
 [<Sealed>]
 type FakeHttpHandler() =
@@ -67,11 +69,13 @@ type FakeHttpHandler() =
                 | _ -> None
 
             captured.Add
-                { BodyBytes = bytes
-                  AuthScheme = if isNull auth then None else Some auth.Scheme
-                  AuthParameter = if isNull auth then None else Some auth.Parameter
-                  TenantId = tenant
-                  RequestUri = req.RequestUri }
+                {
+                    BodyBytes = bytes
+                    AuthScheme = if isNull auth then None else Some auth.Scheme
+                    AuthParameter = if isNull auth then None else Some auth.Parameter
+                    TenantId = tenant
+                    RequestUri = req.RequestUri
+                }
 
             return new HttpResponseMessage(HttpStatusCode.NoContent)
         }
@@ -89,7 +93,8 @@ let private makeSink (configure: LokiSinkOptions -> LokiSinkOptions) =
         |> fun o ->
             { o with
                 Uri = "http://localhost:3100"
-                HttpClient = client }
+                HttpClient = client
+            }
         |> configure
 
     let sink = new LokiSink(options)
@@ -105,7 +110,8 @@ let private makeSinkWithHandler (configure: LokiSinkOptions -> LokiSinkOptions) 
         |> fun o ->
             { o with
                 Uri = "http://localhost:3100"
-                HttpMessageHandler = handler }
+                HttpMessageHandler = handler
+            }
         |> configure
 
     let sink = new LokiSink(options)
@@ -351,7 +357,8 @@ let ``labels: property promoted to label appears in stream`` () : Task =
         let handler, sink =
             makeSink (fun o ->
                 { o with
-                    PropertiesAsLabels = [| "RequestPath" |] })
+                    PropertiesAsLabels = [| "RequestPath" |]
+                })
 
         use _ = sink
         do! flush sink [ mkInfo [ "RequestPath", box "/health" ] ]
@@ -366,7 +373,8 @@ let ``labels: promoted property stays in body even when promoted to label`` () :
         let handler, sink =
             makeSink (fun o ->
                 { o with
-                    PropertiesAsLabels = [| "RequestPath" |] })
+                    PropertiesAsLabels = [| "RequestPath" |]
+                })
 
         use _ = sink
         do! flush sink [ mkInfo [ "RequestPath", box "/health" ] ]
@@ -386,7 +394,8 @@ let ``labels: global label wins over property with same key`` () : Task =
             makeSink (fun o ->
                 { o with
                     Labels = globals
-                    PropertiesAsLabels = [| "app" |] })
+                    PropertiesAsLabels = [| "app" |]
+                })
 
         use _ = sink
         do! flush sink [ mkInfo [ "app", box "property-value" ] ]
@@ -401,7 +410,8 @@ let ``labels: numeric property key gets param prefix`` () : Task =
         let handler, sink =
             makeSink (fun o ->
                 { o with
-                    PropertiesAsLabels = [| "0" |] })
+                    PropertiesAsLabels = [| "0" |]
+                })
 
         use _ = sink
         do! flush sink [ mkInfo [ "0", box "val" ] ]
@@ -420,7 +430,8 @@ let ``grouping: events with different label values produce separate streams`` ()
         let handler, sink =
             makeSink (fun o ->
                 { o with
-                    PropertiesAsLabels = [| "env" |] })
+                    PropertiesAsLabels = [| "env" |]
+                })
 
         use _ = sink
         do! flush sink [ mkInfo [ "env", box "prod" ]; mkInfo [ "env", box "dev" ] ]
@@ -464,7 +475,8 @@ let ``http: base URI with path prefix and no trailing slash resolves push endpoi
         let options =
             { LokiSinkOptions.Defaults with
                 Uri = "http://proxy/gateway"
-                HttpMessageHandler = handler }
+                HttpMessageHandler = handler
+            }
 
         use sink = new LokiSink(options)
         do! flush sink [ mkInfo [] ]
@@ -513,7 +525,8 @@ let ``trace: TraceId written to body when TraceIdMode=Body`` () : Task =
         let handler, sink =
             makeSinkWithHandler (fun o ->
                 { o with
-                    TraceIdMode = LokiFieldDestination.Body })
+                    TraceIdMode = LokiFieldDestination.Body
+                })
 
         use _ = sink
         let traceId, _, event = mkEventWithTrace ()
@@ -532,7 +545,8 @@ let ``trace: SpanId written to body when SpanIdMode=Body`` () : Task =
         let handler, sink =
             makeSinkWithHandler (fun o ->
                 { o with
-                    SpanIdMode = LokiFieldDestination.Body })
+                    SpanIdMode = LokiFieldDestination.Body
+                })
 
         use _ = sink
         let _, spanId, event = mkEventWithTrace ()
@@ -551,7 +565,8 @@ let ``trace: TraceId in structured metadata (not body) when TraceIdMode=Structur
         let handler, sink =
             makeSinkWithHandler (fun o ->
                 { o with
-                    TraceIdMode = LokiFieldDestination.StructuredMetadata })
+                    TraceIdMode = LokiFieldDestination.StructuredMetadata
+                })
 
         use _ = sink
         let traceId, _, event = mkEventWithTrace ()
@@ -570,7 +585,8 @@ let ``trace: SpanId in structured metadata (not body) when SpanIdMode=Structured
         let handler, sink =
             makeSinkWithHandler (fun o ->
                 { o with
-                    SpanIdMode = LokiFieldDestination.StructuredMetadata })
+                    SpanIdMode = LokiFieldDestination.StructuredMetadata
+                })
 
         use _ = sink
         let _, spanId, event = mkEventWithTrace ()
@@ -617,7 +633,8 @@ let ``metadata: property attached as structured metadata and retained in body`` 
         let handler, sink =
             makeSink (fun o ->
                 { o with
-                    PropertiesAsStructuredMetadata = [| "RequestId" |] })
+                    PropertiesAsStructuredMetadata = [| "RequestId" |]
+                })
 
         use _ = sink
         do! flush sink [ mkInfo [ "RequestId", box "abc-123" ] ]
@@ -634,7 +651,8 @@ let ``metadata: numeric property key gets param prefix`` () : Task =
         let handler, sink =
             makeSink (fun o ->
                 { o with
-                    PropertiesAsStructuredMetadata = [| "0" |] })
+                    PropertiesAsStructuredMetadata = [| "0" |]
+                })
 
         use _ = sink
         do! flush sink [ mkInfo [ "0", box "v" ] ]
@@ -651,7 +669,8 @@ let ``metadata: differing metadata values do NOT split streams (unlike labels)``
         let handler, sink =
             makeSink (fun o ->
                 { o with
-                    PropertiesAsStructuredMetadata = [| "RequestId" |] })
+                    PropertiesAsStructuredMetadata = [| "RequestId" |]
+                })
 
         use _ = sink
         do! flush sink [ mkInfo [ "RequestId", box "a" ]; mkInfo [ "RequestId", box "b" ] ]
@@ -669,7 +688,8 @@ let ``metadata: non-string property value is rendered as a string`` () : Task =
         let handler, sink =
             makeSink (fun o ->
                 { o with
-                    PropertiesAsStructuredMetadata = [| "Count" |] })
+                    PropertiesAsStructuredMetadata = [| "Count" |]
+                })
 
         use _ = sink
         do! flush sink [ mkInfo [ "Count", box 42 ] ]
@@ -686,7 +706,8 @@ let ``metadata: duplicate property name emits a single key`` () : Task =
         let handler, sink =
             makeSink (fun o ->
                 { o with
-                    PropertiesAsStructuredMetadata = [| "RequestId"; "RequestId" |] })
+                    PropertiesAsStructuredMetadata = [| "RequestId"; "RequestId" |]
+                })
 
         use _ = sink
         do! flush sink [ mkInfo [ "RequestId", box "abc" ] ]
@@ -845,8 +866,10 @@ let ``body: each event in a multi-event batch serializes its own body`` () : Tas
             DateTimeOffset(2024, 1, 1, 0, 0, i, TimeSpan.Zero)
 
         let events =
-            [ for i in 0..2 ->
-                  LogEvent(at i, LogEventLevel.Information, null, tmpl, [ LogEventProperty("Seq", ScalarValue(i)) ]) ]
+            [
+                for i in 0..2 ->
+                    LogEvent(at i, LogEventLevel.Information, null, tmpl, [ LogEventProperty("Seq", ScalarValue(i)) ])
+            ]
 
         do! flush sink events
         use doc = handler.LastBodyJson
@@ -879,7 +902,8 @@ let ``body: custom ITextFormatter goes through Utf8TextWriter path`` () : Task =
         let handler, sink =
             makeSink (fun o ->
                 { o with
-                    TextFormatter = FixedBodyFormatter("CUSTOM_BODY") })
+                    TextFormatter = FixedBodyFormatter("CUSTOM_BODY")
+                })
 
         use _ = sink
         do! flush sink [ mkInfo [] ]
@@ -902,7 +926,8 @@ let ``http error: non-success response causes EmitBatchAsync to throw`` () : Tas
         let options =
             { LokiSinkOptions.Defaults with
                 Uri = "http://localhost:3100"
-                HttpClient = new HttpClient(new ErrorHttpHandler(HttpStatusCode.InternalServerError)) }
+                HttpClient = new HttpClient(new ErrorHttpHandler(HttpStatusCode.InternalServerError))
+            }
 
         use sink = new LokiSink(options)
 

@@ -1,4 +1,4 @@
-﻿// Copyright 2020-2026 Mykhailo Shevchuk & Contributors
+// Copyright 2020-2026 Mykhailo Shevchuk & Contributors
 //
 // Licensed under the MIT license;
 // you may not use this file except in compliance with the License.
@@ -134,7 +134,9 @@ module internal Grouping =
             Array.sortInPlaceWith byTimestamp arr
 
             streams.Add
-                { Labels = labelOf kvp.Key
-                  Events = arr }
+                {
+                    Labels = labelOf kvp.Key
+                    Events = arr
+                }
 
         streams :> LokiStream seq

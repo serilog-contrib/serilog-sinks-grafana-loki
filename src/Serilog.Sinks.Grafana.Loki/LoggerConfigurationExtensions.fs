@@ -1,4 +1,4 @@
-﻿// Copyright 2020-2026 Mykhailo Shevchuk & Contributors
+// Copyright 2020-2026 Mykhailo Shevchuk & Contributors
 //
 // Licensed under the MIT license;
 // you may not use this file except in compliance with the License.
@@ -112,39 +112,41 @@ type LoggerConfigurationLokiExtensions =
         ) =
 
         let options =
-            { Uri = uri
-              Labels = if isNull labels then [||] else labels
-              PropertiesAsLabels =
-                if isNull propertiesAsLabels then
-                    [||]
-                else
-                    propertiesAsLabels
-              PropertiesAsStructuredMetadata =
-                if isNull propertiesAsStructuredMetadata then
-                    [||]
-                else
-                    propertiesAsStructuredMetadata
-              HandleLogLevelAsLabel = handleLogLevelAsLabel
-              Credentials = credentials
-              Tenant = tenant
-              TraceIdMode = traceIdMode
-              SpanIdMode = spanIdMode
-              BatchSizeLimit = batchSizeLimit
-              QueueLimit = queueLimit
-              Period =
-                if period.HasValue then
-                    period.Value
-                else
-                    LokiSinkOptions.Defaults.Period
-              EagerlyEmitFirstEvent = eagerlyEmitFirstEvent
-              RetryTimeLimit =
-                if retryTimeLimit.HasValue then
-                    retryTimeLimit.Value
-                else
-                    LokiSinkOptions.Defaults.RetryTimeLimit
-              TextFormatter = textFormatter
-              ExceptionFormatter = exceptionFormatter
-              HttpClient = httpClient
-              HttpMessageHandler = httpMessageHandler }
+            {
+                Uri = uri
+                Labels = if isNull labels then [||] else labels
+                PropertiesAsLabels =
+                    if isNull propertiesAsLabels then
+                        [||]
+                    else
+                        propertiesAsLabels
+                PropertiesAsStructuredMetadata =
+                    if isNull propertiesAsStructuredMetadata then
+                        [||]
+                    else
+                        propertiesAsStructuredMetadata
+                HandleLogLevelAsLabel = handleLogLevelAsLabel
+                Credentials = credentials
+                Tenant = tenant
+                TraceIdMode = traceIdMode
+                SpanIdMode = spanIdMode
+                BatchSizeLimit = batchSizeLimit
+                QueueLimit = queueLimit
+                Period =
+                    if period.HasValue then
+                        period.Value
+                    else
+                        LokiSinkOptions.Defaults.Period
+                EagerlyEmitFirstEvent = eagerlyEmitFirstEvent
+                RetryTimeLimit =
+                    if retryTimeLimit.HasValue then
+                        retryTimeLimit.Value
+                    else
+                        LokiSinkOptions.Defaults.RetryTimeLimit
+                TextFormatter = textFormatter
+                ExceptionFormatter = exceptionFormatter
+                HttpClient = httpClient
+                HttpMessageHandler = httpMessageHandler
+            }
 
         wire sinkConfig options restrictedToMinimumLevel

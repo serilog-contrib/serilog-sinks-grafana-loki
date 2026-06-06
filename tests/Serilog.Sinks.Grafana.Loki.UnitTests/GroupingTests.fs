@@ -97,9 +97,11 @@ let ``groupIntoStreams: events within a stream are sorted ascending by timestamp
 
     // Enqueue out of order
     let events =
-        [ mkEventAt t3 LogEventLevel.Information []
-          mkEventAt t1 LogEventLevel.Information []
-          mkEventAt t2 LogEventLevel.Information [] ]
+        [
+            mkEventAt t3 LogEventLevel.Information []
+            mkEventAt t1 LogEventLevel.Information []
+            mkEventAt t2 LogEventLevel.Information []
+        ]
 
     let stream = groupIntoStreams single (fixedLabel "app" "x") events |> Seq.exactlyOne
     let timestamps = stream.Events |> Seq.map (fun e -> e.Timestamp) |> Seq.toList
@@ -114,9 +116,11 @@ let ``groupIntoStreams: ordering is per-stream, not global`` () =
 
     // Error at t3, two Info at t2 and t1 — they should be in their own sorted streams
     let events =
-        [ mkEventAt t2 LogEventLevel.Information []
-          mkEventAt t3 LogEventLevel.Error []
-          mkEventAt t1 LogEventLevel.Information [] ]
+        [
+            mkEventAt t2 LogEventLevel.Information []
+            mkEventAt t3 LogEventLevel.Error []
+            mkEventAt t1 LogEventLevel.Information []
+        ]
 
     let streams = groupIntoStreams byLevel levelLabel events |> Seq.toList
     let infoStream = streams |> List.find (fun s -> s.Labels["level"] = "info")

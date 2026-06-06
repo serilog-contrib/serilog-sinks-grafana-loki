@@ -65,7 +65,8 @@ type LokiIntegrationTests(loki: LokiFixture) =
                     loki.Uri
                     (fun o ->
                         { o with
-                            Labels = testLabel "e2e-basic" })
+                            Labels = testLabel "e2e-basic"
+                        })
                     [ mkEvent LogEventLevel.Information "Hello from integration test" [] ]
 
             let! entries = waitForLogs loki.Uri selector startNs
@@ -86,7 +87,8 @@ type LokiIntegrationTests(loki: LokiFixture) =
                     loki.Uri
                     (fun o ->
                         { o with
-                            Labels = [| { Key = "app"; Value = appVal } |] })
+                            Labels = [| { Key = "app"; Value = appVal } |]
+                        })
                     [ mkEvent LogEventLevel.Information "label query test" [] ]
 
             let! entries = waitForLogs loki.Uri selector startNs
@@ -106,7 +108,8 @@ type LokiIntegrationTests(loki: LokiFixture) =
                     loki.Uri
                     (fun o ->
                         { o with
-                            Labels = testLabel "body-roundtrip" })
+                            Labels = testLabel "body-roundtrip"
+                        })
                     [ mkEvent LogEventLevel.Information "roundtrip message" [] ]
 
             let! entries = waitForLogs loki.Uri selector startNs
@@ -133,7 +136,8 @@ type LokiIntegrationTests(loki: LokiFixture) =
                     loki.Uri
                     (fun o ->
                         { o with
-                            Labels = testLabel "exception-roundtrip" })
+                            Labels = testLabel "exception-roundtrip"
+                        })
                     [ event ]
 
             let! entries = waitForLogs loki.Uri selector startNs
@@ -181,7 +185,8 @@ type LokiIntegrationTests(loki: LokiFixture) =
                     loki.Uri
                     (fun o ->
                         { o with
-                            Labels = testLabel "fatal-label" })
+                            Labels = testLabel "fatal-label"
+                        })
                     [ mkEvent LogEventLevel.Fatal "fatal event" [] ]
 
             let! entries = waitForLogs loki.Uri selector startNs
@@ -205,7 +210,8 @@ type LokiIntegrationTests(loki: LokiFixture) =
                     loki.Uri
                     (fun o ->
                         { o with
-                            Labels = testLabel "large-batch" })
+                            Labels = testLabel "large-batch"
+                        })
                     events
 
             let! entries = waitForLogs loki.Uri selector startNs
@@ -229,7 +235,8 @@ type LokiIntegrationTests(loki: LokiFixture) =
                     (fun o ->
                         { o with
                             Labels = testLabel "gzip"
-                            HttpMessageHandler = gzip })
+                            HttpMessageHandler = gzip
+                        })
                     [ mkEvent LogEventLevel.Information "gzip test" [] ]
 
             let! entries = waitForLogs loki.Uri selector startNs
@@ -254,7 +261,8 @@ type LokiIntegrationTests(loki: LokiFixture) =
                     (fun o ->
                         { o with
                             Labels = testLabel "custom-ex-fmt"
-                            ExceptionFormatter = NoTypeFormatter() })
+                            ExceptionFormatter = NoTypeFormatter()
+                        })
                     [ event ]
 
             let! entries = waitForLogs loki.Uri selector startNs
@@ -309,7 +317,8 @@ type LokiIntegrationTests(loki: LokiFixture) =
                     (fun o ->
                         { o with
                             Labels = testLabel "structured-metadata"
-                            PropertiesAsStructuredMetadata = [| "RequestId" |] })
+                            PropertiesAsStructuredMetadata = [| "RequestId" |]
+                        })
                     [ mkEvent LogEventLevel.Information "metadata test" [ "RequestId", mdValue ] ]
 
             let! entries = waitForLogs loki.Uri selector startNs

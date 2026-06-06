@@ -14,13 +14,17 @@ let private parseQueryResponse (json: string) : LokiLogEntry list =
     use doc = JsonDocument.Parse(json)
     let result = doc.RootElement.GetProperty("data").GetProperty("result")
 
-    [ for stream in result.EnumerateArray() do
-          for value in stream.GetProperty("values").EnumerateArray() do
-              let entry = value[0] // intermediate binding for chained index
+    [
+        for stream in result.EnumerateArray() do
+            for value in stream.GetProperty("values").EnumerateArray() do
+                let entry = value[0] // intermediate binding for chained index
 
-              yield
-                  { TimestampNs = entry.GetString() |> Int64.Parse
-                    Line = value[1].GetString() } ]
+                yield
+                    {
+                        TimestampNs = entry.GetString() |> Int64.Parse
+                        Line = value[1].GetString()
+                    }
+    ]
 
 /// Queries Loki for logs matching labelSelector between startNs and endNs (nanoseconds).
 let queryRange (lokiUri: string) (labelSelector: string) (startNs: int64) (endNs: int64) =
