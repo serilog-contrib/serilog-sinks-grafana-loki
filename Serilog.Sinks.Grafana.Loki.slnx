@@ -1,0 +1,27 @@
+<Solution>
+    <Folder Name="/Solution Items/">
+        <File Path=".gitignore"/>
+        <File Path=".editorconfig"/>
+        <File Path="LICENSE"/>
+        <File Path="README.md"/>
+        <File Path="SECURITY.md"/>
+        <File Path="Directory.Build.props"/>
+        <File Path="Directory.Build.targets"/>
+        <File Path="Directory.Packages.props"/>
+        <File Path="build.fsx"/>
+        <File Path="docker-compose.yaml"/>
+        <File Path="grafana-datasources.yaml"/>
+    </Folder>
+    <Folder Name="/src/">
+        <Project Path="src\Serilog.Sinks.Grafana.Loki\Serilog.Sinks.Grafana.Loki.fsproj"/>
+    </Folder>
+    <Folder Name="/tests/">
+        <Project Path="tests\Serilog.Sinks.Grafana.Loki.UnitTests\Serilog.Sinks.Grafana.Loki.UnitTests.fsproj"/>
+        <Project
+                Path="tests\Serilog.Sinks.Grafana.Loki.IntegrationTests\Serilog.Sinks.Grafana.Loki.IntegrationTests.fsproj"/>
+    </Folder>
+    <Folder Name="/samples/">
+        <Project Path="samples\Serilog.Sinks.Grafana.Loki.Sample\Serilog.Sinks.Grafana.Loki.Sample.csproj"/>
+        <Project Path="samples\Serilog.Sinks.Grafana.Loki.SampleWebApp\Serilog.Sinks.Grafana.Loki.SampleWebApp.csproj"/>
+    </Folder>
+</Solution>

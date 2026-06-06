@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net8.0</TargetFramework>
+        <AssemblyName>Serilog.Sinks.Grafana.Loki.Benchmarks.V9</AssemblyName>
+        <RootNamespace>Benchmarks</RootNamespace>
+        <!-- BenchmarkDotNet refuses to run a non-optimized build. -->
+        <Optimize>true</Optimize>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <!-- Compilation order: shared dependencies first, entry point last. -->
+        <Compile Include="..\Shared\EventGen.fs" Link="Shared\EventGen.fs"/>
+        <Compile Include="..\Shared\BenchConfig.fs" Link="Shared\BenchConfig.fs"/>
+        <Compile Include="Benchmarks.fs"/>
+        <Compile Include="..\Shared\Program.fs" Link="Shared\Program.fs"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="BenchmarkDotNet"/>
+        <!-- V9 under test: the local source project (multi-targeted; net8.0 asset resolved). -->
+        <ProjectReference Include="..\..\src\Serilog.Sinks.Grafana.Loki\Serilog.Sinks.Grafana.Loki.fsproj"/>
+    </ItemGroup>
+
+</Project>

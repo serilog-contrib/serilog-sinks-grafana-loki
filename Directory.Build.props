@@ -3,15 +3,25 @@
         <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)assets/Serilog.Sinks.Grafana.Loki.snk</AssemblyOriginatorKeyFile>
         <Authors>Mykhailo Shevchuk, Contributors</Authors>
         <CheckEolTargetFramework>false</CheckEolTargetFramework>
-        <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)StyleCop.ruleset</CodeAnalysisRuleSet>
-        <LangVersion>10</LangVersion>
+        <Copyright>Copyright (c) 2020-2026 Mykhailo Shevchuk &amp; Contributors</Copyright>
         <MinVerTagPrefix>v</MinVerTagPrefix>
         <SignAssembly>true</SignAssembly>
+
+        <!-- F# compiler strictness — applied to every project in the repo -->
+        <LangVersion>latest</LangVersion>
+        <WarnLevel>5</WarnLevel>
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     </PropertyGroup>
 
+    <!-- StyleCop — C# projects only; F# uses its own compiler, Roslyn analyzers don't apply.
+         Rule severity is configured in .editorconfig (StyleCop.Analyzers.Unstable 1.2.x).
+         The StyleCop.ruleset file is kept as a human-readable reference of the rule decisions. -->
+    <ItemGroup Condition="'$(Language)' == 'C#'">
+        <PackageReference Include="StyleCop.Analyzers.Unstable" PrivateAssets="All"/>
+    </ItemGroup>
+
     <ItemGroup>
-        <PackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.203" PrivateAssets="All" />
-        <PackageReference Include="MinVer" Version="7.0.0" PrivateAssets="All" />
-        <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.556" PrivateAssets="All" />
+        <PackageReference Include="Microsoft.SourceLink.GitHub" PrivateAssets="All"/>
+        <PackageReference Include="MinVer" PrivateAssets="All"/>
     </ItemGroup>
 </Project>

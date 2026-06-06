@@ -1,0 +1,114 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 4
+insert_final_newline = false
+trim_trailing_whitespace = true
+
+# YAML conventionally uses 2-space indentation
+[*.{yml,yaml}]
+indent_size = 2
+
+# Markdown: a trailing double-space is a hard line break
+[*.md]
+trim_trailing_whitespace = false
+
+# ── F# — Fantomas ──────────────────────────────────────────────────────────────
+# Read by the Fantomas CLI, the Husky pre-commit hook, and Rider's F# formatter.
+# max_line_length pins the Fantomas default; aligned brackets (dotnet/fsharp
+# compiler style) and the blank-line cap are deliberate choices.
+[*.{fs,fsx}]
+max_line_length = 120
+fsharp_multiline_bracket_style = aligned
+fsharp_keep_max_number_of_blank_lines = 1
+
+[*.cs]
+# ── StyleCop.Analyzers.Unstable — rule severity ───────────────────────────────
+# Rule decisions: documentation and file-header rules off; spacing, layout,
+# ordering and naming enforced as errors.
+
+# SA0001/SA0002 — disable to avoid requiring GenerateDocumentationFile everywhere
+dotnet_diagnostic.SA0001.severity = none
+dotnet_diagnostic.SA0002.severity = none
+
+# SA1003 — symbol spacing (None)
+dotnet_diagnostic.SA1003.severity = none
+# SA1009 — closing parenthesis spacing (None)
+dotnet_diagnostic.SA1009.severity = none
+# SA1012 — opening brace spacing (None)
+dotnet_diagnostic.SA1012.severity = none
+# SA1013 — closing brace spacing (None)
+dotnet_diagnostic.SA1013.severity = none
+
+# SA1101 — do NOT require this. prefix (SX1101 requires no this. prefix)
+dotnet_diagnostic.SA1101.severity = none
+dotnet_diagnostic.SX1101.severity = error
+
+# SA1200 — using directives placement; modern C# allows file-scoped usings
+dotnet_diagnostic.SA1200.severity = none
+
+# SA1305/SA1306/SA1309 — naming: allow lowercase private fields, _prefix
+dotnet_diagnostic.SA1305.severity = none
+dotnet_diagnostic.SA1306.severity = none
+dotnet_diagnostic.SA1309.severity = none
+
+# SA1401 — fields may be public (e.g. test fixtures, records)
+dotnet_diagnostic.SA1401.severity = none
+
+# SA1412/SA1413 — file encoding / trailing comma (flexible)
+dotnet_diagnostic.SA1412.severity = none
+dotnet_diagnostic.SA1413.severity = none
+
+# SA1518 — no trailing newline requirement
+dotnet_diagnostic.SA1518.severity = none
+
+# SA1506/SA1514 — blank line rules (flexible)
+dotnet_diagnostic.SA1506.severity = none
+dotnet_diagnostic.SA1514.severity = none
+
+# SA1600–SA1651 — all documentation rules disabled
+dotnet_diagnostic.SA1600.severity = none
+dotnet_diagnostic.SA1601.severity = none
+dotnet_diagnostic.SA1602.severity = none
+dotnet_diagnostic.SA1604.severity = none
+dotnet_diagnostic.SA1605.severity = none
+dotnet_diagnostic.SA1606.severity = none
+dotnet_diagnostic.SA1607.severity = none
+dotnet_diagnostic.SA1608.severity = none
+dotnet_diagnostic.SA1610.severity = none
+dotnet_diagnostic.SA1611.severity = none
+dotnet_diagnostic.SA1612.severity = none
+dotnet_diagnostic.SA1613.severity = none
+dotnet_diagnostic.SA1614.severity = none
+dotnet_diagnostic.SA1615.severity = none
+dotnet_diagnostic.SA1616.severity = none
+dotnet_diagnostic.SA1617.severity = none
+dotnet_diagnostic.SA1618.severity = none
+dotnet_diagnostic.SA1619.severity = none
+dotnet_diagnostic.SA1620.severity = none
+dotnet_diagnostic.SA1621.severity = none
+dotnet_diagnostic.SA1622.severity = none
+dotnet_diagnostic.SA1623.severity = none
+dotnet_diagnostic.SA1624.severity = none
+dotnet_diagnostic.SA1625.severity = none
+dotnet_diagnostic.SA1626.severity = none
+dotnet_diagnostic.SA1627.severity = none
+dotnet_diagnostic.SA1629.severity = none
+
+# SA1633–SA1651 — file header and copyright rules disabled
+dotnet_diagnostic.SA1633.severity = none
+dotnet_diagnostic.SA1634.severity = none
+dotnet_diagnostic.SA1635.severity = none
+dotnet_diagnostic.SA1636.severity = none
+dotnet_diagnostic.SA1637.severity = none
+dotnet_diagnostic.SA1638.severity = none
+dotnet_diagnostic.SA1640.severity = none
+dotnet_diagnostic.SA1641.severity = none
+dotnet_diagnostic.SA1642.severity = none
+dotnet_diagnostic.SA1643.severity = none
+dotnet_diagnostic.SA1648.severity = none
+dotnet_diagnostic.SA1649.severity = error
+dotnet_diagnostic.SA1651.severity = none

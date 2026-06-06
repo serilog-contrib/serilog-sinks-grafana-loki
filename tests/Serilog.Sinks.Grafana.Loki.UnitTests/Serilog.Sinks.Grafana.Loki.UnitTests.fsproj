@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+        <IsPackable>false</IsPackable>
+        <IsTestProject>true</IsTestProject>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\src\Serilog.Sinks.Grafana.Loki\Serilog.Sinks.Grafana.Loki.fsproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.NET.Test.Sdk"/>
+        <PackageReference Include="Unquote"/>
+        <PackageReference Include="xunit"/>
+        <PackageReference Include="xunit.runner.visualstudio"/>
+        <PackageReference Include="Serilog.Settings.Configuration"/>
+        <PackageReference Include="Microsoft.Extensions.Configuration.Json"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <!-- Compilation order: helpers first, then tests by layer -->
+        <Compile Include="Helpers.fs"/>
+        <Compile Include="LabelsTests.fs"/>
+        <Compile Include="GroupingTests.fs"/>
+        <Compile Include="LokiExceptionFormatterTests.fs"/>
+        <Compile Include="WireFormatTests.fs"/>
+        <Compile Include="AppSettingsBindingTests.fs"/>
+        <Compile Include="ExtensionDefaultsTests.fs"/>
+    </ItemGroup>
+
+</Project>

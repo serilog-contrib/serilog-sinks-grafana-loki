@@ -4,6 +4,11 @@ on:
   schedule:
     - cron: '0 0 * * *'
 
+# lock-threads needs write access to lock issues and PRs; everything else stays read-only.
+permissions:
+  issues: write
+  pull-requests: write
+
 jobs:
   lock:
     runs-on: ubuntu-latest

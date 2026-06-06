@@ -9,6 +9,13 @@ updates:
     directory: "/" # Location of package manifests
     schedule:
       interval: "daily"
+    ignore:
+      # Benchmark baselines are deliberate pins (benchmarks/*/*.fsproj VersionOverride):
+      # the previously published release the suite measures against, and the third-party
+      # yardstick. Bump them consciously — together with the recorded numbers in
+      # benchmarks/README.md — not via bot PRs.
+      - dependency-name: "Serilog.Sinks.Grafana.Loki"
+      - dependency-name: "Serilog.Sinks.Loki.YetAnother"
 
   - package-ecosystem: "github-actions"
     directory: "/" # Location of package manifests

@@ -1,0 +1,16 @@
+<Project>
+
+    <!-- Inherit the repository-wide settings (signing key path, MinVer, SourceLink,
+         analyzers) then relax the bits that don't make sense for throwaway benchmark
+         executables. The parent is the nearest Directory.Build.props above this folder. -->
+    <Import Project="..\Directory.Build.props"/>
+
+    <PropertyGroup>
+        <!-- Benchmark code (and BenchmarkDotNet's generated harness) is allowed to warn. -->
+        <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+        <!-- Never pack or sign the benchmark projects. -->
+        <IsPackable>false</IsPackable>
+        <SignAssembly>false</SignAssembly>
+    </PropertyGroup>
+
+</Project>

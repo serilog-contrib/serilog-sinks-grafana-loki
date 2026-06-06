@@ -1,0 +1,74 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+        <!-- Disable the F# SDK's implicit FSharp.Core reference so we can add it as
+             an explicit NuGet PackageReference. This makes FSharp.Core copy-local and
+             ensures it flows as a transitive dependency to C# consumers — without this,
+             FSharp.Core lives only in the SDK directory and is not found at runtime
+             when the library is loaded from a C# app. -->
+        <DisableImplicitFSharpCoreReference>true</DisableImplicitFSharpCoreReference>
+        <AssemblyName>Serilog.Sinks.Grafana.Loki</AssemblyName>
+        <RootNamespace>Serilog.Sinks.Grafana.Loki</RootNamespace>
+        <Description>A Serilog sink that writes log events to Grafana Loki</Description>
+        <PackageTags>serilog;loki;grafana;logging;sink</PackageTags>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageProjectUrl>https://github.com/serilog-contrib/serilog-sinks-grafana-loki</PackageProjectUrl>
+        <PackageIcon>serilog-sink-nuget.png</PackageIcon>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PackageReleaseNotes>For release notes, please see the change log on GitHub.</PackageReleaseNotes>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+
+        <!-- Symbols & SourceLink: embed the PDB (with its SourceLink map) in the assembly
+             so symbols ship with the package — no symbol server needed, line numbers in
+             consumer stack traces, step-into fetches the exact source from GitHub.
+             Build-generated files are embedded too, the repository URL is published into
+             the nuspec, and CI builds are deterministic (paths normalized to /_/). -->
+        <DebugType>embedded</DebugType>
+        <EmbedUntrackedSources>true</EmbedUntrackedSources>
+        <PublishRepositoryUrl>true</PublishRepositoryUrl>
+        <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="FSharp.Core"/>
+        <PackageReference Include="Serilog"/>
+    </ItemGroup>
+
+
+    <ItemGroup>
+        <None Include="..\..\assets\serilog-sink-nuget.png" Pack="true" Visible="false" PackagePath="/"/>
+        <None Include="..\..\README.md" Pack="true" Visible="false" PackagePath="/"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <!-- Compilation order: dependencies must precede dependents -->
+        <Compile Include="AssemblyInfo.fs"/>
+
+        <!-- Infrastructure (no Serilog dependency) -->
+        <Compile Include="Infrastructure\PooledByteBufferWriter.fs"/>
+        <Compile Include="Infrastructure\Utf8TextWriter.fs"/>
+
+        <!-- Public contract types -->
+        <Compile Include="LokiLabel.fs"/>
+        <Compile Include="LokiCredentials.fs"/>
+        <Compile Include="LokiFieldDestination.fs"/>
+        <Compile Include="ILokiExceptionFormatter.fs"/>
+        <Compile Include="LokiExceptionFormatter.fs"/>
+        <Compile Include="LokiJsonTextFormatter.fs"/>
+        <Compile Include="LokiSinkOptions.fs"/>
+
+        <!-- Internal functional pipeline ([<AutoOpen>] modules) -->
+        <Compile Include="Labels.fs"/>
+        <Compile Include="Grouping.fs"/>
+        <Compile Include="Serialization.fs"/>
+        <Compile Include="LokiPushContent.fs"/>
+
+        <!-- Sink wiring -->
+        <Compile Include="LokiSink.fs"/>
+
+        <!-- Public API surface -->
+        <Compile Include="LoggerConfigurationExtensions.fs"/>
+    </ItemGroup>
+
+</Project>

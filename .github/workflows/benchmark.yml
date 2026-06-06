@@ -1,0 +1,195 @@
+name: "Benchmarks"
+
+# Compares the benchmark suite of this source tree against the latest published
+# NuGet package, so a PR shows whether it changes performance.
+#
+# - On pull requests touching the library or the benchmarks: runs the end-to-end
+#   sink group (the regression target) for the NuGet baseline and the PR source,
+#   posts a comparison table to the run summary and as a sticky PR comment.
+# - On manual dispatch: same, plus the YetAnother yardstick and a custom filter.
+#
+# Reading the numbers: `Allocated` is exact and deterministic even on shared
+# runners — that is the regression signal. `Mean` is indicative only (noisy VMs).
+
+on:
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'benchmarks/**'
+      - 'Directory.Packages.props'
+  workflow_dispatch:
+    inputs:
+      filter:
+        description: "BenchmarkDotNet --filter glob"
+        required: false
+        default: '*'
+      include_yetanother:
+        description: 'Also run the Serilog.Sinks.Loki.YetAnother yardstick'
+        type: boolean
+        required: false
+        default: true
+
+permissions:
+  contents: read
+  pull-requests: write   # sticky benchmark comment on same-repo PRs
+
+concurrency:
+  group: bench-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_NOLOGO: true
+  HUSKY: 0
+  # PRs run only the end-to-end sink group to keep the job short; manual runs take the input.
+  BENCH_FILTER: ${{ github.event_name == 'workflow_dispatch' && inputs.filter || '*Sink*' }}
+
+jobs:
+  benchmark:
+    name: Baseline vs source
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      # Full history + tags for MinVer (the V9 project builds ../src).
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5.2.0
+        with:
+          dotnet-version: |
+            8.x
+            9.x
+            10.x
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('Directory.Packages.props', '**/*.fsproj', '**/*.csproj') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      - name: Resolve baseline version (latest on NuGet)
+        id: baseline
+        run: |
+          # Keep in sync with the BaselineVersion default in the V8 benchmark fsproj.
+          # The latest NuGet version is used only when it shares that pin's API major:
+          # a different major means a different public API, and the baseline project's
+          # Benchmarks.fs must be migrated before the pin can move.
+          pinned='8.3.2'
+          latest=$(curl -fsSL https://api.nuget.org/v3-flatcontainer/serilog.sinks.grafana.loki/index.json | jq -r '.versions | last')
+          if [ "${latest%%.*}" = "${pinned%%.*}" ]; then
+            version="$latest"
+            note='latest on NuGet'
+          else
+            version="$pinned"
+            note="pinned; latest on NuGet is $latest, whose API major differs - migrate the baseline benchmark project to move the pin"
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "note=$note" >> "$GITHUB_OUTPUT"
+          echo "Baseline: Serilog.Sinks.Grafana.Loki $version ($note)"
+
+      - name: Run baseline (NuGet ${{ steps.baseline.outputs.version }})
+        run: >
+          dotnet run -c Release
+          --project benchmarks/Serilog.Sinks.Grafana.Loki.Benchmarks.V8
+          -p:BaselineVersion=${{ steps.baseline.outputs.version }}
+          -- --filter "$BENCH_FILTER"
+
+      - name: Run source
+        run: >
+          dotnet run -c Release
+          --project benchmarks/Serilog.Sinks.Grafana.Loki.Benchmarks.V9
+          -- --filter "$BENCH_FILTER"
+
+      - name: Run YetAnother yardstick
+        if: github.event_name == 'workflow_dispatch' && inputs.include_yetanother
+        run: >
+          dotnet run -c Release
+          --project benchmarks/Serilog.Sinks.Grafana.Loki.Benchmarks.YetAnother
+          -- --filter "$BENCH_FILTER"
+
+      - name: Build comparison report
+        env:
+          BASELINE_VERSION: ${{ steps.baseline.outputs.version }}
+          BASELINE_NOTE: ${{ steps.baseline.outputs.note }}
+        run: |
+          v8="benchmarks/Serilog.Sinks.Grafana.Loki.Benchmarks.V8/bin/Release/net8.0/BenchmarkDotNet.Artifacts"
+          v9="benchmarks/Serilog.Sinks.Grafana.Loki.Benchmarks.V9/bin/Release/net8.0/BenchmarkDotNet.Artifacts"
+          ya="benchmarks/Serilog.Sinks.Grafana.Loki.Benchmarks.YetAnother/bin/Release/net8.0/BenchmarkDotNet.Artifacts"
+
+          {
+            echo '## Benchmark comparison'
+            echo ''
+            echo "Baseline: \`Serilog.Sinks.Grafana.Loki $BASELINE_VERSION\` ($BASELINE_NOTE) vs **this source**."
+            echo ''
+            echo '> `Allocated` is exact and deterministic — treat it as the regression signal.'
+            echo '> `Mean` on shared CI runners is noisy; deltas within ±10% are not meaningful.'
+            echo ''
+            dotnet fsi benchmarks/compare-results.fsx "$v8" "$v9" "v$BASELINE_VERSION" 'source'
+            if [ -d "$ya" ]; then
+              echo ''
+              echo '### vs Serilog.Sinks.Loki.YetAnother (yardstick)'
+              echo ''
+              dotnet fsi benchmarks/compare-results.fsx "$ya" "$v9" 'YetAnother' 'source'
+            fi
+          } > benchmark-report.md
+
+          cat benchmark-report.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Append full BenchmarkDotNet tables to the run summary
+        run: |
+          find benchmarks -path '*BenchmarkDotNet.Artifacts*' -name '*-report-github.md' | sort | while read -r f; do
+            proj=$(echo "$f" | sed -E 's#.*Benchmarks\.([^/]+)/bin.*#\1#')
+            {
+              echo "<details><summary>$proj — $(basename "$f" .md)</summary>"
+              echo ''
+              cat "$f"
+              echo ''
+              echo '</details>'
+              echo ''
+            } >> "$GITHUB_STEP_SUMMARY"
+          done
+
+      - name: Upload raw results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results
+          path: benchmarks/**/BenchmarkDotNet.Artifacts/results/*
+
+      # Forked PRs get a read-only token and cannot comment; the run summary covers them.
+      - name: Post sticky PR comment
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const marker = '<!-- benchmark-report -->';
+            let body = marker + '\n' + fs.readFileSync('benchmark-report.md', 'utf8');
+            if (body.length > 65000) {
+              body = body.slice(0, 65000) + '\n\n_…truncated — see the workflow run summary for the full report._';
+            }
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              per_page: 100,
+            });
+            const existing = comments.find((c) => c.body && c.body.startsWith(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }
