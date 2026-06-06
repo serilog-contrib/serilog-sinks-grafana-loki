@@ -19,11 +19,11 @@
         <Exec Command="dotnet tool restore"
               StandardOutputImportance="Low"
               StandardErrorImportance="High"
-              IgnoreExitCode="true" />
+              IgnoreExitCode="true"/>
         <Exec Command="dotnet husky install"
               WorkingDirectory="$(MSBuildThisFileDirectory)"
               StandardOutputImportance="Low"
               StandardErrorImportance="High"
-              IgnoreExitCode="true" />
+              IgnoreExitCode="true"/>
     </Target>
 </Project>

@@ -11,7 +11,6 @@
 namespace Serilog.Sinks.Grafana.Loki
 
 open System
-open System.Buffers
 open System.Collections.Generic
 open System.Net.Http
 open System.Net.Http.Headers
@@ -23,7 +22,6 @@ open Serilog.Core
 open Serilog.Debugging
 open Serilog.Events
 open Serilog.Formatting
-open Serilog.Sinks.Grafana.Loki.Infrastructure
 
 /// IBatchedLogEventSink implementation.
 /// Batching, queue management, back-pressure and retry are all delegated to
