@@ -169,7 +169,7 @@ All options are passed as named arguments to `WriteTo.GrafanaLoki(...)`. Only `u
 | `propertiesAsStructuredMetadata` | `string[]` | `[]` | Property names to attach as per-line [structured metadata](#structured-metadata) (non-indexed; Loki 3.0+). |
 | `handleLogLevelAsLabel` | `bool` | `true` | Add a `level` label using Grafana's level vocabulary. |
 | `credentials` | `LokiCredentials` | `null` | Basic-auth credentials. From `appsettings.json`, an object with `login`/`password`. |
-| `tenant` | `string` | `null` | Value for the `X-Scope-OrgID` multi-tenancy header. |
+| `tenant` | `string` | `null` | Value for the `X-Scope-OrgID` multi-tenancy header; validated at startup. |
 | `traceIdMode` | `LokiFieldDestination` | `None` | Where to write the event's `TraceId`: `None`, `Body`, or `StructuredMetadata`. |
 | `spanIdMode` | `LokiFieldDestination` | `None` | Where to write the event's `SpanId`: `None`, `Body`, or `StructuredMetadata`. |
 | `batchSizeLimit` | `int` | `1000` | Maximum events per HTTP POST. |
@@ -246,6 +246,11 @@ Other rules:
 ```csharp
 .WriteTo.GrafanaLoki("http://localhost:3100", tenant: "tenant-1")
 ```
+
+The tenant ID is validated at configuration time against
+[Loki's tenant ID rules](https://grafana.com/docs/loki/latest/operations/multi-tenancy/) — alphanumerics plus
+`!-_.*'()`, at most 150 bytes, and not `.` or `..` — an invalid value throws `ArgumentException` instead of producing
+batches Loki would reject.
 
 **Bearer tokens / OAuth2** are not a first-class option — add them through the injected client, either by setting a
 default `Authorization` header on an `HttpClient` or via a `DelegatingHandler` (see below).

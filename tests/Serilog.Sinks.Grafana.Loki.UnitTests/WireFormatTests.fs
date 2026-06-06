@@ -749,6 +749,50 @@ let ``validateUri: valid http uri succeeds`` () =
     let ex = tryGrafanaLoki "http://localhost:3100"
     test <@ ex.IsNone @>
 
+// ── validateTenant ────────────────────────────────────────────────────────────
+
+let private tryGrafanaLokiTenant (tenant: string) =
+    try
+        Serilog.LoggerConfiguration().WriteTo.GrafanaLoki(uri = "http://localhost:3100", tenant = tenant)
+        |> ignore
+
+        None
+    with ex ->
+        Some ex
+
+[<Theory>]
+[<InlineData(null: string)>]
+[<InlineData("")>]
+[<InlineData("tenant-1")>]
+[<InlineData("Tenant_01.prod")>]
+[<InlineData("t!x-y_z.a*b'c(d)e")>] // every special character Loki allows
+[<InlineData("a..b")>] // '..' as a substring is legal; only the exact values '.'/'..' are not
+let ``validateTenant: absent or valid tenant succeeds`` (tenant: string) =
+    let ex = tryGrafanaLokiTenant tenant
+    test <@ ex.IsNone @>
+
+[<Theory>]
+[<InlineData(".")>]
+[<InlineData("..")>]
+let ``validateTenant: path-traversal values throw ArgumentException`` (tenant: string) =
+    let ex = tryGrafanaLokiTenant tenant
+    test <@ ex.IsSome && ex.Value :? ArgumentException @>
+
+[<Theory>]
+[<InlineData("foo/bar")>]
+[<InlineData("foo bar")>]
+[<InlineData("foo,bar")>]
+[<InlineData("тенант")>]
+let ``validateTenant: invalid characters throw ArgumentException`` (tenant: string) =
+    let ex = tryGrafanaLokiTenant tenant
+    test <@ ex.IsSome && ex.Value :? ArgumentException @>
+
+[<Fact>]
+let ``validateTenant: 150 bytes is accepted, 151 is rejected`` () =
+    test <@ (tryGrafanaLokiTenant (String('a', 150))).IsNone @>
+    let ex = tryGrafanaLokiTenant (String('a', 151))
+    test <@ ex.IsSome && ex.Value :? ArgumentException @>
+
 // ── writeValue branches ───────────────────────────────────────────────────────
 
 let private mkEventWithProp (key: string) (value: LogEventPropertyValue) =

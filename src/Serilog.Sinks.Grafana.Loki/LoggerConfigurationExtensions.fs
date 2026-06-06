@@ -35,8 +35,39 @@ type LoggerConfigurationLokiExtensions =
             invalidArg "uri" $"Loki URI scheme must be http or https, got '{u.Scheme}'."
         | _ -> ()
 
+    // Loki tenant ID rules (https://grafana.com/docs/loki/latest/operations/multi-tenancy/):
+    // alphanumerics plus !-_.*'(), at most 150 bytes, and not the special values '.' or '..'
+    // (tenant IDs become storage path segments server-side). Fail fast like validateUri —
+    // an invalid tenant would otherwise surface only as rejected batches in SelfLog, or as
+    // logs silently landing under the wrong tenant.
+    static let validateTenant (tenant: string) =
+        if not (String.IsNullOrEmpty tenant) then
+            if tenant = "." || tenant = ".." then
+                invalidArg "tenant" "Loki tenant ID must not be '.' or '..'."
+
+            let isValidChar (c: char) =
+                Char.IsAsciiLetterOrDigit c
+                || c = '!'
+                || c = '-'
+                || c = '_'
+                || c = '.'
+                || c = '*'
+                || c = '\''
+                || c = '('
+                || c = ')'
+
+            if not (String.forall isValidChar tenant) then
+                invalidArg
+                    "tenant"
+                    $"Loki tenant ID '{tenant}' contains invalid characters. Allowed: alphanumerics and !-_.*'()."
+
+            // The allowed charset is ASCII-only, so Length equals the byte count Loki limits.
+            if tenant.Length > 150 then
+                invalidArg "tenant" $"Loki tenant ID must not be longer than 150 bytes, got {tenant.Length}."
+
     static let wire (sinkConfig: LoggerSinkConfiguration) (options: LokiSinkOptions) (level: LogEventLevel) =
         validateUri options.Uri
+        validateTenant options.Tenant
 
         // Serilog 4.x native batching — BatchingOptions has RetryTimeLimit, PeriodicBatchingSinkOptions does not.
         let batchingOpts =

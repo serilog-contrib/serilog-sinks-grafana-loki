@@ -86,14 +86,10 @@ type internal LokiSink(options: LokiSinkOptions) =
 
                 client.DefaultRequestHeaders.Authorization <- AuthenticationHeaderValue("Basic", token)
 
-            if
-                not (String.IsNullOrEmpty options.Tenant)
-                && not (client.DefaultRequestHeaders.TryAddWithoutValidation("X-Scope-OrgID", options.Tenant))
-            then
-                SelfLog.WriteLine(
-                    "Serilog.Sinks.GrafanaLoki: X-Scope-OrgID header could not be set for tenant '{0}'. The value may contain invalid characters.",
-                    options.Tenant
-                )
+            // Tenant is validated at configuration time (LoggerConfigurationExtensions);
+            // the allowed charset is header-safe, so Add cannot throw here.
+            if not (String.IsNullOrEmpty options.Tenant) then
+                client.DefaultRequestHeaders.Add("X-Scope-OrgID", options.Tenant)
 
             client
 
