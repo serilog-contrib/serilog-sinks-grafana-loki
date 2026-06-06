@@ -102,21 +102,15 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v5.3.0
         with:
           dotnet-version: 10.x
 
-      # Push the exact bits the build job produced and tested in this run —
-      # no rebuild, no re-test (--single-target skips the FAKE dependency chain).
-      - name: Download packed artifact
-        uses: actions/download-artifact@v8
-        with:
-          name: nuget-ubuntu-latest
-          path: artifacts
-
-      - name: Push
-        run: dotnet fsi build.fsx -- --target Push --single-target
+      - name: Pack & Push
+        run: dotnet fsi build.fsx -- --target Push
         env:
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}

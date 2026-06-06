@@ -156,7 +156,13 @@ Target.create "Default" ignore
 
 open Fake.Core.TargetOperators
 
-"Restore" ==> "Build" ==> "Test" ==> "Pack" ==> "Default"
+// Default: Restore → Build → Test → Pack. Push deliberately does NOT depend on Test —
+// the CI publish job runs only after the build/test jobs are green, so its chain is
+// Restore → Build → Pack → Push. The soft dependency (?=>) keeps Test ordered before
+// Pack whenever both are activated (e.g. Default) without Pack pulling Test in.
+"Restore" ==> "Build" ==> "Pack" ==> "Default"
+"Build" ==> "Test" ==> "Default"
+"Test" ?=> "Pack"
 "Build" ==> "IntegrationTest"
 "Pack" ==> "Push"
 
