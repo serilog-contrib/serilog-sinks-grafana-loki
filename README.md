@@ -485,4 +485,8 @@ Runnable examples live in the [`samples`](samples) folder:
 
 ## <a id="inspiration-and-credits"></a>Inspiration and Credits
 
-- [Serilog.Sinks.Loki](https://github.com/JosephWoodward/Serilog-Sinks-Loki)
+- [Serilog.Sinks.Loki](https://github.com/JosephWoodward/Serilog-Sinks-Loki) — the original Serilog Loki sink, which
+  this project was born from and inspired by.
+- [Serilog.Sinks.Loki.YetAnother](https://github.com/ramonesz297/yet-another-serilog-sinks-loki) — an
+  allocation-conscious Loki sink whose performance findings inspired parts of the V9 optimization work; it also serves
+  as the external yardstick in our [benchmarks](benchmarks).
