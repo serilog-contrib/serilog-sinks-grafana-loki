@@ -4,9 +4,13 @@ BenchmarkDotNet suites comparing three Grafana Loki sinks:
 
 | Project | Package | Notes |
 |---|---|---|
-| `…Benchmarks.V8` | `Serilog.Sinks.Grafana.Loki` **8.3.2** (NuGet) | the previous release; Serilog 2.12, builds an object graph → JSON **string** per batch |
-| `…Benchmarks.V9` | this repo (`../src`, `ProjectReference`) | Serilog 4.x; streams JSON **bytes** through a pooled `Utf8JsonWriter` |
-| `…Benchmarks.YetAnother` | `Serilog.Sinks.Loki.YetAnother` **4.0.5** (NuGet) | third-party; Serilog 4.x, also a streaming "low-allocation" design |
+| `…Benchmarks.V8` | `Serilog.Sinks.Grafana.Loki` (NuGet, `BaselineVersion`, default **9.0.0**) | the published **baseline**; CI moves it to the latest same-major release on NuGet |
+| `…Benchmarks.V9` | this repo (`../src`, `ProjectReference`) | the current **source**; streams JSON **bytes** through a pooled `Utf8JsonWriter` |
+| `…Benchmarks.YetAnother` | `Serilog.Sinks.Loki.YetAnother` **4.0.5** (NuGet) | third-party yardstick; Serilog 4.x, also a streaming "low-allocation" design |
+
+> Until v9.0.0 shipped, the baseline project compiled against the v8 API (hence its name) and
+> pinned `8.3.2` — the result tables below are that release-time v8 → v9 comparison, kept as
+> the historical record.
 
 ## Why three projects
 

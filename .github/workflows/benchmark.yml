@@ -77,7 +77,7 @@ jobs:
           # The latest NuGet version is used only when it shares that pin's API major:
           # a different major means a different public API, and the baseline project's
           # Benchmarks.fs must be migrated before the pin can move.
-          pinned='8.3.2'
+          pinned='9.0.0'
           latest=$(curl -fsSL https://api.nuget.org/v3-flatcontainer/serilog.sinks.grafana.loki/index.json | jq -r '.versions | last')
           if [ "${latest%%.*}" = "${pinned%%.*}" ]; then
             version="$latest"

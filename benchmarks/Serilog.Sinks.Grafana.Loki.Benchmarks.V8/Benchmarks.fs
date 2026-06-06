@@ -21,27 +21,26 @@ open Serilog.Events
 open Serilog.Sinks.Grafana.Loki
 open Benchmarks.Shared
 
-/// In-process transport for the V8 sink: implements V8's ILokiHttpClient injection
-/// point, drains the serialized content stream and returns 204 (Loki's success code).
-/// No sockets, fully deterministic. The V8 sink has already run LokiBatchFormatter to
-/// produce the stream by the time PostAsync is called, so serialization is fully measured.
-type private Fake204LokiHttpClient() =
-    interface ILokiHttpClient with
-        member _.PostAsync(_requestUri, contentStream) =
-            task {
-                do! contentStream.CopyToAsync(Stream.Null)
-                return new HttpResponseMessage(HttpStatusCode.NoContent)
-            }
+/// In-process transport for the baseline sink (a published v9.x package): drains the
+/// request body — which forces the streaming serialization in LokiPushContent to run —
+/// then returns 204, exactly like Loki's success response. No sockets, fully
+/// deterministic. Injected via the sink's `httpMessageHandler` option, so the sink owns
+/// the HttpClient and runs its real path.
+type private Fake204Handler() =
+    inherit HttpMessageHandler()
 
-        member _.SetCredentials(_credentials) = ()
-        member _.SetTenant(_tenant) = ()
+    override _.SendAsync(request, cancellationToken) =
+        task {
+            if not (isNull request.Content) then
+                do! request.Content.CopyToAsync(Stream.Null, cancellationToken)
 
-    interface IDisposable with
-        member _.Dispose() = ()
+            return new HttpResponseMessage(HttpStatusCode.NoContent)
+        }
 
 // ── Group 1: per-event body formatter (public ITextFormatter surface) ─────────────
-// V8's LokiJsonTextFormatter is what its sink uses per event (StringWriter -> string),
-// so this is V8's true per-event path. Compared against V9's public formatter.
+// Measures the baseline package's public formatter. Like the source project, this is
+// a conservative view: the v9 sink uses the internal byte-oriented path in production,
+// which is measured end to end in Group 2.
 
 [<Config(typeof<Config.MicroConfig>)>]
 type FormatterBenchmarks() =
@@ -82,7 +81,7 @@ type FormatterBenchmarks() =
 type SinkBenchmarks() =
     let target = Environment.GetEnvironmentVariable "LOKI_BENCH_TARGET"
     let useReal = not (String.IsNullOrWhiteSpace target)
-    let label = LokiLabel(Key = "app", Value = "benchmarks")
+    let label: LokiLabel = { Key = "app"; Value = "benchmarks" }
 
     let mutable events: LogEvent[] = [||]
     let mutable logger: Logger = null
@@ -108,17 +107,17 @@ type SinkBenchmarks() =
                 cfg.WriteTo.GrafanaLoki(
                     target,
                     labels = [| label |],
-                    batchPostingLimit = 1000,
-                    queueLimit = Nullable 10_000_000,
+                    batchSizeLimit = 1000,
+                    queueLimit = 10_000_000,
                     period = Nullable(TimeSpan.FromHours 1.0)
                 )
             else
                 cfg.WriteTo.GrafanaLoki(
                     "http://localhost:9999",
                     labels = [| label |],
-                    httpClient = (new Fake204LokiHttpClient() :> ILokiHttpClient),
-                    batchPostingLimit = 1000,
-                    queueLimit = Nullable 10_000_000,
+                    httpMessageHandler = (new Fake204Handler() :> HttpMessageHandler),
+                    batchSizeLimit = 1000,
+                    queueLimit = 10_000_000,
                     period = Nullable(TimeSpan.FromHours 1.0)
                 )
 
