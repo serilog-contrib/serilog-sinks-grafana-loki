@@ -61,7 +61,7 @@ jobs:
         run: dotnet fsi build.fsx -- --target Pack
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: nuget-${{ matrix.os }}
           path: artifacts/*.nupkg
