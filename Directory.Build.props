@@ -3,6 +3,7 @@
         <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)assets/Serilog.Sinks.Grafana.Loki.snk</AssemblyOriginatorKeyFile>
         <Authors>Mykhailo Shevchuk, Contributors</Authors>
         <CheckEolTargetFramework>false</CheckEolTargetFramework>
+        <Copyright>Copyright (c) 2020-2026 Mykhailo Shevchuk &amp; Contributors</Copyright>
         <MinVerTagPrefix>v</MinVerTagPrefix>
         <SignAssembly>true</SignAssembly>
 
