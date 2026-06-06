@@ -62,6 +62,14 @@ type LokiJsonTextFormatter(exceptionFormatter: ILokiExceptionFormatter, enrichTr
                 else
                     writer.WriteStringValue(f.ToString())
             | :? decimal as d -> writer.WriteNumberValue(d)
+            // Typed overloads format straight to UTF-8 with no intermediate string.
+            // Guid → the same 'D' (lowercase, hyphenated) form ToString() produced.
+            // DateTime/DateTimeOffset → ISO 8601 (round-trippable, culture-invariant). Note this
+            // differs from label rendering: renderLabelValue uses the general invariant format
+            // ("MM/dd/yyyy HH:mm:ss"), so the same DateTime can read differently as a label vs body.
+            | :? Guid as g -> writer.WriteStringValue(g)
+            | :? DateTime as dt -> writer.WriteStringValue(dt)
+            | :? DateTimeOffset as dto -> writer.WriteStringValue(dto)
             | v -> writer.WriteStringValue(v.ToString())
         | :? SequenceValue as sv ->
             writer.WriteStartArray()
@@ -111,11 +119,20 @@ type LokiJsonTextFormatter(exceptionFormatter: ILokiExceptionFormatter, enrichTr
     // Serialization.fs calls this directly when the formatter is the built-in one,
     // writing JSON bytes straight into the body buffer without a TextWriter round-trip.
 
-    member internal self.FormatToBuffer(logEvent: LogEvent, buffer: PooledByteBufferWriter) =
-        use jsonWriter = new Utf8JsonWriter(buffer :> IBufferWriter<byte>)
+    member internal self.FormatToBuffer(logEvent: LogEvent, jsonWriter: Utf8JsonWriter, messageWriter: Utf8TextWriter) =
+        // jsonWriter targets the body buffer; the sink reuses one writer across events (Reset
+        // clears its state) while the public Format passes a throwaway. The caller clears the
+        // backing buffer; Flush at the end pushes pending bytes so the caller can read WrittenSpan.
+        jsonWriter.Reset()
         jsonWriter.WriteStartObject()
 
-        jsonWriter.WriteString(pMessage, logEvent.RenderMessage(Globalization.CultureInfo.InvariantCulture))
+        // Render the message straight to UTF-8 in the caller's reusable scratch writer, then
+        // emit those bytes as the JSON string value. Avoids the StringWriter + StringBuilder +
+        // System.String that LogEvent.RenderMessage(IFormatProvider) allocates per event.
+        messageWriter.Clear()
+        logEvent.RenderMessage(messageWriter, Globalization.CultureInfo.InvariantCulture)
+        jsonWriter.WriteString(pMessage, messageWriter.WrittenSpan)
+
         jsonWriter.WriteString(pMessageTemplate, logEvent.MessageTemplate.Text)
 
         if not (isNull logEvent.Exception) then
@@ -139,6 +156,7 @@ type LokiJsonTextFormatter(exceptionFormatter: ILokiExceptionFormatter, enrichTr
             writeValue jsonWriter kvp.Value
 
         jsonWriter.WriteEndObject()
+        jsonWriter.Flush()
 
     // ── Virtualizable public surface ──────────────────────────────────────────
 
@@ -153,7 +171,12 @@ type LokiJsonTextFormatter(exceptionFormatter: ILokiExceptionFormatter, enrichTr
 
     default self.Format(logEvent: LogEvent, output: IO.TextWriter) =
         use buffer = new PooledByteBufferWriter(256)
-        self.FormatToBuffer(logEvent, buffer)
+        // Throwaway writer + scratch for the message render. The internal sink path passes reused
+        // instances instead; the public path stays allocation-light but fully thread-safe.
+        use jsonWriter = new Utf8JsonWriter(buffer :> IBufferWriter<byte>)
+        use messageBuffer = new PooledByteBufferWriter(128)
+        use messageWriter = new Utf8TextWriter(messageBuffer)
+        self.FormatToBuffer(logEvent, jsonWriter, messageWriter)
         output.Write(Text.Encoding.UTF8.GetString(buffer.WrittenSpan))
 
     interface ITextFormatter with

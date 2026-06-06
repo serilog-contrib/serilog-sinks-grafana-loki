@@ -23,6 +23,15 @@ type internal Utf8TextWriter(bufferWriter: PooledByteBufferWriter) =
     // Hold a typed IBufferWriter<byte> reference to avoid repeated upcasting.
     let writer = bufferWriter :> IBufferWriter<byte>
 
+    /// UTF-8 bytes written since the last Clear(). The writer encodes straight into the
+    /// backing PooledByteBufferWriter (no internal buffering), so this is valid immediately
+    /// after writing — no Flush required.
+    member _.WrittenSpan = bufferWriter.WrittenSpan
+
+    /// Resets the backing buffer so the writer can be reused for the next value.
+    /// The writer itself holds no state, so clearing the buffer is sufficient.
+    member _.Clear() = bufferWriter.Clear()
+
     override _.Encoding = Encoding.UTF8
 
     override _.Write(value: char) =

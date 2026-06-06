@@ -661,6 +661,41 @@ let ``metadata: differing metadata values do NOT split streams (unlike labels)``
         test <@ count = 1 @>
     }
 
+[<Fact>]
+let ``metadata: non-string property value is rendered as a string`` () : Task =
+    // Loki's push API accepts only string metadata values, so a numeric property must be
+    // stringified in the metadata object (unlike the typed JSON body).
+    task {
+        let handler, sink =
+            makeSink (fun o ->
+                { o with
+                    PropertiesAsStructuredMetadata = [| "Count" |] })
+
+        use _ = sink
+        do! flush sink [ mkInfo [ "Count", box 42 ] ]
+        use doc = handler.LastBodyJson
+        let v = metadataProp "Count" (streamAt 0 doc) 0
+        test <@ v = Some "42" @>
+    }
+
+[<Fact>]
+let ``metadata: duplicate property name emits a single key`` () : Task =
+    // A duplicate name in PropertiesAsStructuredMetadata must not produce a duplicate JSON key
+    // (the names are de-duplicated at construction).
+    task {
+        let handler, sink =
+            makeSink (fun o ->
+                { o with
+                    PropertiesAsStructuredMetadata = [| "RequestId"; "RequestId" |] })
+
+        use _ = sink
+        do! flush sink [ mkInfo [ "RequestId", box "abc" ] ]
+        use doc = handler.LastBodyJson
+        let metaObj = (entry 0 (streamAt 0 doc))[2]
+        let keyCount = metaObj.EnumerateObject() |> Seq.length
+        test <@ keyCount = 1 @>
+    }
+
 // ── validateUri ───────────────────────────────────────────────────────────────
 
 let private tryGrafanaLoki (uri: string) =
@@ -741,6 +776,93 @@ let ``body: sequence value serialized as JSON array`` () : Task =
         use body = bodyDoc (entry 0 (streamAt 0 doc))
         let propKind = propKindOf "items" body
         test <@ propKind = JsonValueKind.Array @>
+    }
+
+[<Fact>]
+let ``body: Guid scalar serialized as canonical D-format string`` () : Task =
+    task {
+        let handler, sink = makeSink id
+        use _ = sink
+        let g = Guid("12345678-1234-1234-1234-1234567890ab")
+        let event = mkEventWithProp "id" (ScalarValue(g))
+        do! flush sink [ event ]
+        use doc = handler.LastBodyJson
+        use body = bodyDoc (entry 0 (streamAt 0 doc))
+        let v = body.RootElement.GetProperty("id")
+        // Typed WriteStringValue(Guid) emits the same lowercase, hyphenated form as ToString()
+        let isString = v.ValueKind = JsonValueKind.String
+        let got = v.GetString()
+        let expected = g.ToString()
+        test <@ isString && got = expected @>
+    }
+
+[<Fact>]
+let ``body: DateTime scalar serialized as round-trippable ISO 8601 string`` () : Task =
+    task {
+        let handler, sink = makeSink id
+        use _ = sink
+        let dt = DateTime(2024, 1, 2, 3, 4, 5, DateTimeKind.Utc)
+        let event = mkEventWithProp "ts" (ScalarValue(dt))
+        do! flush sink [ event ]
+        use doc = handler.LastBodyJson
+        use body = bodyDoc (entry 0 (streamAt 0 doc))
+        let v = body.RootElement.GetProperty("ts")
+        // Culture-invariant ISO 8601 (not the old culture-dependent ToString); round-trips.
+        let isString = v.ValueKind = JsonValueKind.String
+        let roundtrips = v.GetDateTime() = dt
+        test <@ isString && roundtrips @>
+    }
+
+[<Fact>]
+let ``body: DateTimeOffset scalar serialized as round-trippable ISO 8601 string`` () : Task =
+    task {
+        let handler, sink = makeSink id
+        use _ = sink
+        let dto = DateTimeOffset(2024, 1, 2, 3, 4, 5, TimeSpan.FromHours 2.0)
+        let event = mkEventWithProp "ts" (ScalarValue(dto))
+        do! flush sink [ event ]
+        use doc = handler.LastBodyJson
+        use body = bodyDoc (entry 0 (streamAt 0 doc))
+        let v = body.RootElement.GetProperty("ts")
+        let isString = v.ValueKind = JsonValueKind.String
+        let roundtrips = v.GetDateTimeOffset() = dto
+        test <@ isString && roundtrips @>
+    }
+
+// ── multi-event batch: reused writer/buffer must not leak between events ──────
+
+[<Fact>]
+let ``body: each event in a multi-event batch serializes its own body`` () : Task =
+    // Guards the reused bodyJsonWriter / message / body buffers: three events in ONE stream
+    // (same level, no property labels), each with a distinct rendered message and property.
+    // If reset/clear between events regressed, event N>0 would leak bytes from event N-1.
+    task {
+        let handler, sink = makeSink id
+        use _ = sink
+        let tmpl = traceParser.Parse("event {Seq}")
+
+        let at i =
+            DateTimeOffset(2024, 1, 1, 0, 0, i, TimeSpan.Zero)
+
+        let events =
+            [ for i in 0..2 ->
+                  LogEvent(at i, LogEventLevel.Information, null, tmpl, [ LogEventProperty("Seq", ScalarValue(i)) ]) ]
+
+        do! flush sink events
+        use doc = handler.LastBodyJson
+        let s = streamAt 0 doc
+        let streams = streamCount doc
+        let values = valueCount s
+        // Sorted ascending by timestamp, so entry i is event i.
+        let msg0 = bodyProp "Message" s 0
+        let msg1 = bodyProp "Message" s 1
+        let msg2 = bodyProp "Message" s 2
+        let seq0 = bodyProp "Seq" s 0
+        let seq1 = bodyProp "Seq" s 1
+        let seq2 = bodyProp "Seq" s 2
+        test <@ streams = 1 && values = 3 @>
+        test <@ msg0 = Some "event 0" && msg1 = Some "event 1" && msg2 = Some "event 2" @>
+        test <@ seq0 = Some "0" && seq1 = Some "1" && seq2 = Some "2" @>
     }
 
 // ── custom ITextFormatter path ────────────────────────────────────────────────

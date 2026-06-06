@@ -32,11 +32,18 @@ type LokiExceptionFormatter() =
         writer.WriteString(pType, ex.GetType().FullName)
         writer.WriteString(pMessage, ex.Message)
 
-        if not (String.IsNullOrEmpty ex.Source) then
-            writer.WriteString(pSource, ex.Source)
+        // Read Source and StackTrace once each. Exception.StackTrace rebuilds the entire
+        // stack-trace string on every access, so guarding with a separate read would
+        // materialize it twice — per exception and per inner exception, the dominant cost.
+        let source = ex.Source
 
-        if not (String.IsNullOrEmpty ex.StackTrace) then
-            writer.WriteString(pStackTrace, ex.StackTrace)
+        if not (String.IsNullOrEmpty source) then
+            writer.WriteString(pSource, source)
+
+        let stackTrace = ex.StackTrace
+
+        if not (String.IsNullOrEmpty stackTrace) then
+            writer.WriteString(pStackTrace, stackTrace)
 
         if depth < 20 then
             match ex with

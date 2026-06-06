@@ -71,6 +71,13 @@ module internal Labels =
         let keys = globalLabels |> Map.keys |> Set.ofSeq
         if handleLevel then Set.add "level" keys else keys
 
+    /// True when a property's sanitized key is reserved (collides with a global label or the
+    /// synthetic 'level'), in which case the property contributes no label. Single source of this
+    /// rule, shared by buildLabelSet (label output) and LabelEqualityComparer.ForLabels (stream
+    /// identity) so the two cannot drift out of sync.
+    let inline isReservedLabelKey (reservedKeys: Set<string>) (propName: string) =
+        Set.contains (sanitizeLabelKey propName) reservedKeys
+
     /// Converts the LokiLabel array into an immutable Map, preserving last-write-wins
     /// when duplicate keys are present in the configuration.
     let buildGlobalLabelMap (labels: LokiLabel[]) : Map<string, string> =
@@ -107,55 +114,13 @@ module internal Labels =
         |> Array.fold
             (fun acc propName ->
                 match event.Properties.TryGetValue(propName) with
-                | true, value ->
-                    let key = sanitizeLabelKey propName
-
-                    if Set.contains key reservedKeys then
-                        acc
-                    else
-                        Map.add key (renderLabelValue value) acc
+                | true, value when not (isReservedLabelKey reservedKeys propName) ->
+                    Map.add (sanitizeLabelKey propName) (renderLabelValue value) acc
                 | _ -> acc)
             base'
 
-    // ── Structured metadata (per-line, not part of stream grouping) ───────────
-
-    /// Builds the per-event structured-metadata set: TraceId / SpanId when their
-    /// mode is StructuredMetadata, plus any PropertiesAsStructuredMetadata the event
-    /// carries. Returns an empty map when nothing applies — the serializer then omits
-    /// the per-entry metadata object entirely, keeping default output byte-identical
-    /// and compatible with pre-3.0 Loki.
-    ///
-    /// Keys follow the label rules (TraceId / SpanId verbatim; property names via
-    /// sanitizeLabelKey); values via renderLabelValue. Last-write-wins on duplicates.
-    let buildStructuredMetadata
-        (traceIdMode: LokiFieldDestination)
-        (spanIdMode: LokiFieldDestination)
-        (propertiesAsStructuredMetadata: string[])
-        (event: LogEvent)
-        : Map<string, string> =
-
-        let withTraceId (acc: Map<string, string>) =
-            if traceIdMode = LokiFieldDestination.StructuredMetadata && event.TraceId.HasValue then
-                Map.add "TraceId" (event.TraceId.Value.ToHexString()) acc
-            else
-                acc
-
-        let withSpanId (acc: Map<string, string>) =
-            if spanIdMode = LokiFieldDestination.StructuredMetadata && event.SpanId.HasValue then
-                Map.add "SpanId" (event.SpanId.Value.ToHexString()) acc
-            else
-                acc
-
-        let withProperties (acc: Map<string, string>) =
-            propertiesAsStructuredMetadata
-            |> Array.fold
-                (fun acc propName ->
-                    match event.Properties.TryGetValue(propName) with
-                    | true, value -> Map.add (sanitizeLabelKey propName) (renderLabelValue value) acc
-                    | _ -> acc)
-                acc
-
-        Map.empty |> withTraceId |> withSpanId |> withProperties
+    // Structured metadata (per-line, not part of stream grouping) is now written directly
+    // to the JSON writer by the sink's writeMetadata — see LokiSink.fs. No intermediate Map.
 
     // ── Test shim ─────────────────────────────────────────────────────────────
     // toUnixNanoseconds needs a direct precision test but is inline (can't be
