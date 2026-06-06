@@ -142,7 +142,21 @@ To run a single suite directly:
 dotnet run -c Release --project benchmarks/Serilog.Sinks.Grafana.Loki.Benchmarks.V9
 ```
 
-Reports land in each project's `bin/Release/net8.0/BenchmarkDotNet.Artifacts/results/`.
+Reports land in each project's `bin/Release/net8.0/BenchmarkDotNet.Artifacts/results/`
+(GitHub markdown + brief JSON; the JSON feeds `compare-results.fsx`).
+
+### In CI
+
+`.github/workflows/benchmark.yml` compares **this source against the latest published
+NuGet package** (resolved at run time; falls back to the pinned baseline if the latest
+has a different API major):
+
+- **On PRs** touching `src/`, `benchmarks/` or `Directory.Packages.props`: runs the
+  end-to-end sink group for both sides and posts a delta table to the run summary and
+  as a sticky PR comment. `Allocated` is exact even on shared runners — that column is
+  the regression signal; `Mean` is indicative only.
+- **Manually** (workflow dispatch): same comparison with a custom `--filter`, plus the
+  YetAnother yardstick.
 
 ### Against a real Loki (docker-compose)
 

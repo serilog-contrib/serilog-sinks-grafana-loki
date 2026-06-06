@@ -1,0 +1,19 @@
+name: "Dependency review"
+
+# Flags known-vulnerable or malicious dependency changes introduced by a PR.
+# Free for public repositories.
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  dependency-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/dependency-review-action@v4

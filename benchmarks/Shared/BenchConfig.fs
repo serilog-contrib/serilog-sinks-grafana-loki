@@ -18,12 +18,14 @@ open BenchmarkDotNet.Columns
 open BenchmarkDotNet.Configs
 open BenchmarkDotNet.Diagnosers
 open BenchmarkDotNet.Exporters
+open BenchmarkDotNet.Exporters.Json
 open BenchmarkDotNet.Jobs
 open BenchmarkDotNet.Loggers
 
 /// Common pieces: a readable console table, GitHub-flavoured markdown export
-/// (so the two projects' results can be diffed), and the allocation diagnoser
-/// (whose numbers are exact regardless of the short timing job).
+/// (so the two projects' results can be diffed), a brief JSON export (machine-readable,
+/// consumed by the CI comparison step), and the allocation diagnoser (whose numbers
+/// are exact regardless of the short timing job).
 ///
 /// The artifacts path is pinned to this assembly's output directory. Both benchmark
 /// projects use the same `Benchmarks` namespace, so their report files share names;
@@ -35,6 +37,7 @@ let private applyCommon (config: ManualConfig) =
         .AddColumnProvider(DefaultColumnProviders.Instance)
         .AddLogger(ConsoleLogger.Default)
         .AddExporter(MarkdownExporter.GitHub)
+        .AddExporter(JsonExporter.Brief)
         .AddDiagnoser(MemoryDiagnoser.Default)
     |> ignore
 

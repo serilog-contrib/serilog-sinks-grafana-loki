@@ -14,6 +14,11 @@
              leaves FSharp.Core.dll out of the output and the F# exe fails to start. Reference
              it explicitly (the version comes from central package management). -->
         <DisableImplicitFSharpCoreReference>true</DisableImplicitFSharpCoreReference>
+        <!-- The published-package version this baseline compiles against. CI overrides it
+             (-p:BaselineVersion=…) with the latest version on NuGet of the same major;
+             a different major means a different public API and needs this project's
+             Benchmarks.fs updated to match before bumping the default. -->
+        <BaselineVersion Condition="'$(BaselineVersion)' == ''">8.3.2</BaselineVersion>
     </PropertyGroup>
 
     <ItemGroup>
@@ -27,9 +32,10 @@
     <ItemGroup>
         <PackageReference Include="BenchmarkDotNet"/>
         <PackageReference Include="FSharp.Core"/>
-        <!-- V8 baseline: the last published release from NuGet. VersionOverride bypasses
-             central package management (there is no central entry for the product itself). -->
-        <PackageReference Include="Serilog.Sinks.Grafana.Loki" VersionOverride="8.3.2"/>
+        <!-- V8 baseline: a published release from NuGet (see BaselineVersion above).
+             VersionOverride bypasses central package management (there is no central
+             entry for the product itself). -->
+        <PackageReference Include="Serilog.Sinks.Grafana.Loki" VersionOverride="$(BaselineVersion)"/>
     </ItemGroup>
 
 </Project>
