@@ -21,7 +21,7 @@ Glory to Ukraine! 🇺🇦
 
 ## Table of contents
 
-- [What is this sink and Loki?](#what-is-this)
+- [What is this sink and Loki?](#what-is-this-sink-and-loki)
 - [What's new in V9](#whats-new-in-v9)
 - [Requirements](#requirements)
 - [Features](#features)
@@ -29,16 +29,16 @@ Glory to Ukraine! 🇺🇦
 - [Configuration reference](#configuration-reference)
 - [Labels](#labels)
 - [Authentication and multi-tenancy](#authentication-and-multi-tenancy)
-- [Custom HttpClient](#custom-http-client)
-- [Trace and span context](#trace-and-span-enrichment)
+- [Custom HttpClient](#custom-httpclient)
+- [Trace and span context](#trace-and-span-context)
 - [Structured metadata](#structured-metadata)
-- [JSON formatting and custom formatters](#json-formatting)
+- [JSON formatting and custom formatters](#json-formatting-and-custom-formatters)
 - [Batching and delivery](#batching-and-delivery)
 - [Migrating from V8](#migrating-from-v8)
 - [Samples](#samples)
 - [Inspiration and Credits](#inspiration-and-credits)
 
-## <a id="what-is-this"></a>What is this sink and Loki?
+## What is this sink and Loki?
 
 The Serilog Grafana Loki sink project is a sink (basically a writer) for the Serilog logging framework. Structured log
 events are written to sinks and each sink is responsible for writing it to its own backend, database, store etc. This
@@ -47,7 +47,7 @@ It allows you to use Grafana for visualizing your logs.
 
 You can find more information about what Loki is over on [Grafana's website here](https://grafana.com/loki).
 
-## <a id="whats-new-in-v9"></a>What's new in V9
+## What's new in V9
 
 V9 is a ground-up rewrite of the sink in **F#**, keeping a public API that remains idiomatic to call from **C#**. The
 rewrite fixes a class of long-standing structural bugs and modernizes the delivery pipeline:
@@ -66,13 +66,13 @@ rewrite fixes a class of long-standing structural bugs and modernizes the delive
 
 See [Migrating from V8](#migrating-from-v8) for the full list of breaking changes.
 
-## <a id="requirements"></a>Requirements
+## Requirements
 
 - **.NET:** `net8.0`, `net9.0`, or `net10.0` (earlier target frameworks are EOL and no longer supported).
 - **Serilog:** `4.3.1` or later.
 - **Transitive dependency:** `FSharp.Core` is pulled in automatically. No other sink packages are required.
 
-## <a id="features"></a>Features
+## Features
 
 - Batches and ships structured log events to Loki over its HTTP push API
 - Serilog 4.x native batching: bounded in-memory queue, retry with exponential backoff, fully async emission
@@ -88,7 +88,7 @@ See [Migrating from V8](#migrating-from-v8) for the full list of breaking change
 - First-class `Serilog.Settings.Configuration` (appsettings.json) support
 - No dependency on any other Serilog sink
 
-## <a id="quickstart"></a>Quickstart
+## Quickstart
 
 The `Serilog.Sinks.Grafana.Loki`
 NuGet [package can be found here](https://www.nuget.org/packages/Serilog.Sinks.Grafana.Loki). Install it via one of the
@@ -157,7 +157,7 @@ sink can be configured from `appsettings.json`:
 }
 ```
 
-## <a id="configuration-reference"></a>Configuration reference
+## Configuration reference
 
 All options are passed as named arguments to `WriteTo.GrafanaLoki(...)`. Only `uri` is required.
 
@@ -206,7 +206,7 @@ Log.Logger = new LoggerConfiguration()
 Configuration details for `appsettings.json` are also documented
 [in the wiki](https://github.com/serilog-contrib/serilog-sinks-grafana-loki/wiki/Application-settings).
 
-## <a id="labels"></a>Labels
+## Labels
 
 Each log event is mapped to a Loki **stream** identified by its label set. Events that resolve to the same label set are
 grouped into one stream and ordered by timestamp.
@@ -228,7 +228,7 @@ Other rules:
 - **Level vocabulary:** Serilog levels map to Grafana's level names — `Verbose → trace`, `Debug → debug`,
   `Information → info`, `Warning → warning`, `Error → error`, `Fatal → fatal` (previously `critical`).
 
-## <a id="authentication-and-multi-tenancy"></a>Authentication and multi-tenancy
+## Authentication and multi-tenancy
 
 **Basic authentication** is configured with a `credentials` object:
 
@@ -255,7 +255,7 @@ batches Loki would reject.
 **Bearer tokens / OAuth2** are not a first-class option — add them through the injected client, either by setting a
 default `Authorization` header on an `HttpClient` or via a `DelegatingHandler` (see below).
 
-## <a id="custom-http-client"></a>Custom HttpClient
+## Custom HttpClient
 
 V9 accepts a standard `HttpClient` or `HttpMessageHandler` directly. Inject your own to add gzip compression, retries,
 mTLS, bearer auth, or any other cross-cutting behaviour:
@@ -307,7 +307,7 @@ Log.Logger = new LoggerConfiguration()
     .CreateLogger();
 ```
 
-## <a id="trace-and-span-enrichment"></a>Trace and span context
+## Trace and span context
 
 `traceIdMode` and `spanIdMode` control where the event's `TraceId` / `SpanId` (populated by Serilog 4.x from the ambient
 `Activity`) are written. Each takes a `LokiFieldDestination`:
@@ -330,7 +330,7 @@ From `appsettings.json` the mode binds from its name: `"traceIdMode": "Structure
 Trace context is typically populated for you by `Serilog.AspNetCore` / `Serilog.Extensions.Logging`; outside those, an
 active `Activity` must be present for the IDs to be emitted.
 
-## <a id="structured-metadata"></a>Structured metadata
+## Structured metadata
 
 [Structured metadata](https://grafana.com/docs/loki/latest/get-started/labels/structured-metadata/) attaches per-line
 key/value pairs to a log entry **without indexing them as labels**. Unlike `propertiesAsLabels` it does not create new
@@ -369,7 +369,7 @@ For the full picture — the three-tier model (labels vs structured metadata vs 
 see [Structured metadata](https://github.com/serilog-contrib/serilog-sinks-grafana-loki/wiki/Structured-metadata) in the
 wiki.
 
-## <a id="json-formatting"></a>JSON formatting and custom formatters
+## JSON formatting and custom formatters
 
 By default the sink uses `LokiJsonTextFormatter`, which renders each log entry's body as a JSON object. This makes logs
 easy to filter in Loki — see Grafana's write-up on
@@ -439,7 +439,7 @@ public class CompactExceptionFormatter : ILokiExceptionFormatter
     exceptionFormatter: new CompactExceptionFormatter())
 ```
 
-## <a id="batching-and-delivery"></a>Batching and delivery
+## Batching and delivery
 
 Delivery is handled by Serilog 4.x's native batching infrastructure:
 
@@ -457,7 +457,7 @@ batches:
 Serilog.Debugging.SelfLog.Enable(Console.Error);
 ```
 
-## <a id="migrating-from-v8"></a>Migrating from V8
+## Migrating from V8
 
 V9 is a major release with breaking changes. The highlights:
 
@@ -481,17 +481,19 @@ V9 is a major release with breaking changes. The highlights:
 The full, maintained list of breaking changes lives in the
 [wiki](https://github.com/serilog-contrib/serilog-sinks-grafana-loki/wiki/Breaking-changes).
 
-## <a id="samples"></a>Samples
+## Samples
 
-Runnable examples live in the [`samples`](samples) folder:
+Runnable examples live in the
+[`samples`](https://github.com/serilog-contrib/serilog-sinks-grafana-loki/tree/master/samples) folder:
 
 - **`Serilog.Sinks.Grafana.Loki.Sample`** — a minimal console app.
 - **`Serilog.Sinks.Grafana.Loki.SampleWebApp`** — an ASP.NET Core app configured from `appsettings.json`.
 
-## <a id="inspiration-and-credits"></a>Inspiration and Credits
+## Inspiration and Credits
 
 - [Serilog.Sinks.Loki](https://github.com/JosephWoodward/Serilog-Sinks-Loki) — the original Serilog Loki sink, which
   this project was born from and inspired by.
 - [Serilog.Sinks.Loki.YetAnother](https://github.com/ramonesz297/yet-another-serilog-sinks-loki) — an
   allocation-conscious Loki sink whose performance findings inspired parts of the V9 optimization work; it also serves
-  as the external yardstick in our [benchmarks](benchmarks).
+  as the external yardstick in our
+  [benchmarks](https://github.com/serilog-contrib/serilog-sinks-grafana-loki/tree/master/benchmarks).
