@@ -16,7 +16,18 @@
         <PackageProjectUrl>https://github.com/serilog-contrib/serilog-sinks-grafana-loki</PackageProjectUrl>
         <PackageIcon>serilog-sink-nuget.png</PackageIcon>
         <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PackageReleaseNotes>For release notes, please see the change log on GitHub.</PackageReleaseNotes>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
+
+        <!-- Symbols & SourceLink: embed the PDB (with its SourceLink map) in the assembly
+             so symbols ship with the package — no symbol server needed, line numbers in
+             consumer stack traces, step-into fetches the exact source from GitHub.
+             Build-generated files are embedded too, the repository URL is published into
+             the nuspec, and CI builds are deterministic (paths normalized to /_/). -->
+        <DebugType>embedded</DebugType>
+        <EmbedUntrackedSources>true</EmbedUntrackedSources>
+        <PublishRepositoryUrl>true</PublishRepositoryUrl>
+        <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
     </PropertyGroup>
 
     <ItemGroup>
