@@ -1,10 +1,10 @@
 #!/bin/sh
 . "$(dirname "$0")/_/husky.sh"
 
-# Collect staged F# / F# script files under src/, tests/, and build.fsx at root.
+# Collect staged F# / F# script files under src/, tests/, benchmarks/, and build.fsx at root.
 STAGED=$(git diff --cached --name-only --diff-filter=ACMR \
     | grep -E '\.(fs|fsx)$' \
-    | grep -E '^(src/|tests/|build\.fsx$)' \
+    | grep -E '^(src/|tests/|benchmarks/|build\.fsx$)' \
     || true)
 
 if [ -z "$STAGED" ]; then

@@ -1,6 +1,6 @@
 #!/usr/bin/env -S dotnet fsi
 // Usage:  dotnet fsi build.fsx [-- --target <name>]
-// Targets: Clean | Restore | Build | Test | IntegrationTest | Pack | Push | Default (default)
+// Targets: Clean | Restore | Build | Test | IntegrationTest | Pack | Benchmark | Push | Default (default)
 // Example: dotnet fsi build.fsx -- --target Pack
 
 #r "nuget: Fake.Core.Target,   6.1.4"
@@ -33,6 +33,13 @@ let unitTests =
 
 let intTests =
     "tests/Serilog.Sinks.Grafana.Loki.IntegrationTests/Serilog.Sinks.Grafana.Loki.IntegrationTests.fsproj"
+
+// Benchmark executables live outside the solution (each pins a different Serilog closure),
+// so they are listed explicitly and driven with `dotnet run` rather than via the solution.
+let benchmarks =
+    [ "benchmarks/Serilog.Sinks.Grafana.Loki.Benchmarks.V9/Serilog.Sinks.Grafana.Loki.Benchmarks.V9.fsproj"
+      "benchmarks/Serilog.Sinks.Grafana.Loki.Benchmarks.V8/Serilog.Sinks.Grafana.Loki.Benchmarks.V8.fsproj"
+      "benchmarks/Serilog.Sinks.Grafana.Loki.Benchmarks.YetAnother/Serilog.Sinks.Grafana.Loki.Benchmarks.YetAnother.fsproj" ]
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -108,6 +115,33 @@ Target.create "Push" (fun _ ->
 
         if not result.OK then
             failwithf $"nuget push failed: %A{result.Errors}"))
+
+// Run the BenchmarkDotNet suites (V9 + V8 + YetAnother). Standalone — deliberately NOT in
+// the Default chain (slow, and pulls the V8 NuGet closure). Cross-platform via dotnet fsi:
+//   dotnet fsi build.fsx -- --target Benchmark
+// Optional environment variables:
+//   BENCH_FILTER       a BenchmarkDotNet --filter glob, e.g. '*Sink*'
+//   LOKI_BENCH_TARGET  push to a real Loki (docker compose up -d loki) instead of the fake
+Target.create "Benchmark" (fun _ ->
+    // Husky's MSBuild auto-install hook is pure overhead for a benchmark run.
+    Environment.setEnvironVar "HUSKY" "0"
+
+    let filterArgs =
+        match Environment.environVarOrNone "BENCH_FILTER" with
+        | Some f when f <> "" -> $" -- --filter {f}"
+        | _ -> ""
+
+    for proj in benchmarks do
+        Trace.traceImportant $"=== Running {proj} ==="
+        let result = DotNet.exec id "run" $"-c Release --project \"{proj}\"{filterArgs}"
+
+        if not result.OK then
+            failwithf $"benchmark run failed for {proj}: %A{result.Errors}"
+
+    Trace.traceImportant "=== Reports ==="
+
+    !!"benchmarks/**/BenchmarkDotNet.Artifacts/results/*-report-github.md"
+    |> Seq.iter (Trace.tracefn "%s"))
 
 Target.create "Default" ignore
 
