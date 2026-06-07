@@ -50,7 +50,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
-      # Full history + tags for MinVer (the V9 project builds ../src).
+      # Full history + tags for MinVer (the Current project builds ../src).
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
@@ -73,7 +73,7 @@ jobs:
       - name: Resolve baseline version (latest on NuGet)
         id: baseline
         run: |
-          # Keep in sync with the BaselineVersion default in the V8 benchmark fsproj.
+          # Keep in sync with the BaselineVersion default in the NuGet benchmark fsproj.
           # The latest NuGet version is used only when it shares that pin's API major:
           # a different major means a different public API, and the baseline project's
           # Benchmarks.fs must be migrated before the pin can move.
@@ -93,14 +93,14 @@ jobs:
       - name: Run baseline (NuGet ${{ steps.baseline.outputs.version }})
         run: >
           dotnet run -c Release
-          --project benchmarks/Serilog.Sinks.Grafana.Loki.Benchmarks.V8
+          --project benchmarks/Serilog.Sinks.Grafana.Loki.Benchmarks.NuGet
           -p:BaselineVersion=${{ steps.baseline.outputs.version }}
           -- --filter "$BENCH_FILTER"
 
       - name: Run source
         run: >
           dotnet run -c Release
-          --project benchmarks/Serilog.Sinks.Grafana.Loki.Benchmarks.V9
+          --project benchmarks/Serilog.Sinks.Grafana.Loki.Benchmarks.Current
           -- --filter "$BENCH_FILTER"
 
       - name: Run YetAnother yardstick
@@ -115,8 +115,8 @@ jobs:
           BASELINE_VERSION: ${{ steps.baseline.outputs.version }}
           BASELINE_NOTE: ${{ steps.baseline.outputs.note }}
         run: |
-          v8="benchmarks/Serilog.Sinks.Grafana.Loki.Benchmarks.V8/bin/Release/net8.0/BenchmarkDotNet.Artifacts"
-          v9="benchmarks/Serilog.Sinks.Grafana.Loki.Benchmarks.V9/bin/Release/net8.0/BenchmarkDotNet.Artifacts"
+          nuget="benchmarks/Serilog.Sinks.Grafana.Loki.Benchmarks.NuGet/bin/Release/net8.0/BenchmarkDotNet.Artifacts"
+          current="benchmarks/Serilog.Sinks.Grafana.Loki.Benchmarks.Current/bin/Release/net8.0/BenchmarkDotNet.Artifacts"
           ya="benchmarks/Serilog.Sinks.Grafana.Loki.Benchmarks.YetAnother/bin/Release/net8.0/BenchmarkDotNet.Artifacts"
 
           {
@@ -127,12 +127,12 @@ jobs:
             echo '> `Allocated` is exact and deterministic — treat it as the regression signal.'
             echo '> `Mean` on shared CI runners is noisy; deltas within ±10% are not meaningful.'
             echo ''
-            dotnet fsi benchmarks/compare-results.fsx "$v8" "$v9" "v$BASELINE_VERSION" 'source'
+            dotnet fsi benchmarks/compare-results.fsx "$nuget" "$current" "v$BASELINE_VERSION" 'source'
             if [ -d "$ya" ]; then
               echo ''
               echo '### vs Serilog.Sinks.Loki.YetAnother (yardstick)'
               echo ''
-              dotnet fsi benchmarks/compare-results.fsx "$ya" "$v9" 'YetAnother' 'source'
+              dotnet fsi benchmarks/compare-results.fsx "$ya" "$current" 'YetAnother' 'source'
             fi
           } > benchmark-report.md
 

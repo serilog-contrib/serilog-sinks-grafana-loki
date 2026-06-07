@@ -21,7 +21,7 @@ open Serilog.Events
 open Serilog.Sinks.Grafana.Loki
 open Benchmarks.Shared
 
-/// In-process transport for the V9 sink: drains the request body — which forces the
+/// In-process transport for the current source sink: drains the request body — which forces the
 /// streaming serialization in LokiPushContent to run — then returns 204, exactly like
 /// Loki's success response. No sockets, fully deterministic. Injected via the sink's
 /// `httpMessageHandler` option, so the sink owns the HttpClient and runs its real path.
@@ -37,8 +37,8 @@ type private Fake204Handler() =
         }
 
 // ── Group 1: per-event body formatter (public ITextFormatter surface) ─────────────
-// NOTE: the V9 sink does NOT use this public Format path in production — it calls the
-// internal byte-oriented FormatToBuffer. This group therefore measures V9's *public*
+// NOTE: the sink does NOT use this public Format path in production — it calls the
+// internal byte-oriented FormatToBuffer. This group therefore measures the *public*
 // formatter (which round-trips through a string to honour the TextWriter contract),
 // a deliberately conservative view. The real production path is in Group 2.
 

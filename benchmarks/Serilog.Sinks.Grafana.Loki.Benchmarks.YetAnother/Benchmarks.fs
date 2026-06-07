@@ -24,7 +24,7 @@ open Benchmarks.Shared
 /// In-process transport for Serilog.Sinks.Loki.YetAnother: drains the request body
 /// (forcing its streaming serialization to run) and returns 204 like Loki on success.
 /// Injected by wrapping it in the HttpClient the sink accepts — the same deterministic,
-/// socketless transport used for the V8 and V9 benchmarks.
+/// socketless transport used for the NuGet and Current benchmarks.
 type private Fake204Handler() =
     inherit HttpMessageHandler()
 
@@ -39,7 +39,7 @@ type private Fake204Handler() =
 // ── End-to-end sink push (real production serialization + batching) ────────────────
 // YetAnother exposes no public per-event formatter (its message writer is internal),
 // so only the end-to-end group has a fair equivalent here. Same workload, same fake
-// transport, same batching settings as the V8/V9 SinkBenchmarks.
+// transport, same batching settings as the NuGet/Current SinkBenchmarks.
 
 [<Config(typeof<Config.SinkConfig>)>]
 type SinkBenchmarks() =

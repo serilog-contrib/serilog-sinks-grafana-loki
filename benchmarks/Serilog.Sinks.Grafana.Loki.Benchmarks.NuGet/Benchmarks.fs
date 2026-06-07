@@ -21,7 +21,7 @@ open Serilog.Events
 open Serilog.Sinks.Grafana.Loki
 open Benchmarks.Shared
 
-/// In-process transport for the baseline sink (a published v9.x package): drains the
+/// In-process transport for the baseline sink (the published NuGet package): drains the
 /// request body — which forces the streaming serialization in LokiPushContent to run —
 /// then returns 204, exactly like Loki's success response. No sockets, fully
 /// deterministic. Injected via the sink's `httpMessageHandler` option, so the sink owns
@@ -38,8 +38,8 @@ type private Fake204Handler() =
         }
 
 // ── Group 1: per-event body formatter (public ITextFormatter surface) ─────────────
-// Measures the baseline package's public formatter. Like the source project, this is
-// a conservative view: the v9 sink uses the internal byte-oriented path in production,
+// Measures the baseline package's public formatter. Like the Current project, this is
+// a conservative view: the sink uses the internal byte-oriented path in production,
 // which is measured end to end in Group 2.
 
 [<Config(typeof<Config.MicroConfig>)>]

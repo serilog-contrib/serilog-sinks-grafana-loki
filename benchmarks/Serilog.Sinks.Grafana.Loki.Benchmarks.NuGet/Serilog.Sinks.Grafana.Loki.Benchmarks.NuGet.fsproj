@@ -3,11 +3,11 @@
     <PropertyGroup>
         <OutputType>Exe</OutputType>
         <TargetFramework>net8.0</TargetFramework>
-        <AssemblyName>Serilog.Sinks.Grafana.Loki.Benchmarks.V8</AssemblyName>
+        <AssemblyName>Serilog.Sinks.Grafana.Loki.Benchmarks.NuGet</AssemblyName>
         <RootNamespace>Benchmarks</RootNamespace>
         <!-- BenchmarkDotNet refuses to run a non-optimized build. -->
         <Optimize>true</Optimize>
-        <!-- Unlike the V9 project, this one has no F# project reference to drag FSharp.Core
+        <!-- Unlike the Current project, this one has no F# project reference to drag FSharp.Core
              in as a copy-local package, so the SDK's implicit (non-copy-local) reference
              leaves FSharp.Core.dll out of the output and the F# exe fails to start. Reference
              it explicitly (the version comes from central package management). -->

@@ -9,7 +9,7 @@
         <Optimize>true</Optimize>
         <MSBuildWarningsAsMessages>MSB3277</MSBuildWarningsAsMessages>
         <!-- No F# project reference to drag FSharp.Core in as a copy-local package, so
-             reference it explicitly (see the V8 project for the full rationale). -->
+             reference it explicitly (see the NuGet project for the full rationale). -->
         <DisableImplicitFSharpCoreReference>true</DisableImplicitFSharpCoreReference>
     </PropertyGroup>
 

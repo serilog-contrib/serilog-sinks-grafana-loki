@@ -38,8 +38,8 @@ let intTests =
 // so they are listed explicitly and driven with `dotnet run` rather than via the solution.
 let benchmarks =
     [
-        "benchmarks/Serilog.Sinks.Grafana.Loki.Benchmarks.V9/Serilog.Sinks.Grafana.Loki.Benchmarks.V9.fsproj"
-        "benchmarks/Serilog.Sinks.Grafana.Loki.Benchmarks.V8/Serilog.Sinks.Grafana.Loki.Benchmarks.V8.fsproj"
+        "benchmarks/Serilog.Sinks.Grafana.Loki.Benchmarks.Current/Serilog.Sinks.Grafana.Loki.Benchmarks.Current.fsproj"
+        "benchmarks/Serilog.Sinks.Grafana.Loki.Benchmarks.NuGet/Serilog.Sinks.Grafana.Loki.Benchmarks.NuGet.fsproj"
         "benchmarks/Serilog.Sinks.Grafana.Loki.Benchmarks.YetAnother/Serilog.Sinks.Grafana.Loki.Benchmarks.YetAnother.fsproj"
     ]
 
@@ -123,8 +123,8 @@ Target.create "Push" (fun _ ->
         if not result.OK then
             failwithf $"nuget push failed for %s{pkg} with exit code %d{result.ExitCode}"))
 
-// Run the BenchmarkDotNet suites (V9 + V8 + YetAnother). Standalone — deliberately NOT in
-// the Default chain (slow, and pulls the V8 NuGet closure). Cross-platform via dotnet fsi:
+// Run the BenchmarkDotNet suites (Current + NuGet + YetAnother). Standalone — deliberately
+// NOT in the Default chain (slow, and pulls the NuGet baseline closure). Cross-platform via dotnet fsi:
 //   dotnet fsi build.fsx -- --target Benchmark
 // Optional environment variables:
 //   BENCH_FILTER       a BenchmarkDotNet --filter glob, e.g. '*Sink*'

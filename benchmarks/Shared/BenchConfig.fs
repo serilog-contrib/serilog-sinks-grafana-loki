@@ -27,9 +27,10 @@ open BenchmarkDotNet.Loggers
 /// consumed by the CI comparison step), and the allocation diagnoser (whose numbers
 /// are exact regardless of the short timing job).
 ///
-/// The artifacts path is pinned to this assembly's output directory. Both benchmark
+/// The artifacts path is pinned to this assembly's output directory. The benchmark
 /// projects use the same `Benchmarks` namespace, so their report files share names;
-/// keeping each project's output under its own bin folder stops V8 overwriting V9.
+/// keeping each project's output under its own bin folder stops one project
+/// overwriting another.
 let private applyCommon (config: ManualConfig) =
     config.ArtifactsPath <- Path.Combine(AppContext.BaseDirectory, "BenchmarkDotNet.Artifacts")
 

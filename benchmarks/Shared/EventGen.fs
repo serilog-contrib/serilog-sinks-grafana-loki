@@ -8,10 +8,11 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See LICENSE file in the project root for full license information.
 
-/// Deterministic LogEvent generation shared by the V8 and V9 benchmark projects.
+/// Deterministic LogEvent generation shared by all benchmark projects.
 /// Uses only the Serilog.Events / Serilog.Parsing surface that is stable across
-/// Serilog 2.x (V8's closure) and 4.x (V9's closure), so the same source compiles
-/// against both. Both versions therefore process byte-for-byte identical inputs.
+/// Serilog major versions (originally written against the 2.x ∩ 4.x intersection),
+/// so the same source compiles against every referenced closure and all sides
+/// process byte-for-byte identical inputs.
 module Benchmarks.Shared.EventGen
 
 open System
@@ -24,8 +25,8 @@ let inline private scalar (key: string) (value: obj) =
     LogEventProperty(key, ScalarValue(value))
 
 /// Builds n immutable Information events with a realistic mix of scalar property
-/// types (int, string, float, bool, Guid) — exercising every branch of V9's
-/// value writer and V8's JsonValueFormatter.
+/// types (int, string, float, bool, Guid) — exercising every branch of each
+/// sink's scalar value writer.
 let buildSimple (n: int) : LogEvent[] =
     let template =
         parser.Parse("User {UserId} performed {Action} on resource {ResourceId}")
@@ -58,7 +59,7 @@ let private capture (message: string) (inner: exn) : exn =
         e
 
 /// Builds n Error events each carrying a two-level nested exception with real
-/// stack traces — exercising V9's LokiExceptionFormatter vs V8's SerializeException.
+/// stack traces — exercising each sink's exception serialization path.
 let buildWithException (n: int) : LogEvent[] =
     let template = parser.Parse("Operation {OperationId} on {Service} failed")
 

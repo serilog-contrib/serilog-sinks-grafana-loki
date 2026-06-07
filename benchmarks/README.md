@@ -1,20 +1,20 @@
-# Benchmarks — V8 vs V9 vs YetAnother
+# Benchmarks — NuGet baseline vs current source vs YetAnother
 
 BenchmarkDotNet suites comparing three Grafana Loki sinks:
 
 | Project | Package | Notes |
 |---|---|---|
-| `…Benchmarks.V8` | `Serilog.Sinks.Grafana.Loki` (NuGet, `BaselineVersion`, default **9.0.0**) | the published **baseline**; CI moves it to the latest same-major release on NuGet |
-| `…Benchmarks.V9` | this repo (`../src`, `ProjectReference`) | the current **source**; streams JSON **bytes** through a pooled `Utf8JsonWriter` |
+| `…Benchmarks.NuGet` | `Serilog.Sinks.Grafana.Loki` (NuGet, `BaselineVersion`, default **9.0.0**) | the published **baseline**; CI moves it to the latest same-major release on NuGet |
+| `…Benchmarks.Current` | this repo (`../src`, `ProjectReference`) | the current **source**; streams JSON **bytes** through a pooled `Utf8JsonWriter` |
 | `…Benchmarks.YetAnother` | `Serilog.Sinks.Loki.YetAnother` **4.0.5** (NuGet) | third-party yardstick; Serilog 4.x, also a streaming "low-allocation" design |
 
-> Until v9.0.0 shipped, the baseline project compiled against the v8 API (hence its name) and
-> pinned `8.3.2` — the result tables below are that release-time v8 → v9 comparison, kept as
-> the historical record.
+> Until v9.0.0 shipped, the baseline project compiled against the v8 API and pinned `8.3.2` —
+> the result tables below are that release-time v8 → v9 comparison, kept as the historical
+> record.
 
 ## Why three projects
 
-V8 and V9 ship the **same** assembly name (`Serilog.Sinks.Grafana.Loki.dll`) and cannot
+The NuGet and Current projects ship the **same** assembly name (`Serilog.Sinks.Grafana.Loki.dll`) and cannot
 coexist in one process. Each contender therefore lives in its own executable;
 BenchmarkDotNet runs each in isolation and the reports are merged below. The shared
 workload, config and entry point live in `Shared/` and are linked into all three
@@ -25,7 +25,7 @@ projects, so every side measures byte-for-byte identical inputs.
 - **Public API only, all sides.** Nothing reaches into internals. Each sink is driven
   through its public configuration extension (`WriteTo.GrafanaLoki` / `WriteTo.Loki`).
 - **Identical in-process transport.** Each sink exposes an HTTP injection point
-  (V9 `httpMessageHandler`, V8 `ILokiHttpClient`, YetAnother `httpClient`). A fake drains
+  (NuGet/Current `httpMessageHandler`, YetAnother `httpClient`). A fake drains
   the request body — forcing the real serialization to run — and returns `204` like Loki
   on success. No sockets, no network variance. Set `LOKI_BENCH_TARGET` to hit a real Loki
   instead (see below).
@@ -42,16 +42,17 @@ projects, so every side measures byte-for-byte identical inputs.
 1. **`SinkBenchmarks`** — the full public pipeline (configure → write _N_ events → dispose
    → serialize + POST). The real production path, run for all three sinks.
    `EventCount` ∈ {1000, 10000}, `Payload` ∈ {Simple, Exception}.
-2. **`FormatterBenchmarks`** — per-event `LokiJsonTextFormatter.Format`, **V8 and V9 only**
-   (YetAnother has no public per-event formatter). V9's sink doesn't use this public path
-   in production (it writes bytes directly), so this group is a conservative view of V9.
+2. **`FormatterBenchmarks`** — per-event `LokiJsonTextFormatter.Format`, **NuGet and Current
+   only** (YetAnother has no public per-event formatter). The sink doesn't use this public
+   path in production (it writes bytes directly), so this group is a conservative view.
 
 ## Results
 
 > AMD Ryzen 9 3950X, .NET 8.0 host, BenchmarkDotNet 0.15.8, fake in-process transport.
 > Lower is better; **bold** marks the best in each row.
-> V8 and YetAnother are fixed NuGet packages, so their numbers are stable references; V9 is
-> the current source build. Regenerate the whole table with `dotnet fsi build.fsx -- --target Benchmark`.
+> V8 8.3.2 and YetAnother 4.0.5 are fixed NuGet packages, so their numbers are stable
+> references; the V9 column was the source build at the v9.0.0 release. (Re-running
+> `dotnet fsi build.fsx -- --target Benchmark` today compares the current baseline instead.)
 
 ### End-to-end sink — Allocated (MB/op)
 
@@ -143,7 +144,7 @@ Optional environment variables:
 To run a single suite directly:
 
 ```bash
-dotnet run -c Release --project benchmarks/Serilog.Sinks.Grafana.Loki.Benchmarks.V9
+dotnet run -c Release --project benchmarks/Serilog.Sinks.Grafana.Loki.Benchmarks.Current
 ```
 
 Reports land in each project's `bin/Release/net8.0/BenchmarkDotNet.Artifacts/results/`
