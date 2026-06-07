@@ -466,6 +466,7 @@ V9 is a major release with breaking changes. The highlights:
 | Target frameworks | `netstandard2.0`, `net5.0`–`net8.0` | `net8.0`, `net9.0`, `net10.0` |
 | Serilog | 2.x / 3.x | **4.3.1+** (native batching) |
 | HTTP client | `ILokiHttpClient` / `LokiGzipHttpClient` subclasses | Inject `httpClient` / `httpMessageHandler`; gzip via `DelegatingHandler` |
+| Batch size parameter | `batchPostingLimit` | renamed to `batchSizeLimit` |
 | Level label | always injected, collisions renamed | `handleLogLevelAsLabel` (default `true`); `Fatal` → `fatal` (was `critical`) |
 | Property → label | removed the property from the body | property is **kept** in the body |
 | Reserved-property renaming | `IReservedPropertyRenamingStrategy` | removed — pipeline is immutable; reserved body keys are prefixed with `_` |

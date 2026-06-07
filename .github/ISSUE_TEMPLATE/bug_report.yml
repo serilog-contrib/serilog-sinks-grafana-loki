@@ -15,7 +15,7 @@ body:
     id: net-version
     attributes:
       label: Which version of .NET are you using?
-      placeholder: net6.0
+      placeholder: net8.0
     validations:
       required: true
   - type: textarea
