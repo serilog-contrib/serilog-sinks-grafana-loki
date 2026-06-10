@@ -15,7 +15,7 @@
     <ItemGroup Label="Runtime">
         <!-- Required so C# projects that reference the F# library find FSharp.Core at runtime.
              FSharp.Core lives in the SDK only, not in any shared runtime framework. -->
-        <PackageVersion Include="FSharp.Core" Version="10.1.300"/>
+        <PackageVersion Include="FSharp.Core" Version="10.1.301"/>
     </ItemGroup>
 
     <ItemGroup Label="Analyzers">
