@@ -51,7 +51,7 @@ jobs:
     timeout-minutes: 90
     steps:
       # Full history + tags for MinVer (the Current project builds ../src).
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
