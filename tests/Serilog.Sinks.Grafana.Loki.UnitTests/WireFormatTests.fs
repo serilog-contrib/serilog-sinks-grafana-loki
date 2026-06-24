@@ -253,6 +253,19 @@ let ``body: contains Message and MessageTemplate`` () : Task =
     }
 
 [<Fact>]
+let ``body: quotes, markup and non-ASCII are not unicode-escaped`` () : Task =
+    task {
+        let handler, sink = makeSink id
+        use _ = sink
+        do! flush sink [ mkInfo [ "Note", box "a>b <c> & \"q\" Привет" ] ]
+        let raw = handler.LastBodyText
+        // Relaxed escaping emits '<' '>' '&' and non-ASCII verbatim; the default HTML-safe encoder
+        // would render them as \uXXXX, so these literal substrings could not appear in the payload.
+        test <@ raw.Contains("a>b <c> &") @>
+        test <@ raw.Contains("Привет") @>
+    }
+
+[<Fact>]
 let ``body: reserved property "Message" sanitized to "_Message"`` () : Task =
     task {
         let handler, sink = makeSink id

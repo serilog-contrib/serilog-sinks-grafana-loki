@@ -16,11 +16,21 @@ open System
 open System.Buffers
 open System.Buffers.Text
 open System.Collections.Generic
+open System.Text.Encodings.Web
 open System.Text.Json
 open Microsoft.FSharp.NativeInterop
 open Serilog.Events
 open Serilog.Formatting
 open Serilog.Sinks.Grafana.Loki.Infrastructure
+
+/// Relaxed JSON escaping for the bytes the sink emits. The default Utf8JsonWriter encoder is
+/// HTML-safe and renders every '"', '<', '>', '&', '\'' and all non-ASCII as \uXXXX, which makes
+/// the stored log line unreadable; the relaxed encoder escapes only what JSON mandates and emits
+/// non-ASCII verbatim. Output stays valid JSON (and valid UTF-8), so consumers are unaffected.
+[<AutoOpen>]
+module private JsonWriterDefaults =
+    let relaxedWriterOptions =
+        JsonWriterOptions(Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping)
 
 /// Reusable per-sink serialization scratch: the buffers and writers reused across every batch
 /// (cleared/reset between uses), bundled so the serializer takes one value instead of several
@@ -30,7 +40,10 @@ type internal SerializationBuffers() =
     let main = new PooledByteBufferWriter(4096)
     let body = new PooledByteBufferWriter(256)
     let message = new PooledByteBufferWriter(256)
-    let bodyWriter = new Utf8JsonWriter(body :> IBufferWriter<byte>)
+
+    let bodyWriter =
+        new Utf8JsonWriter(body :> IBufferWriter<byte>, relaxedWriterOptions)
+
     let messageWriter = new Utf8TextWriter(message)
 
     /// Envelope buffer holding the full push payload; read by LokiPushContent after serialize.
@@ -87,7 +100,8 @@ module internal Serialization =
             | :? LokiJsonTextFormatter as fmt when fmt.GetType() = typeof<LokiJsonTextFormatter> -> fmt
             | _ -> Unchecked.defaultof<LokiJsonTextFormatter>
 
-        use jsonWriter = new Utf8JsonWriter(buffers.Main :> IBufferWriter<byte>)
+        use jsonWriter =
+            new Utf8JsonWriter(buffers.Main :> IBufferWriter<byte>, relaxedWriterOptions)
 
         // Reused stack scratch for the per-event Unix-nanosecond timestamp. Hoisted out of
         // the event loop so the localloc happens once per batch, not once per event. An
