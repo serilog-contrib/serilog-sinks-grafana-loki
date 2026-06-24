@@ -30,7 +30,8 @@ type internal SerializationBuffers() =
     let main = new PooledByteBufferWriter(4096)
     let body = new PooledByteBufferWriter(256)
     let message = new PooledByteBufferWriter(256)
-    let bodyWriter = new Utf8JsonWriter(body :> IBufferWriter<byte>)
+
+    let bodyWriter = JsonWriterDefaults.createWriter body
     let messageWriter = new Utf8TextWriter(message)
 
     /// Envelope buffer holding the full push payload; read by LokiPushContent after serialize.
@@ -87,7 +88,7 @@ module internal Serialization =
             | :? LokiJsonTextFormatter as fmt when fmt.GetType() = typeof<LokiJsonTextFormatter> -> fmt
             | _ -> Unchecked.defaultof<LokiJsonTextFormatter>
 
-        use jsonWriter = new Utf8JsonWriter(buffers.Main :> IBufferWriter<byte>)
+        use jsonWriter = JsonWriterDefaults.createWriter buffers.Main
 
         // Reused stack scratch for the per-event Unix-nanosecond timestamp. Hoisted out of
         // the event loop so the localloc happens once per batch, not once per event. An

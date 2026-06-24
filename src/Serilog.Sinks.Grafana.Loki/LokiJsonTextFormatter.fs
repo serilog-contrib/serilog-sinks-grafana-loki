@@ -11,7 +11,6 @@
 namespace Serilog.Sinks.Grafana.Loki
 
 open System
-open System.Buffers
 open System.Text.Json
 open Serilog.Events
 open Serilog.Formatting
@@ -173,7 +172,7 @@ type LokiJsonTextFormatter(exceptionFormatter: ILokiExceptionFormatter, enrichTr
         use buffer = new PooledByteBufferWriter(256)
         // Throwaway writer + scratch for the message render. The internal sink path passes reused
         // instances instead; the public path stays allocation-light but fully thread-safe.
-        use jsonWriter = new Utf8JsonWriter(buffer :> IBufferWriter<byte>)
+        use jsonWriter = JsonWriterDefaults.createWriter buffer
         use messageBuffer = new PooledByteBufferWriter(128)
         use messageWriter = new Utf8TextWriter(messageBuffer)
         self.FormatToBuffer(logEvent, jsonWriter, messageWriter)
