@@ -257,15 +257,51 @@ let ``body: quotes, markup and non-ASCII are not unicode-escaped`` () : Task =
     task {
         let handler, sink = makeSink id
         use _ = sink
-        do! flush sink [ mkInfo [ "Note", box "a>b <c> & \"q\" Привет" ] ]
+        do! flush sink [ mkInfo [ "Note", box "a>b <c> & \"q\" café 日本語" ] ]
         use doc = handler.LastBodyJson
         let body = bodyStringOf (streamAt 0 doc) 0
         // Relaxed escaping: '<' '>' '&' and non-ASCII stay verbatim and quotes use the JSON-standard
         // \", never \uXXXX. The default HTML-safe encoder would render all of these as \uXXXX.
         test <@ body.Contains("a>b <c> &") @>
-        test <@ body.Contains("Привет") @>
+        test <@ body.Contains("café 日本語") @>
         test <@ body.Contains("\\\"q\\\"") @>
         test <@ not (body.Contains("\\u0022")) @>
+    }
+
+[<Fact>]
+let ``body: public Format path keeps quotes, markup and non-ASCII readable`` () =
+    // The sink fast path calls FormatToBuffer directly; this is the only coverage of the public
+    // ITextFormatter.Format entry point, whose Utf8JsonWriter is a separate construction site.
+    let formatter = LokiJsonTextFormatter() :> ITextFormatter
+    let event = mkInfo [ "Note", box "a>b <c> & \"q\" café 日本語" ]
+    use output = new System.IO.StringWriter()
+    formatter.Format(event, output)
+    let body = output.ToString()
+    use _ = JsonDocument.Parse(body) // output must stay valid JSON
+    test <@ body.Contains("a>b <c> &") @>
+    test <@ body.Contains("café 日本語") @>
+    test <@ body.Contains("\\\"q\\\"") @>
+    test <@ not (body.Contains("\\u")) @>
+
+[<Fact>]
+let ``labels: promoted label value keeps markup and non-ASCII verbatim`` () : Task =
+    task {
+        let handler, sink =
+            makeSink (fun o ->
+                { o with
+                    PropertiesAsLabels = [| "app" |]
+                })
+
+        use _ = sink
+        do! flush sink [ mkInfo [ "app", box "<svc> café 日本語" ] ]
+        use doc = handler.LastBodyJson
+        let raw = handler.LastBodyText
+        // The envelope writer escapes label keys/values too. The round-trip proves the label
+        // decodes back to the original; the raw scan proves it ships verbatim, not \uXXXX (a
+        // label-only regression would still decode correctly but leak escaped < or non-ASCII bytes).
+        test <@ labelOf "app" (streamAt 0 doc) = Some "<svc> café 日本語" @>
+        test <@ raw.Contains("<svc> café 日本語") @>
+        test <@ not (raw.Contains("\\u")) @>
     }
 
 [<Fact>]

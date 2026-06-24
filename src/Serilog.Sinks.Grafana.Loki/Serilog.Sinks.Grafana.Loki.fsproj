@@ -48,6 +48,7 @@
         <!-- Infrastructure (no Serilog dependency) -->
         <Compile Include="Infrastructure\PooledByteBufferWriter.fs"/>
         <Compile Include="Infrastructure\Utf8TextWriter.fs"/>
+        <Compile Include="Infrastructure\JsonWriterDefaults.fs"/>
 
         <!-- Public contract types -->
         <Compile Include="LokiLabel.fs"/>

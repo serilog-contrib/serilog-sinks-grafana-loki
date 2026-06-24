@@ -11,8 +11,6 @@
 namespace Serilog.Sinks.Grafana.Loki
 
 open System
-open System.Buffers
-open System.Text.Encodings.Web
 open System.Text.Json
 open Serilog.Events
 open Serilog.Formatting
@@ -30,12 +28,6 @@ type LokiJsonTextFormatter(exceptionFormatter: ILokiExceptionFormatter, enrichTr
     static let pException = JsonEncodedText.Encode "Exception"
     static let pTraceId = JsonEncodedText.Encode "TraceId"
     static let pSpanId = JsonEncodedText.Encode "SpanId"
-
-    // Relaxed escaping keeps the body readable: only JSON-mandatory escapes, non-ASCII verbatim.
-    // The default Utf8JsonWriter encoder is HTML-safe and would \uXXXX-escape every '"', '<', '>',
-    // '&', '\'' and all non-ASCII. Output stays valid JSON, so consumers are unaffected.
-    static let relaxedWriterOptions =
-        JsonWriterOptions(Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping)
 
     // Names that collide with top-level JSON keys; prefixed with '_' when seen as properties.
     static let reserved =
@@ -180,9 +172,7 @@ type LokiJsonTextFormatter(exceptionFormatter: ILokiExceptionFormatter, enrichTr
         use buffer = new PooledByteBufferWriter(256)
         // Throwaway writer + scratch for the message render. The internal sink path passes reused
         // instances instead; the public path stays allocation-light but fully thread-safe.
-        use jsonWriter =
-            new Utf8JsonWriter(buffer :> IBufferWriter<byte>, relaxedWriterOptions)
-
+        use jsonWriter = JsonWriterDefaults.createWriter buffer
         use messageBuffer = new PooledByteBufferWriter(128)
         use messageWriter = new Utf8TextWriter(messageBuffer)
         self.FormatToBuffer(logEvent, jsonWriter, messageWriter)
