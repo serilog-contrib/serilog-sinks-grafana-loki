@@ -258,11 +258,14 @@ let ``body: quotes, markup and non-ASCII are not unicode-escaped`` () : Task =
         let handler, sink = makeSink id
         use _ = sink
         do! flush sink [ mkInfo [ "Note", box "a>b <c> & \"q\" Привет" ] ]
-        let raw = handler.LastBodyText
-        // Relaxed escaping emits '<' '>' '&' and non-ASCII verbatim; the default HTML-safe encoder
-        // would render them as \uXXXX, so these literal substrings could not appear in the payload.
-        test <@ raw.Contains("a>b <c> &") @>
-        test <@ raw.Contains("Привет") @>
+        use doc = handler.LastBodyJson
+        let body = bodyStringOf (streamAt 0 doc) 0
+        // Relaxed escaping: '<' '>' '&' and non-ASCII stay verbatim and quotes use the JSON-standard
+        // \", never \uXXXX. The default HTML-safe encoder would render all of these as \uXXXX.
+        test <@ body.Contains("a>b <c> &") @>
+        test <@ body.Contains("Привет") @>
+        test <@ body.Contains("\\\"q\\\"") @>
+        test <@ not (body.Contains("\\u0022")) @>
     }
 
 [<Fact>]
