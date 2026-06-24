@@ -38,7 +38,7 @@
     </ItemGroup>
 
     <ItemGroup Label="Tests">
-        <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.6.0"/>
+        <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.7.0"/>
         <PackageVersion Include="Unquote" Version="7.0.1"/>
         <PackageVersion Include="xunit" Version="2.9.3"/>
         <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5"/>
