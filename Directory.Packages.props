@@ -30,7 +30,7 @@
     </ItemGroup>
 
     <ItemGroup Label="Integration tests">
-        <PackageVersion Include="Testcontainers" Version="4.12.0"/>
+        <PackageVersion Include="Testcontainers" Version="4.13.0"/>
     </ItemGroup>
 
     <ItemGroup Label="Benchmarks">
