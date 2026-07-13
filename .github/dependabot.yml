@@ -8,8 +8,22 @@ updates:
   - package-ecosystem: "nuget"
     directory: "/" # Location of package manifests
     schedule:
-      interval: "daily"
+      interval: "weekly"
+    groups:
+      # Everything that does NOT ship to consumers (tests, build tooling, analyzers,
+      # samples, benchmarks) lands in a single PR instead of a dozen.
+      dev-dependencies:
+        patterns: ["*"]
+        exclude-patterns: ["Serilog", "FSharp.Core"]
     ignore:
+      # Shipped, transitive-to-consumers deps: keep the declared floor low. A bare
+      # <PackageVersion Version="x"> is already an open range (>= x), so consumers can
+      # use any newer compatible version; we don't want the bot raising our minimum.
+      # Minor/patch are ignored; a new major still opens a PR so we can decide to support it.
+      - dependency-name: "Serilog"
+        update-types: ["version-update:semver-minor", "version-update:semver-patch"]
+      - dependency-name: "FSharp.Core"
+        update-types: ["version-update:semver-minor", "version-update:semver-patch"]
       # Benchmark baselines are deliberate pins (benchmarks/*/*.fsproj VersionOverride):
       # the previously published release the suite measures against, and the third-party
       # yardstick. Bump them consciously — together with the recorded numbers in
@@ -20,4 +34,7 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/" # Location of package manifests
     schedule:
-      interval: "daily"
+      interval: "weekly"
+    groups:
+      github-actions:
+        patterns: ["*"]
