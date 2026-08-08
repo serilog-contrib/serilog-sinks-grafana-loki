@@ -1154,19 +1154,21 @@ let ``body: a trimmed body still carries structured metadata`` () : Task =
     }
 
 [<Fact>]
-let ``body: built-in formatter output is unaffected by trimming`` () : Task =
-    // The default path emits JSON closing on '}', so the trim finds nothing to strip and the
-    // payload stays byte-identical — properties included, not just the final character.
+let ``body: built-in formatter output is byte-identical under trimming`` () : Task =
+    // The default path emits JSON closing on '}', so the trim finds nothing to strip. Asserting
+    // the whole payload rather than parsed fragments is what actually pins that: escaping,
+    // property order and envelope shape all have to survive, not just the final character.
+    // fixedTs makes the nanosecond timestamp deterministic.
     task {
         let handler, sink = makeSink id
         use _ = sink
-        do! flush sink [ mkInfo [ "Note", box "value" ] ]
-        use doc = handler.LastBodyJson
-        let s = streamAt 0 doc
-        let body = bodyStringOf s 0
-        // bodyProp parses the body, so it also asserts the payload is still valid JSON.
-        test <@ body.EndsWith("}") @>
-        test <@ bodyProp "Note" s 0 = Some "value" @>
+        do! flush sink [ mkEventAt fixedTs LogEventLevel.Information [ "Note", box "value" ] ]
+
+        // Triple-quoted: the body is a JSON string value, so its own quotes arrive escaped.
+        let expected =
+            """{"streams":[{"stream":{"level":"info"},"values":[["1786185015000000000","{\"Message\":\"\",\"MessageTemplate\":\"\",\"Note\":\"value\"}"]]}]}"""
+
+        test <@ handler.LastBodyText = expected @>
     }
 
 // ── HTTP error response path ──────────────────────────────────────────────────
