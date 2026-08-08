@@ -11,6 +11,7 @@
 namespace Benchmarks
 
 open System
+open System.Globalization
 open System.IO
 open System.Net
 open System.Net.Http
@@ -18,6 +19,8 @@ open BenchmarkDotNet.Attributes
 open Serilog
 open Serilog.Core
 open Serilog.Events
+open Serilog.Formatting
+open Serilog.Formatting.Display
 open Serilog.Sinks.Grafana.Loki
 open Benchmarks.Shared
 
@@ -72,17 +75,53 @@ type FormatterBenchmarks() =
     [<Benchmark>]
     member this.Format_Exception() = this.FormatAll(withException)
 
-// ── Group 2: end-to-end sink push (real production serialization + batching) ──────
-// Drives the public WriteTo.GrafanaLoki pipeline. By default the fake 204 transport
+// Shared setup for the two end-to-end groups below. By default the fake 204 transport
 // keeps the measurement deterministic; set LOKI_BENCH_TARGET (e.g. http://localhost:3100)
 // to push to a real Loki started via docker-compose instead.
+module private SinkSetup =
+    let private target = Environment.GetEnvironmentVariable "LOKI_BENCH_TARGET"
+    let private useReal = not (String.IsNullOrWhiteSpace target)
+    let private label: LokiLabel = { Key = "app"; Value = "benchmarks" }
+
+    let buildEvents (payload: string) (count: int) =
+        if payload = "Exception" then
+            EventGen.buildWithException count
+        else
+            EventGen.buildSimple count
+
+    /// A null textFormatter selects the sink's built-in LokiJsonTextFormatter.
+    let buildLogger (textFormatter: ITextFormatter) =
+        let cfg = LoggerConfiguration()
+
+        let configured =
+            if useReal then
+                cfg.WriteTo.GrafanaLoki(
+                    target,
+                    labels = [| label |],
+                    textFormatter = textFormatter,
+                    batchSizeLimit = 1000,
+                    queueLimit = 10_000_000,
+                    period = Nullable(TimeSpan.FromHours 1.0)
+                )
+            else
+                cfg.WriteTo.GrafanaLoki(
+                    "http://localhost:9999",
+                    labels = [| label |],
+                    textFormatter = textFormatter,
+                    httpMessageHandler = (new Fake204Handler() :> HttpMessageHandler),
+                    batchSizeLimit = 1000,
+                    queueLimit = 10_000_000,
+                    period = Nullable(TimeSpan.FromHours 1.0)
+                )
+
+        configured.CreateLogger()
+
+// ── Group 2: end-to-end sink push (real production serialization + batching) ──────
+// Drives the public WriteTo.GrafanaLoki pipeline with the built-in formatter, which the
+// sink serializes through its internal FormatToBuffer fast path.
 
 [<Config(typeof<Config.SinkConfig>)>]
 type SinkBenchmarks() =
-    let target = Environment.GetEnvironmentVariable "LOKI_BENCH_TARGET"
-    let useReal = not (String.IsNullOrWhiteSpace target)
-    let label: LokiLabel = { Key = "app"; Value = "benchmarks" }
-
     let mutable events: LogEvent[] = [||]
     let mutable logger: Logger = null
 
@@ -94,34 +133,8 @@ type SinkBenchmarks() =
 
     [<IterationSetup>]
     member this.IterationSetup() =
-        events <-
-            if this.Payload = "Exception" then
-                EventGen.buildWithException this.EventCount
-            else
-                EventGen.buildSimple this.EventCount
-
-        let cfg = LoggerConfiguration()
-
-        let configured =
-            if useReal then
-                cfg.WriteTo.GrafanaLoki(
-                    target,
-                    labels = [| label |],
-                    batchSizeLimit = 1000,
-                    queueLimit = 10_000_000,
-                    period = Nullable(TimeSpan.FromHours 1.0)
-                )
-            else
-                cfg.WriteTo.GrafanaLoki(
-                    "http://localhost:9999",
-                    labels = [| label |],
-                    httpMessageHandler = (new Fake204Handler() :> HttpMessageHandler),
-                    batchSizeLimit = 1000,
-                    queueLimit = 10_000_000,
-                    period = Nullable(TimeSpan.FromHours 1.0)
-                )
-
-        logger <- configured.CreateLogger()
+        events <- SinkSetup.buildEvents this.Payload this.EventCount
+        logger <- SinkSetup.buildLogger null
 
     [<Benchmark>]
     member _.Push() =
@@ -130,4 +143,40 @@ type SinkBenchmarks() =
 
         // Disposing the logger flushes the batching sink synchronously — this is where
         // the batch is serialized and POSTed, so it must be inside the measured region.
+        logger.Dispose()
+
+// ── Group 3: end-to-end sink push through a custom ITextFormatter ─────────────────
+// Group 2 only ever exercises the built-in formatter. A user-supplied ITextFormatter
+// takes a different route through the serializer, so without this group nothing in CI
+// watches that path, and an allocation regression there is invisible.
+
+[<Config(typeof<Config.SinkConfig>)>]
+type CustomFormatterSinkBenchmarks() =
+    // Serilog's stock output template: by far the most common custom formatter, and the
+    // shape reported in #347. Invariant culture keeps rendering agent-independent.
+    let formatter =
+        MessageTemplateTextFormatter(
+            "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}",
+            CultureInfo.InvariantCulture
+        )
+
+    let mutable events: LogEvent[] = [||]
+    let mutable logger: Logger = null
+
+    [<Params(1000)>]
+    member val EventCount = 1000 with get, set
+
+    [<Params("Simple", "Exception")>]
+    member val Payload = "Simple" with get, set
+
+    [<IterationSetup>]
+    member this.IterationSetup() =
+        events <- SinkSetup.buildEvents this.Payload this.EventCount
+        logger <- SinkSetup.buildLogger formatter
+
+    [<Benchmark>]
+    member _.Push() =
+        for e in events do
+            logger.Write(e)
+
         logger.Dispose()
