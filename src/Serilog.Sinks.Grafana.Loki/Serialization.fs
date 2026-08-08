@@ -33,6 +33,7 @@ type internal SerializationBuffers() =
 
     let bodyWriter = JsonWriterDefaults.createWriter body
     let messageWriter = new Utf8TextWriter(message)
+    let bodyTextWriter = new Utf8TextWriter(body)
 
     /// Envelope buffer holding the full push payload; read by LokiPushContent after serialize.
     member _.Main = main
@@ -42,11 +43,16 @@ type internal SerializationBuffers() =
     member _.BodyWriter = bodyWriter
     /// Reused writer for rendering each event's message to UTF-8.
     member _.MessageWriter = messageWriter
+    /// Reused TextWriter over the body buffer, handed to a custom ITextFormatter.
+    /// Utf8TextWriter holds no state of its own, so clearing Body between events is
+    /// the only reset needed — see the custom-formatter branch in serialize.
+    member _.BodyTextWriter = bodyTextWriter
 
     interface IDisposable with
         member _.Dispose() =
             (bodyWriter :> IDisposable).Dispose()
             (messageWriter :> IDisposable).Dispose()
+            (bodyTextWriter :> IDisposable).Dispose()
             (main :> IDisposable).Dispose()
             (body :> IDisposable).Dispose()
             (message :> IDisposable).Dispose()
@@ -131,11 +137,12 @@ module internal Serialization =
                 // Body: built-in fast path writes JSON straight to bodyBuffer (via the reused
                 // writer); a custom ITextFormatter writes text through Utf8TextWriter. Either way
                 // bodyBuffer then holds the UTF-8 body, which becomes the 2nd "values" element.
+                // Both writers are owned by buffers and reused across the batch — Utf8TextWriter
+                // carries no state, so clearing bodyBuffer below is the whole reset.
                 if not (obj.ReferenceEquals(builtIn, null)) then
                     builtIn.FormatToBuffer(event, buffers.BodyWriter, buffers.MessageWriter)
                 else
-                    use textWriter = new Utf8TextWriter(buffers.Body)
-                    textFormatter.Format(event, textWriter)
+                    textFormatter.Format(event, buffers.BodyTextWriter)
 
                 // A formatter terminates the body the way a stream sink needs — Serilog's stock
                 // output templates render a trailing newline via {NewLine} or {Exception}. That is
