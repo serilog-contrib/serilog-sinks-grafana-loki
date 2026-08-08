@@ -2,6 +2,7 @@ module Serilog.Sinks.Grafana.Loki.Tests.WireFormatTests
 
 open System
 open System.Diagnostics
+open System.Globalization
 open System.Net
 open System.Net.Http
 open System.Text
@@ -12,6 +13,7 @@ open Swensen.Unquote
 open Xunit
 open Serilog.Events
 open Serilog.Formatting
+open Serilog.Formatting.Display
 open Serilog.Parsing
 open Serilog.Core
 open Serilog.Sinks.Grafana.Loki
@@ -146,6 +148,17 @@ let private timestampOf (stream: JsonElement) (i: int) =
 let private bodyStringOf (stream: JsonElement) (i: int) =
     let entry = stream.GetProperty("values")[i]
     entry[1].GetString()
+
+/// Serializes a single event through the given formatter and returns the entry body.
+let private bodyFrom (formatter: ITextFormatter) (event: LogEvent) =
+    task {
+        let handler, sink = makeSink (fun o -> { o with TextFormatter = formatter })
+
+        use _ = sink
+        do! flush sink [ event ]
+        use doc = handler.LastBodyJson
+        return bodyStringOf (streamAt 0 doc) 0
+    }
 
 let private bodyProp (key: string) (stream: JsonElement) (i: int) =
     use body = JsonDocument.Parse(bodyStringOf stream i)
@@ -990,22 +1003,170 @@ type private FixedBodyFormatter(text: string) =
     interface ITextFormatter with
         member _.Format(_, output) = output.Write(text)
 
+/// Terminates each line with TextWriter.WriteLine rather than an embedded newline.
+type private WriteLineFormatter() =
+    interface ITextFormatter with
+        member _.Format(_, output) =
+            output.WriteLine("first")
+            output.WriteLine("last")
+
+/// Renders the event's `Body` property verbatim, so events in one batch can differ.
+type private BodyPropertyFormatter() =
+    interface ITextFormatter with
+        member _.Format(logEvent, output) =
+            match logEvent.Properties.TryGetValue "Body" with
+            | true, (:? ScalarValue as v) -> output.Write(string v.Value)
+            | _ -> ()
+
 [<Fact>]
 let ``body: custom ITextFormatter goes through Utf8TextWriter path`` () : Task =
     // When a non-LokiJsonTextFormatter is used, Serialization.fs routes through
     // Utf8TextWriter. Verify the custom body survives unchanged in the Loki payload.
     task {
+        let! body = bodyFrom (FixedBodyFormatter("CUSTOM_BODY")) (mkInfo [])
+        test <@ body = "CUSTOM_BODY" @>
+    }
+
+// ── trailing newline trimming (#347) ──────────────────────────────────────────
+
+// A fixed timestamp with an explicit offset makes MessageTemplateTextFormatter's rendering
+// deterministic ({Timestamp} formats the DateTimeOffset as-is, without zone conversion), so
+// these tests can assert on the exact body rather than a suffix.
+let private fixedTs = DateTimeOffset(2026, 8, 8, 10, 30, 15, TimeSpan.Zero)
+
+/// The stock Console/File output template, rendered under the invariant culture so the
+/// exact-body assertions do not depend on the CI agent's locale. #347 reports the same shape
+/// with plain `{Message}`; only the message rendering differs, not the trailing newline.
+let private stockFormatter =
+    MessageTemplateTextFormatter(
+        "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}",
+        CultureInfo.InvariantCulture
+    )
+
+let private mkRendered (ex: exn) =
+    LogEvent(
+        fixedTs,
+        LogEventLevel.Information,
+        ex,
+        traceParser.Parse("Hello {Name}"),
+        [ LogEventProperty("Name", ScalarValue("world")) ]
+    )
+
+[<Fact>]
+let ``body: stock output template leaves no trailing newline`` () : Task =
+    // {NewLine} terminates the rendered line. That is record framing for Console/File,
+    // but a Loki entry is a JSON string value, so it must not survive into the payload.
+    task {
+        let! body = bodyFrom stockFormatter (mkRendered null)
+        test <@ body = "[10:30:15 INF] Hello world" @>
+    }
+
+[<Fact>]
+let ``body: rendered exception leaves no trailing newline`` () : Task =
+    // {Exception} renders as Exception.ToString() + Environment.NewLine, so a template ending
+    // in {Exception} still emits a trailing newline — dropping {NewLine} is not a workaround.
+    task {
+        let ex = InvalidOperationException("boom")
+        let! body = bodyFrom stockFormatter (mkRendered ex)
+
+        let expected =
+            $"[10:30:15 INF] Hello world{Environment.NewLine}System.InvalidOperationException: boom"
+
+        test <@ body = expected @>
+    }
+
+[<Theory>]
+[<InlineData("first\r\nsecond\nthird\r\n", "first\r\nsecond\nthird")>] // interior newlines survive
+[<InlineData("line\n\r\n\n", "line")>] // a whole trailing run goes, not just the last byte
+[<InlineData("line\r", "line")>] // lone CR, not preceded by an LF
+[<InlineData("café 日本語\r\n", "café 日本語")>] // UTF-8 continuations (0x80-0xBF) never look like CR/LF
+[<InlineData("padded \t", "padded \t")>] // spaces and tabs are content, not framing (matches v8)
+[<InlineData("\r\n\r\n", "")>] // a body that is entirely framing trims to empty
+let ``body: only trailing CR and LF are trimmed from a formatted body`` (rendered: string) (expected: string) : Task =
+    task {
+        let! body = bodyFrom (FixedBodyFormatter(rendered)) (mkInfo [])
+        test <@ body = expected @>
+    }
+
+[<Fact>]
+let ``body: a formatter terminating via WriteLine is trimmed`` () : Task =
+    // Utf8TextWriter.WriteLine is its own code path (it appends '\n' rather than
+    // Environment.NewLine), and it is how CompactJsonFormatter ends its output.
+    task {
+        let! body = bodyFrom (WriteLineFormatter()) (mkInfo [])
+        test <@ body = "first\nlast" @>
+    }
+
+[<Fact>]
+let ``body: trimming is per entry across a batch and leaves no stale bytes`` () : Task =
+    // The body buffer is reused for every event in a batch. Trimming must not shorten what
+    // gets cleared, or a long body's tail would bleed into the next, shorter entry.
+    task {
         let handler, sink =
             makeSink (fun o ->
                 { o with
-                    TextFormatter = FixedBodyFormatter("CUSTOM_BODY")
+                    TextFormatter = BodyPropertyFormatter()
                 })
 
         use _ = sink
-        do! flush sink [ mkInfo [] ]
+
+        // Rendered → expected, so the two sides can never drift apart.
+        let cases =
+            [
+                "a long first body that ends in a newline\r\n", "a long first body that ends in a newline"
+                "short", "short"
+                "third\n", "third"
+                "d", "d"
+            ]
+
+        let events =
+            cases
+            |> List.mapi (fun i (rendered, _) ->
+                mkEventAt (fixedTs.AddSeconds(float i)) LogEventLevel.Information [ "Body", box rendered ])
+
+        do! flush sink events
         use doc = handler.LastBodyJson
-        let body = bodyStringOf (streamAt 0 doc) 0
-        test <@ body = "CUSTOM_BODY" @>
+        let s = streamAt 0 doc
+        let actual = List.init cases.Length (bodyStringOf s)
+
+        test <@ actual = List.map snd cases @>
+    }
+
+[<Fact>]
+let ``body: a trimmed body still carries structured metadata`` () : Task =
+    // The trimmed WriteStringValue hands the writer straight to the metadata element;
+    // a shortened body must not disturb the optional 3rd entry element.
+    task {
+        let handler, sink =
+            makeSink (fun o ->
+                { o with
+                    TextFormatter = FixedBodyFormatter("meta body\r\n")
+                    PropertiesAsStructuredMetadata = [| "RequestId" |]
+                })
+
+        use _ = sink
+        do! flush sink [ mkInfo [ "RequestId", box "req-42" ] ]
+        use doc = handler.LastBodyJson
+        let s = streamAt 0 doc
+        test <@ bodyStringOf s 0 = "meta body" @>
+        test <@ entryElementCount s 0 = 3 @>
+        test <@ metadataProp "RequestId" s 0 = Some "req-42" @>
+    }
+
+[<Fact>]
+let ``body: built-in formatter output is unaffected by trimming`` () : Task =
+    // The default path emits JSON closing on '}', so the trim finds nothing to strip and the
+    // payload stays byte-identical — properties included, not just the final character.
+    task {
+        let handler, sink = makeSink id
+        use _ = sink
+        do! flush sink [ mkInfo [ "Note", box "value" ] ]
+        use doc = handler.LastBodyJson
+        let s = streamAt 0 doc
+        let body = bodyStringOf s 0
+        // bodyProp parses the body, so it also asserts the payload is still valid JSON.
+        test <@ body.EndsWith("}") @>
+        test <@ bodyProp "Note" s 0 = Some "value" @>
     }
 
 // ── HTTP error response path ──────────────────────────────────────────────────
