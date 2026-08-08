@@ -70,8 +70,10 @@ type internal Utf8TextWriter(bufferWriter: PooledByteBufferWriter) =
             let written = Encoding.UTF8.GetBytes(value, span)
             writer.Advance(written)
 
-    // Serilog formatters end log lines with WriteLine(); route through Write so
-    // the newline is encoded into the same pooled buffer rather than flushed.
+    // Some formatters terminate a line with WriteLine() (CompactJsonFormatter does; the
+    // output-template formatters instead Write() Environment.NewLine themselves). Route it
+    // through Write so the newline lands in the same pooled buffer rather than being flushed.
+    // Whichever way it arrives, Serialization strips it from the tail of a Loki entry body.
     override self.WriteLine(value: string) =
         self.Write(value)
         self.Write('\n')

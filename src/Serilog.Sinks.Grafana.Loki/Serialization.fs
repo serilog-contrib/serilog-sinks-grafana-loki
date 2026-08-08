@@ -60,6 +60,10 @@ module internal Serialization =
     let private jStream = JsonEncodedText.Encode "stream"
     let private jValues = JsonEncodedText.Encode "values"
 
+    /// Trailing bytes stripped from a formatted body. Bound once: an inline "\r\n"B literal
+    /// allocates a fresh array on every evaluation, which in the per-event loop is a regression.
+    let private lineFraming = "\r\n"B
+
     /// Serializes a complete batch of log events into mainBuffer as a Loki push payload:
     ///
     ///   { "streams": [ { "stream": { labels }, "values": [ [ "ts_ns", "body", { meta }? ], ... ] } ] }
@@ -133,7 +137,12 @@ module internal Serialization =
                     use textWriter = new Utf8TextWriter(buffers.Body)
                     textFormatter.Format(event, textWriter)
 
-                jsonWriter.WriteStringValue(buffers.Body.WrittenSpan)
+                // A formatter terminates the body the way a stream sink needs — Serilog's stock
+                // output templates render a trailing newline via {NewLine} or {Exception}. That is
+                // record framing, load-bearing for Console/File but not here: a Loki entry is a JSON
+                // string value framed by the payload itself, so a newline left in place is stored as
+                // content and renders as a blank line in Grafana (#347). Interior newlines survive.
+                jsonWriter.WriteStringValue(buffers.Body.WrittenSpan.TrimEnd(ReadOnlySpan<byte>(lineFraming)))
                 buffers.Body.Clear()
 
                 // Optional 3rd element: per-line structured metadata, written straight to the

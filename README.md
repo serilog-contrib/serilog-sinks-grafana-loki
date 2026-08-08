@@ -413,6 +413,13 @@ override `Format` or `SanitizePropertyName`, then pass it via `textFormatter`:
 }
 ```
 
+**Trailing newlines.** Any trailing `\r` / `\n` a formatter leaves is stripped before the body is written — always, and
+not configurable. A Loki entry is a JSON string value, so unlike Console or File — where that newline separates records
+in the stream — it would otherwise be stored as content and show up as a blank line in Grafana. This matters for output
+templates: both `{NewLine}` and `{Exception}` render one, so a template ending in `{Exception}` produces a trailing
+newline whenever an event carries an exception. Newlines *inside* a body are preserved; a body that deliberately ends in
+one loses it. This matches v8.
+
 **Custom exception formatter.** Exception serialization is delegated to `ILokiExceptionFormatter`. The default
 (`LokiExceptionFormatter`) recursively writes `Type`, `Message`, `Source`, `StackTrace` and inner exceptions. Replace it
 to scrub PII, change the shape, or suppress stack traces:
