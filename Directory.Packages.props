@@ -9,7 +9,7 @@
 
     <ItemGroup Label="Build tooling">
         <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="10.0.400"/>
-        <PackageVersion Include="MinVer" Version="7.0.0"/>
+        <PackageVersion Include="MinVer" Version="8.0.0"/>
     </ItemGroup>
 
     <ItemGroup Label="Runtime">
@@ -30,7 +30,7 @@
     </ItemGroup>
 
     <ItemGroup Label="Integration tests">
-        <PackageVersion Include="Testcontainers" Version="4.14.0"/>
+        <PackageVersion Include="Testcontainers" Version="4.15.0"/>
     </ItemGroup>
 
     <ItemGroup Label="Benchmarks">
